@@ -1,4 +1,4 @@
-import { Header } from '../components/Header.js';
+import { Header } from './index/Header.js';
 import { Button } from '../components/Button.js';
 import { SERVER_STATUS, ELEMENT_IDS } from './index/index.constants.js';
 import { APP_ID } from '../constants/App.js';
