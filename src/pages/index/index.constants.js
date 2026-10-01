@@ -7,4 +7,5 @@ export const ELEMENT_IDS = {
   SERVER_STATUS: 'server-status',
   CHECK_BUTTON: 'check-btn',
   CLEAR_BUTTON: 'clear-btn',
+  TRIGGER_ERROR_BUTTON: 'trigger-error-btn',
 };

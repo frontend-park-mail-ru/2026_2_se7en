@@ -2,7 +2,8 @@ import { Header } from '../../components/Header.js';
 import { Button } from '../../components/Button.js';
 import { SERVER_STATUS, ELEMENT_IDS } from './index.constants.js';
 import { APP_ID } from '../../constants/App.js';
-import { debugError } from '../../helpers/error.js';
+import { handleError } from '../../helpers/error.js';
+import { ApiError } from '../../helpers/ApiError.js';
 
 /**
  * Класс, представляющий главную страницу приложения (PageIndex).
@@ -10,7 +11,7 @@ import { debugError } from '../../helpers/error.js';
  */
 export class PageIndex {
   constructor() {
-    this.serverStatus = SERVER_STATUS.NOT_CHECKED;
+    this.server_status = SERVER_STATUS.NOT_CHECKED;
     this.container = null;
   }
 
@@ -25,12 +26,13 @@ export class PageIndex {
               Статус сервера:
             </h2>
             <p id="server-status" class="text-blue-600 font-mono mb-6 bg-blue-50 p-3 rounded">
-              ${this.serverStatus}
+              ${this.server_status}
             </p>
             
             <div class="flex gap-4 justify-center">
               ${Button({ id: ELEMENT_IDS.CHECK_BUTTON, text: 'Проверить API', mode: 'primary' })}
               ${Button({ id: ELEMENT_IDS.CLEAR_BUTTON, text: 'Очистить', mode: 'secondary' })}
+              ${Button({ id: ELEMENT_IDS.TRIGGER_ERROR_BUTTON, text: 'Тест ошибки (Toast)', mode: 'danger' })}
             </div>
           </div>
         </main>
@@ -59,6 +61,10 @@ export class PageIndex {
     document.getElementById(ELEMENT_IDS.CLEAR_BUTTON)?.addEventListener('click', () => {
       this.clearStatus();
     });
+
+    document.getElementById(ELEMENT_IDS.TRIGGER_ERROR_BUTTON)?.addEventListener('click', () => {
+      this.triggerTestError();
+    });
   }
 
   /**
@@ -71,10 +77,10 @@ export class PageIndex {
     try {
       const response = await fetch('http://localhost:3001/api/health');
       const data = await response.json();
-      this.serverStatus = data.message;
+      this.server_status = data.message;
       this.updateStatus();
     } catch (error) {
-      this.serverStatus = SERVER_STATUS.ERROR;
+      this.server_status = SERVER_STATUS.ERROR;
       this.updateStatus();
     }
   }
@@ -83,7 +89,7 @@ export class PageIndex {
    * Сбрасывает статус сервера в начальное состояние ("Не проверено") и обновляет UI.
    */
   clearStatus() {
-    this.serverStatus = SERVER_STATUS.NOT_CHECKED;
+    this.server_status = SERVER_STATUS.NOT_CHECKED;
     this.updateStatus();
   }
 
@@ -93,7 +99,19 @@ export class PageIndex {
   updateStatus() {
     const statusElement = document.getElementById(ELEMENT_IDS.SERVER_STATUS);
     if (statusElement) {
-      statusElement.textContent = this.serverStatus;
+      statusElement.textContent = this.server_status;
+    }
+  }
+
+  triggerTestError() {
+    try {
+      throw new ApiError('VALIDATION_ERROR', 'Не удалось выполнить тестовый запрос', [
+        { field: 'test_field', reason: 'fake_error' },
+      ]);
+
+      // throw new ApiError('NETWORK_ERROR', 'Сервер временно недоступен');
+    } catch (error) {
+      handleError(error);
     }
   }
 }
