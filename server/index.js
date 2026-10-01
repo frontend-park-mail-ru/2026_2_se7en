@@ -12,10 +12,6 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
-  res.status(204).send();
-});
-
 app.use('/src', express.static(path.join(__dirname, '../src')));
 
 app.get('/', (req, res) => {

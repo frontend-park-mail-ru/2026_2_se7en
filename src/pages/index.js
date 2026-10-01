@@ -1,20 +1,17 @@
 import { Header } from '../components/Header.js';
 import { Button } from '../components/Button.js';
+import { SERVER_STATUS, ELEMENT_IDS } from './index/index.constants.js';
+import { APP_ID } from '../constants/App.js';
+import { debugError } from '../helpers/error.js';
 
-const SERVER_STATUS = {
-  NOT_CHECKED: 'Не проверено',
-  ERROR: 'Ошибка подключения к серверу',
-};
-
-const ELEMENT_IDS = {
-  SERVER_STATUS: 'server-status',
-  CHECK_BUTTON: 'check-btn',
-  CLEAR_BUTTON: 'clear-btn',
-};
-
+/**
+ * Класс, представляющий главную страницу приложения (PageIndex).
+ * Отвечает за рендеринг разметки, управление состоянием и логику взаимодействия с сервером.
+ */
 export class PageIndex {
   constructor() {
     this.serverStatus = SERVER_STATUS.NOT_CHECKED;
+    this.container = null;
   }
 
   render() {
@@ -42,9 +39,18 @@ export class PageIndex {
   }
 
   mount() {
+    this.container = document.getElementById(APP_ID);
+    if (!this.container) {
+      debugError(`Элемент с ${APP_ID} id не найден`);
+      return;
+    }
+    this.container.innerHTML = this.render();
     this.bindEvents();
   }
 
+  /**
+   * Навешивает обработчики событий (click) на интерактивные элементы страницы.
+   */
   bindEvents() {
     document.getElementById(ELEMENT_IDS.CHECK_BUTTON)?.addEventListener('click', () => {
       this.checkServer();
@@ -55,6 +61,12 @@ export class PageIndex {
     });
   }
 
+  /**
+   * Выполняет асинхронный запрос к API для проверки состояния сервера.
+   * В случае успеха обновляет статус, в случае ошибки — логирует её и показывает сообщение.
+   *
+   * @async
+   */
   async checkServer() {
     try {
       const response = await fetch('http://localhost:3001/api/health');
@@ -67,11 +79,17 @@ export class PageIndex {
     }
   }
 
+  /**
+   * Сбрасывает статус сервера в начальное состояние ("Не проверено") и обновляет UI.
+   */
   clearStatus() {
     this.serverStatus = SERVER_STATUS.NOT_CHECKED;
     this.updateStatus();
   }
 
+  /**
+   * Обновляет текстовое содержимое элемента статуса на странице в соответствии с текущим состоянием.
+   */
   updateStatus() {
     const statusElement = document.getElementById(ELEMENT_IDS.SERVER_STATUS);
     if (statusElement) {
