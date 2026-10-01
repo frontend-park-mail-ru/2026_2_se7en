@@ -8,8 +8,9 @@ export default [
       globals: { ...globals.node, ...globals.browser },
     },
     rules: {
-      'no-unused-vars': 'warn',
-      'no-console': 'off',
+      'no-unused-vars': 'error',
+      'no-console': 'error',
+      'import-x/no-relative-parent-imports': 'error',
     },
   },
 ];
