@@ -1,5 +1,6 @@
 import { validateEmail, validatePassword } from '../../helpers/validation.js';
 import { APP_ID } from '../../constants/App.js';
+import { debugError } from '../../helpers/error.js';
 
 export class LoginPage {
   render() {
@@ -78,7 +79,7 @@ export class LoginPage {
   mount() {
     const container = document.getElementById(APP_ID);
     if (!container) {
-      console.error(`Элемент с id=${APP_ID} не найден`);
+      debugError(`Элемент с id=${APP_ID} не найден`);
       return;
     }
 
@@ -134,7 +135,7 @@ export class LoginPage {
 
       window.location.href = '/';
     } catch (error) {
-      console.error(error);
+      debugError(error);
       document.getElementById('general-error').textContent = 'Сервер недоступен';
     }
   }

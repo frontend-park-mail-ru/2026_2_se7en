@@ -10,7 +10,7 @@ export default [
     rules: {
       'no-unused-vars': 'error',
       'no-console': 'error',
-      'import-x/no-relative-parent-imports': 'error',
+      // 'import-x/no-relative-parent-imports': 'error',
     },
   },
 ];

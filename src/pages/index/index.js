@@ -74,6 +74,7 @@ export class PageIndex {
       this.serverStatus = data.message;
       this.updateStatus();
     } catch (error) {
+      debugError(error);
       this.serverStatus = SERVER_STATUS.ERROR;
       this.updateStatus();
     }
