@@ -2,6 +2,9 @@ import { ApiSuccess, ApiError } from './ApiResponse.js';
 import { BASE_URL } from './api.constants.js';
 import { ERROR_CODES, ERROR_MESSAGES } from './error.constants.js';
 
+/**
+ * Базовый класс для выполнения HTTP-запросов к серверу.
+ */
 export class ServerApi {
   /**
    * @param {string} endpoint
