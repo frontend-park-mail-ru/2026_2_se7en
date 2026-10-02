@@ -9,7 +9,7 @@ import { APP_ID } from '../../constants/App.js';
  */
 export class PageIndex {
   constructor() {
-    this.server_status = SERVER_STATUS.NOT_CHECKED;
+    this.serverStatus = SERVER_STATUS.NOT_CHECKED;
     this.container = null;
   }
 
@@ -24,7 +24,7 @@ export class PageIndex {
               Статус сервера:
             </h2>
             <p id="server-status" class="text-blue-600 font-mono mb-6 bg-blue-50 p-3 rounded">
-              ${this.server_status}
+              ${this.serverStatus}
             </p>
             
             <div class="flex gap-4 justify-center">
@@ -70,10 +70,10 @@ export class PageIndex {
     try {
       const response = await fetch('http://localhost:3001/api/health');
       const data = await response.json();
-      this.server_status = data.message;
+      this.serverStatus = data.message;
       this.updateStatus();
     } catch (error) {
-      this.server_status = SERVER_STATUS.ERROR;
+      this.serverStatus = SERVER_STATUS.ERROR;
       this.updateStatus();
     }
   }
@@ -82,7 +82,7 @@ export class PageIndex {
    * Сбрасывает статус сервера в начальное состояние ("Не проверено") и обновляет UI.
    */
   clearStatus() {
-    this.server_status = SERVER_STATUS.NOT_CHECKED;
+    this.serverStatus = SERVER_STATUS.NOT_CHECKED;
     this.updateStatus();
   }
 
@@ -92,7 +92,7 @@ export class PageIndex {
   updateStatus() {
     const statusElement = document.getElementById(ELEMENT_IDS.SERVER_STATUS);
     if (statusElement) {
-      statusElement.textContent = this.server_status;
+      statusElement.textContent = this.serverStatus;
     }
   }
 }

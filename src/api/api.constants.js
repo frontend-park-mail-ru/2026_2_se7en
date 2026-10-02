@@ -1,2 +1,2 @@
-export const env = 'http://localhost:3001';
-export const BASE_URL = `${env}/api/v1`;
+const BACKEND_URL = 'http://localhost:3001';
+export const BASE_URL = `${BACKEND_URL}/api/v1`;

@@ -1,5 +1,8 @@
 import { GET_CHATS_URL } from './chats.constants';
 
+/**
+ * Класс для взаимодействия с API чатов.
+ */
 export class ChatsApi {
   /**
    * @param {Object} [params]
