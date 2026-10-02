@@ -1,0 +1,42 @@
+import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants';
+
+export class AuthApi {
+  /**
+   * @param {Object} user_data
+   * @returns {Promise<ApiSuccess | ApiErrorResult>}
+   */
+  static async register(user_data) {
+    return this._request(REGISTER_URL, {
+      method: 'POST',
+      body: user_data,
+    });
+  }
+
+  /**
+   * @param {string} email
+   * @param {string} password
+   * @returns {Promise<ApiSuccess | ApiErrorResult>}
+   */
+  static async login(email, password) {
+    return this._request(LOGIN_URL, {
+      method: 'POST',
+      body: { email, password },
+    });
+  }
+
+  /**
+   * @returns {Promise<ApiSuccess | ApiErrorResult>}
+   */
+  static async logout() {
+    return this._request(LOGOUT_URL, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * @returns {Promise<ApiSuccess | ApiErrorResult>}
+   */
+  static async getCurrentUser() {
+    return this._request(GET_CURRENT_USER_URL);
+  }
+}
