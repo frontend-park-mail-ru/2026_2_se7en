@@ -1,4 +1,5 @@
 import { ApiError } from './ApiError.js';
+import { Messages } from './error.constants.js';
 
 export function handleError(error) {
   console.error('API Error:', error);
@@ -13,14 +14,7 @@ export function handleError(error) {
 
 function getUserFriendlyMessage(error) {
   if (error instanceof ApiError) {
-    const messages = {
-      INVALID_CREDENTIALS: 'Неверный email или пароль',
-      EMAIL_TAKEN: 'Этот email уже используется',
-      NICKNAME_TAKEN: 'Этот никнейм уже занят',
-      VALIDATION_ERROR: 'Ошибка в данных. Проверьте форму',
-      NETWORK_ERROR: 'Нет подключения к интернету или сервер недоступен',
-    };
-    return messages[error.code] || error.message || 'Произошла ошибка';
+    return Messages[error.code] || error.message || 'Произошла ошибка';
   }
   return error.message || 'Произошла неизвестная ошибка';
 }

@@ -1,4 +1,3 @@
-import { handleError } from '../helpers/error';
 import { ApiError } from '../helpers/ApiError.js';
 
 const BASE_URL = 'http://localhost:3001/api/v1';
