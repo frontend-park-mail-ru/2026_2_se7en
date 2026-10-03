@@ -1,4 +1,4 @@
-import { ELEMENT_IDS, VALIDATION_RULES } from './register.constants.js';
+import { ELEMENT_IDS, VALIDATION_RULES, ERROR_STATUSES } from './register.constants.js';
 import { debugError } from '../../helpers/error.js';
 
 import { Page } from '../page.js';
@@ -198,8 +198,13 @@ export class PageRegister extends Page {
         }
 
         if (this.currentStep === 1) {
-            this.formData.first_name = document.getElementById(ELEMENT_IDS.FIRST_NAME).value.trim();
-            this.formData.last_name = document.getElementById(ELEMENT_IDS.LAST_NAME).value.trim();
+            const fieldsToSave = [ELEMENT_IDS.FIRST_NAME, ELEMENT_IDS.LAST_NAME];
+            fieldsToSave.forEach((fieldId) => {
+                const input = document.getElementById(fieldId);
+                if (input) {
+                    this.formData[fieldId] = input.value.trim();
+                }
+            });
             
             this.currentStep = 2;
             this.fieldErrors = {};
@@ -209,10 +214,19 @@ export class PageRegister extends Page {
             return;
         }
 
-        this.formData.nickname = document.getElementById(ELEMENT_IDS.NICKNAME).value.trim();
-        this.formData.phone_number = document.getElementById(ELEMENT_IDS.PHONE_NUMBER).value.trim();
-        this.formData.email = document.getElementById(ELEMENT_IDS.EMAIL).value.trim();
-        this.formData.password = document.getElementById(ELEMENT_IDS.PASSWORD).value;
+        const fieldsToSave = [
+            ELEMENT_IDS.NICKNAME,
+            ELEMENT_IDS.PHONE_NUMBER,
+            ELEMENT_IDS.EMAIL,
+            ELEMENT_IDS.PASSWORD,
+        ];
+
+        fieldsToSave.forEach((fieldId) => {
+            const input = document.getElementById(fieldId);
+            if (input) {
+                this.formData[fieldId] = input.value.trim();
+            }
+        });
 
         const submitBtn = document.getElementById(ELEMENT_IDS.SUBMIT_BUTTON);
         const originalText = submitBtn.textContent;
@@ -230,20 +244,18 @@ export class PageRegister extends Page {
 
             const data = await response.json();
 
-            if (response.status === 201) {
+            if (response.status === ERROR_STATUSES.StatusCreated) {
                 window.location.href = '/login';
                 return;
             }
 
-            if (response.status === 400 && data.code === 'VALIDATION_ERROR' && data.details) {
+            if (response.status === ERROR_STATUSES.StatusBadRequest && data.code === 'VALIDATION_ERROR' && data.details) {
                 this.displayErrors(data.details);
-            } else if (response.status === 409) {
-                if (data.code === 'EMAIL_TAKEN') {
-                    this.fieldErrors.email = 'already_exists';
-                    this.container.innerHTML = this.render();
-                    this.bindEvents();
-                } else if (data.code === 'NICKNAME_TAKEN') {
-                    this.fieldErrors.nickname = 'already_exists';
+            } else if (response.status === ERROR_STATUSES.StatusConflict) {
+                if (data.code === 'EMAIL_TAKEN' || data.code === 'NICKNAME_TAKEN') {
+                    if (data.code === 'EMAIL_TAKEN') this.fieldErrors.email = 'already_exists';
+                    if (data.code === 'NICKNAME_TAKEN') this.fieldErrors.nickname = 'already_exists';
+
                     this.container.innerHTML = this.render();
                     this.bindEvents();
                 } else {

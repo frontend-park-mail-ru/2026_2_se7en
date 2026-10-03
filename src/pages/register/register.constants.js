@@ -50,3 +50,9 @@ export const ERROR_MESSAGES = {
     length_must_be_3_to_16: 'Длина должна быть от 3 до 16 символов',
     already_exists: 'Уже используется',
 };
+
+export const ERROR_STATUSES = {
+    StatusCreated: 201,
+    StatusBadRequest: 400,
+    StatusConflict: 409,
+}
