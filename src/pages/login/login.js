@@ -4,8 +4,8 @@ import { AuthApi } from '../../api/auth/AuthApi.js';
 import { validateEmail, validatePassword } from '../../helpers/validation.js';
 import { APP_ID } from '../../constants/App.js';
 import { debugError } from '../../helpers/error.js';
-
-import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID, LOGIN_ROUTES } from '../../constants/Login.js';
+import { ROUTES } from '../../constants/Routes.js';
+import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '../../constants/Login.js';
 
 /**
  * Страница авторизации.
@@ -35,7 +35,7 @@ export class LoginPage {
         subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
         fields: this.buildFields(),
         submitText: 'Войти',
-        footer: `Впервые здесь? <a href="${LOGIN_ROUTES.REGISTER}" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
+        footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
         generalError: this.generalError,
       }),
     });
@@ -129,7 +129,6 @@ export class LoginPage {
     }
 
     const submitBtn = document.getElementById(LOGIN_SUBMIT_ID);
-    const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Входим...';
 
@@ -141,6 +140,6 @@ export class LoginPage {
       return;
     }
 
-    window.location.href = LOGIN_ROUTES.HOME;
+    window.location.href = ROUTES.HOME;
   }
 }

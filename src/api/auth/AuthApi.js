@@ -1,7 +1,6 @@
 import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants.js';
 import { ServerApi } from '../ServerApi.js';
-import { ApiSuccess, ApiError } from '../ApiResponse.js';
-import { mockLogin } from './AuthApi.mocks.js';
+import { mockLogin } from './auth.mock.js';
 
 const USING_MOCK = true;
 
