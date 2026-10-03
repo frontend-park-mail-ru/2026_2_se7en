@@ -2,6 +2,7 @@ import { ELEMENT_IDS, VALIDATION_RULES } from './register.constants.js';
 import { APP_ID } from '../../constants/App.js';
 import { debugError } from '../../helpers/error.js';
 
+import { Page } from '../page.js';
 import { renderRegisterHeader } from '../../components/register-header.js';
 import { renderRegisterNavigation } from '../../components/register-navigation.js';
 import { renderRegisterForm } from '../../components/register-form.js';
@@ -11,8 +12,9 @@ import { renderRegisterError } from '../../components/register-error.js';
  * Класс описывающий страницу регистрации
  * Отвечает за рендеринг разметки страницы, валидацию полей, взаимодействие с API регистрации
  */
-export class PageRegister {
+export class PageRegister extends Page {
     constructor() {
+        super();
         this.container = null;
         this.currentStep = 1;
         this.fieldErrors = {};
@@ -59,11 +61,10 @@ export class PageRegister {
      * Инициализирует страницу
      */
     mount() {
-        this.container = document.getElementById(APP_ID);
-        if (!this.container) {
-            debugError(`Элемент с id ${APP_ID} не найден`);
-            return;
+        if (!super.mount()) {
+            return false;
         }
+
         this.fieldErrors = {};
         this.generalError = null;
         this.currentStep = 1;
@@ -77,6 +78,7 @@ export class PageRegister {
         };
         this.container.innerHTML = this.render();
         this.bindEvents();
+        return true;
     }
 
     /**

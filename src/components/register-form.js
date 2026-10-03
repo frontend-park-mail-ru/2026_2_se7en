@@ -1,6 +1,6 @@
 import { ELEMENT_IDS, ERROR_MESSAGES } from '../pages/register/register.constants.js';
 import { Button } from './Button.js';
-import { FormField } from './regform-field.js';
+import { FormField } from './register-form-field.js';
 
 /**
  * Компонент формы регистрации
@@ -21,7 +21,7 @@ export function renderRegisterForm({ currentStep, formData, fieldErrors }) {
             <p class="text-gray-500 text-sm mb-6">Заполните основные данные</p>
 
             <form id="${ELEMENT_IDS.FORM}" class="space-y-4" novalidate>
-                ${currentStep === 1 ? renderStep1Fields(formData, fieldErrors, getError) : renderStep2Fields(formData, fieldErrors, getError)}
+                ${currentStep === 1 ? renderStep1Fields(formData, getError) : renderStep2Fields(formData, getError)}
                 
                 <div class="pt-2">
                     ${Button({
