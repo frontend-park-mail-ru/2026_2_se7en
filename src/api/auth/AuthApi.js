@@ -1,8 +1,7 @@
 import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants.js';
 import { ServerApi } from '../ServerApi.js';
 import { mockLogin } from './auth.mock.js';
-
-const USING_MOCK = true;
+import { USING_MOCK } from '../api.constants.js';
 
 /**
  * Класс для взаимодействия с API аутентификации и управления сессией пользователя.
