@@ -2,8 +2,6 @@ import { Header } from '../../components/Header.js';
 import { Button } from '../../components/Button.js';
 import { SERVER_STATUS, ELEMENT_IDS } from './index.constants.js';
 import { APP_ID } from '../../constants/App.js';
-import { handleError } from '../../helpers/error.js';
-import { ApiError } from '../../helpers/ApiError.js';
 
 /**
  * Класс, представляющий главную страницу приложения (PageIndex).
@@ -32,7 +30,6 @@ export class PageIndex {
             <div class="flex gap-4 justify-center">
               ${Button({ id: ELEMENT_IDS.CHECK_BUTTON, text: 'Проверить API', mode: 'primary' })}
               ${Button({ id: ELEMENT_IDS.CLEAR_BUTTON, text: 'Очистить', mode: 'secondary' })}
-              ${Button({ id: ELEMENT_IDS.TRIGGER_ERROR_BUTTON, text: 'Тест ошибки (Toast)', mode: 'danger' })}
             </div>
           </div>
         </main>
@@ -60,10 +57,6 @@ export class PageIndex {
 
     document.getElementById(ELEMENT_IDS.CLEAR_BUTTON)?.addEventListener('click', () => {
       this.clearStatus();
-    });
-
-    document.getElementById(ELEMENT_IDS.TRIGGER_ERROR_BUTTON)?.addEventListener('click', () => {
-      this.triggerTestError();
     });
   }
 
@@ -100,18 +93,6 @@ export class PageIndex {
     const statusElement = document.getElementById(ELEMENT_IDS.SERVER_STATUS);
     if (statusElement) {
       statusElement.textContent = this.serverStatus;
-    }
-  }
-
-  triggerTestError() {
-    try {
-      throw new ApiError('VALIDATION_ERROR', 'Не удалось выполнить тестовый запрос', [
-        { field: 'test_field', reason: 'fake_error' },
-      ]);
-
-      // throw new ApiError('NETWORK_ERROR', 'Сервер временно недоступен');
-    } catch (error) {
-      handleError(error);
     }
   }
 }
