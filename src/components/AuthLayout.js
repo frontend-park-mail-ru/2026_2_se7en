@@ -28,6 +28,17 @@ const template = Handlebars.compile(`
   </div>
 `);
 
+/**
+ * Генерирует HTML-разметку split-screen лейаута для страниц авторизации.
+ * Слева — логотип и текст-приглашение, справа — переданный контент (форма).
+ *
+ * @param {Object} params
+ * @param {string} params.title - Заголовок левой панели (можно с <br />).
+ * @param {string} params.subtitle - Подпись под заголовком.
+ * @param {string} [params.topBar=''] - HTML верхней панели правой половины (шаги, «Назад»).
+ * @param {string} params.children - HTML правой половины (обычно AuthForm).
+ * @returns {string} HTML-строка со всей страницей.
+ */
 export function AuthLayout({ title, subtitle, topBar = '', children }) {
   return template({ title, subtitle, topBar, children });
 }

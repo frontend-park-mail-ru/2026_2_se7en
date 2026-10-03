@@ -13,6 +13,14 @@ export const MOCK_USER = {
   profile: { id: '2', nickname: 'nick' },
 };
 
+/**
+ * Мок-ответ на запрос логина. Используется в AuthApi при USING_MOCK = true.
+ * Работает без реального сервера: валидирует email и пароль по MOCK_CREDENTIALS.
+ *
+ * @param {string} email - Email пользователя.
+ * @param {string} password - Пароль пользователя.
+ * @returns {Promise<ApiSuccess|ApiError>} Успешный ответ с MOCK_USER или ошибка INVALID_CREDENTIALS.
+ */
 export async function mockLogin(email, password) {
   await new Promise((r) => setTimeout(r, 300));
 

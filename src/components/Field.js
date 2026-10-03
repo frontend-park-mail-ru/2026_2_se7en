@@ -19,6 +19,19 @@ const template = Handlebars.compile(`
   </div>
 `);
 
+/**
+ * Генерирует HTML-разметку для поля ввода с подписью и сообщением об ошибке.
+ *
+ * @param {Object} params
+ * @param {string} params.id - Уникальный id поля.
+ * @param {string} params.name - Атрибут name для формы.
+ * @param {string} [params.type='text'] - Тип input (text, email, password, tel).
+ * @param {string} params.label - Подпись над полем.
+ * @param {string} [params.placeholder=''] - Подсказка внутри поля.
+ * @param {string} [params.value=''] - Текущее значение.
+ * @param {string} [params.error=''] - Текст ошибки под полем.
+ * @returns {string} HTML-строка с разметкой поля.
+ */
 export function Field({
   id,
   name,

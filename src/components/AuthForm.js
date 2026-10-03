@@ -32,6 +32,21 @@ const template = Handlebars.compile(`
   </div>
 `);
 
+/**
+ * Генерирует HTML-разметку карточки формы авторизации.
+ * Внутри рендерит массив полей через компонент Field.
+ *
+ * @param {Object} params
+ * @param {string} params.formId - id формы (для навешивания submit).
+ * @param {string} params.submitId - id кнопки отправки.
+ * @param {string} params.title - Заголовок карточки.
+ * @param {string} params.subtitle - Подпись под заголовком.
+ * @param {Array<Object>} params.fields - Массив параметров для Field.
+ * @param {string} params.submitText - Текст на кнопке.
+ * @param {string} params.footer - HTML в нижней части карточки (ссылка на регистрацию и т.п.).
+ * @param {string} [params.generalError=''] - Общая ошибка формы, отображается над карточкой.
+ * @returns {string} HTML-строка с карточкой формы.
+ */
 export function AuthForm({
   formId,
   submitId,

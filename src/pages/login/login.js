@@ -7,6 +7,10 @@ import { debugError } from '../../helpers/error.js';
 
 import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID, LOGIN_ROUTES } from '../../constants/Login.js';
 
+/**
+ * Страница авторизации.
+ * Отвечает за рендеринг формы, клиентскую валидацию и отправку данных на сервер.
+ */
 export class LoginPage {
   constructor() {
     this.container = null;
@@ -15,6 +19,11 @@ export class LoginPage {
     this.values = { email: '', password: '' };
   }
 
+  /**
+   * Генерирует HTML-разметку страницы: лейаут с формой логина.
+   *
+   * @returns {string} HTML-строка с разметкой страницы.
+   */
   render() {
     return AuthLayout({
       title: 'Общение, которое<br />всегда рядом',
@@ -32,6 +41,11 @@ export class LoginPage {
     });
   }
 
+  /**
+   * Собирает параметры полей формы на основе текущих значений и ошибок.
+   *
+   * @returns {Array<Object>} Массив параметров для компонента Field.
+   */
   buildFields() {
     return [
       {
@@ -55,6 +69,9 @@ export class LoginPage {
     ];
   }
 
+  /**
+   * Монтирует страницу: вставляет HTML в контейнер и навешивает обработчики.
+   */
   mount() {
     this.container = document.getElementById(APP_ID);
     if (!this.container) {
@@ -65,11 +82,18 @@ export class LoginPage {
     this.bindEvents();
   }
 
+  /**
+   * Перерисовывает страницу с сохранением текущего состояния.
+   * Используется после изменения fieldErrors и generalError.
+   */
   rerender() {
     this.container.innerHTML = this.render();
     this.bindEvents();
   }
 
+  /**
+   * Навешивает обработчик submit на форму логина.
+   */
   bindEvents() {
     const form = document.getElementById(LOGIN_FORM_ID);
     form?.addEventListener('submit', (e) => {
@@ -78,6 +102,12 @@ export class LoginPage {
     });
   }
 
+  /**
+   * Обрабатывает отправку формы: валидирует поля, отправляет запрос на сервер,
+   * показывает ошибки или делает редирект при успехе.
+   *
+   * @async
+   */
   async submit() {
     const emailEl = document.getElementById('email');
     const passwordEl = document.getElementById('password');
