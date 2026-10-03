@@ -7,7 +7,6 @@ async function showPage(PageClass) {
   const page = new PageClass();
   app.innerHTML = page.render();
   await page.mount();
-  app.innerHTML = page.render();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

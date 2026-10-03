@@ -4,23 +4,28 @@
  * @param {Object} params - Параметры кнопки.
  * @param {string} params.text - Текст, отображаемый на кнопке.
  * @param {string} [params.id] - Уникальный идентификатор элемента (необязательно).
- * @param {'primary' | 'secondary' | 'chatsList' } [params.mode='primary'] - Вариант стилизации кнопки.
+ * @param {'primary' | 'secondary'} [params.mode='primary'] - Вариант стилизации кнопки.
+ * @param {string} [params.className=''] - Дополнительные CSS-классы.
+ * @param {string} [params.icon=''] - HTML-код иконки (необязательно).
  * @returns {string} HTML-строка с разметкой кнопки.
  */
-export function Button({ text, id, mode = 'primary', icon = '' }) {
+export function Button({ text, id, mode = 'primary', className = '', icon = '' }) {
+  const baseClasses =
+    'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1';
+
   const variants = {
     primary:
-      'px-6 py-2 rounded-lg font-medium transition-all duration-200 inline-flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600 shadow-md hover:shadow-lg',
+      'px-6 py-2 rounded-lg bg-black text-white hover:bg-gray-900 shadow-md hover:shadow-lg focus:ring-gray-500',
     secondary:
-      'px-6 py-2 rounded-lg font-medium transition-all duration-200 inline-flex items-center gap-2 bg-gray-200 text-gray-800 hover:bg-gray-300',
-    chatsList:
-      'px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full hover:bg-gray-200',
+      'px-6 py-2 rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 focus:ring-slate-400',
   };
 
+  const modeClasses = variants[mode] || '';
   const idAttr = id ? `id="${id}"` : '';
+  const finalClasses = `${baseClasses} ${modeClasses} ${className}`.trim();
 
   return `
-    <button ${idAttr} class="${variants[mode]}">
+    <button ${idAttr} class="${finalClasses}">
       ${text}
       ${icon}
     </button>

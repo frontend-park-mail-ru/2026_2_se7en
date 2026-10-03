@@ -36,13 +36,21 @@ export class ChatsPage {
     this.isLoading = true;
 
     try {
-      // const data = await ChatsApi.getChats();
+      const data = await ChatsApi.getChats();
       this.chats = data?.items || [];
     } catch (error) {
       console.error('Ошибка при загрузке чатов:', error);
       this.chats = [];
     } finally {
       this.isLoading = false;
+      this.update();
+    }
+  }
+
+  update() {
+    const root = document.getElementById('app');
+    if (root) {
+      root.innerHTML = this.render();
     }
   }
 

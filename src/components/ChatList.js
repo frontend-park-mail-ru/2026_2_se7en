@@ -1,5 +1,7 @@
 import { Button } from './Button.js';
 import { Input } from './Input.js';
+import { renderChatListLoading } from './ChatListLoading.js';
+import { loadTemplate } from '../helpers/LoadTemplate.js';
 
 /**
  * Компонент списка чатов
@@ -9,17 +11,8 @@ export class ChatList {
     this.templates = {};
   }
 
-  async loadTemplate(name) {
-    if (this.templates[name]) return this.templates[name];
-
-    const response = await fetch(`/templates/${name}.hbs`);
-    const source = await response.text();
-    this.templates[name] = Handlebars.compile(source);
-    return this.templates[name];
-  }
-
   async loadTemplates() {
-    await this.loadTemplate('chat-item');
+    await loadTemplate(this.templates, 'chat-item');
   }
 
   /**
@@ -27,22 +20,7 @@ export class ChatList {
    */
   renderChatItem(chat, activeChatId) {
     const template = this.templates['chat-item'];
-    if (!template) {
-      console.warn(`Шаблон chat-item не найден! Рендерим заглушку для: ${chat.name}`);
-      return `
-      <div class="p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors">
-        <div class="flex gap-3">
-          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <span class="text-blue-600 font-semibold">${chat.initials}</span>
-          </div>
-          <div class="flex-1">
-            <h3 class="font-semibold text-gray-900">${chat.name}</h3>
-            <p class="text-sm text-gray-500">${chat.lastMessage}</p>
-          </div>
-        </div>
-      </div>
-    `;
-    }
+    if (!template) return '';
 
     return template({
       id: chat.id,
@@ -60,36 +38,7 @@ export class ChatList {
    * Состояние загрузки
    */
   renderLoadingState() {
-    return `
-      <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div class="p-4 border-b border-gray-200">
-          <div class="h-8 bg-gray-200 rounded w-24 mb-2 animate-pulse"></div>
-          <div class="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
-        </div>
-        
-        <div class="p-3">
-          <div class="h-10 bg-gray-100 rounded-lg animate-pulse"></div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-2 space-y-2">
-          ${Array(6)
-            .fill(
-              `
-            <div class="p-3 rounded-xl animate-pulse">
-              <div class="flex gap-3">
-                <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
-                <div class="flex-1 space-y-2">
-                  <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div class="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            </div>
-          `,
-            )
-            .join('')}
-        </div>
-      </div>
-    `;
+    return renderChatListLoading();
   }
 
   /**
@@ -134,17 +83,20 @@ export class ChatList {
       icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>',
     });
 
+    const filterButtonClass =
+      'px-2.5 py-1 text-xs font-normal rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200';
+
     const allChatsButton = Button({
       text: 'Все',
-      mode: 'chatsList',
+      className: filterButtonClass,
     });
     const notReadButton = Button({
       text: 'Непрочитанные',
-      mode: 'chatsList',
+      className: filterButtonClass,
     });
     const privateChatsButton = Button({
       text: 'Личные',
-      mode: 'chatsList',
+      className: filterButtonClass,
     });
 
     const chatItems = chats.map((chat) => this.renderChatItem(chat, activeChatId)).join('');
