@@ -6,7 +6,41 @@ import { ServerApi } from '../../api/ServerApi.js';
  */
 export class PageChats {
   constructor() {
-    this.chats = [];
+    this.chats = [
+      {
+        id: 1,
+        name: 'Алексей Смирнов',
+        initials: 'АС',
+        isOnline: true,
+        time: '14:32',
+        lastMessage: 'Привет! Как дела?',
+        unreadCount: 2,
+        messages: [
+          { id: 1, text: 'Привет!', isOutgoing: false, time: '14:30' },
+          { id: 2, text: 'Как дела?', isOutgoing: false, time: '14:32' },
+        ],
+      },
+      {
+        id: 2,
+        name: 'Мария Иванова',
+        initials: 'МИ',
+        isOnline: false,
+        time: 'вчера',
+        lastMessage: 'Спасибо!',
+        unreadCount: 0,
+        messages: [],
+      },
+      {
+        id: 3,
+        name: 'Команда',
+        initials: 'К',
+        isOnline: true,
+        time: '12:05',
+        lastMessage: 'Митинг в 15:00',
+        unreadCount: 5,
+        messages: [],
+      },
+    ];
     this.activeChat = null;
     this.isLoading = false;
     this.currentUser = {
@@ -20,11 +54,11 @@ export class PageChats {
    */
   renderSidebar() {
     return `
-      <aside class="w-16 bg-white border-r border-gray-200 flex flex-col">
+      <aside class="w-20 bg-white border-r border-gray-200 flex flex-col">
         <!-- Логотип -->
-        <div class="p-3">
-          <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center">
-            <span class="text-white text-2xl font-bold">С</span>
+        <div class="p-3 flex justify-center">
+          <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center overflow-hidden">
+            <img src="/pictures/icon.png" alt="Логотип" class="w-full h-full object-cover rounded-x1">
           </div>
         </div>
 
@@ -46,18 +80,13 @@ export class PageChats {
         </nav>
 
         <!-- Низ боковой панели -->
-        <div class="p-3 space-y-2">
-          <button class="w-full flex items-center justify-center p-2 rounded-xl text-gray-400 hover:bg-gray-50">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-          </button>
-          
-          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-            <span class="text-blue-600 font-semibold text-sm">${this.currentUser.initials}</span>
+        <div class="p-3 space-y-2">    
+          <div class="relative mx-auto w-10 h-10">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <span class="text-blue-600 font-semibold text-sm">${this.currentUser.initials}</span>
+            </div>
+            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
-          <div class="w-2 h-2 bg-green-500 rounded-full mx-auto"></div>
         </div>
       </aside>
     `;
@@ -79,7 +108,7 @@ export class PageChats {
   }
 
   /**
-   * Состояние загрузки (скелетон)
+   * Состояние загрузки
    */
   renderLoadingState() {
     return `
@@ -122,7 +151,7 @@ export class PageChats {
       <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
         <div class="p-4 border-b border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Чаты</h2>
-          <p class="text-sm text-green-600">Связь в сети</p>
+          <p class="text-sm text-green-600">В сети</p>
         </div>
         
         <div class="p-3">
@@ -193,7 +222,7 @@ export class PageChats {
       <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
         <div class="p-4 border-b border-gray-200">
           <h2 class="text-xl font-bold text-gray-900">Чаты</h2>
-          <p class="text-sm text-green-600">Связь в сети</p>
+          <p class="text-sm text-green-600">В сети</p>
         </div>
         
         <div class="p-3">
@@ -208,9 +237,9 @@ export class PageChats {
 
         <div class="px-3 pb-3">
           <div class="flex gap-2">
-            <button class="px-3 py-1.5 bg-black text-white text-sm font-medium rounded-lg">Все</button>
-            <button class="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200">Непрочитанные</button>
-            <button class="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200">Личные</button>
+            <button class="px-2.5 py-1 bg-black text-white text-xs font-medium rounded-full">Все</button>
+            <button class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full hover:bg-gray-200">Непрочитанные</button>
+            <button class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full hover:bg-gray-200">Личные</button>
           </div>
         </div>
 
@@ -220,7 +249,7 @@ export class PageChats {
 
         <div class="p-3 border-t border-gray-200">
           <div class="flex items-center justify-between text-xs text-gray-400">
-            <span>Связь Web</span>
+            <span>сVяZь Web</span>
             <span>v 2.8.1</span>
           </div>
         </div>
@@ -240,11 +269,7 @@ export class PageChats {
       return this.renderEmptyChatArea();
     }
 
-    if (!this.activeChat) {
-      return this.renderSelectChatPrompt();
-    }
-
-    return this.renderActiveConversation();
+    return this.renderSelectChatPrompt();
   }
 
   renderChatAreaLoading() {
@@ -312,110 +337,6 @@ export class PageChats {
     `;
   }
 
-  renderActiveConversation() {
-    return `
-      <div class="flex-1 bg-gray-50 flex flex-col">
-        <!-- Шапка чата -->
-        <div class="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="relative">
-              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span class="text-blue-600 font-semibold">${this.activeChat.initials}</span>
-              </div>
-              <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-            </div>
-            <div>
-              <h3 class="font-semibold text-gray-900">${this.activeChat.name}</h3>
-              <p class="text-xs text-green-600">в сети</p>
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-2">
-            <button class="p-2 hover:bg-gray-100 rounded-lg">
-              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </button>
-            <button class="p-2 hover:bg-gray-100 rounded-lg">
-              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Сообщения -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-4">
-          <div class="text-center">
-            <span class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Сегодня</span>
-          </div>
-          
-          ${this.activeChat.messages
-            .map(
-              (msg) => `
-            <div class="flex gap-3 ${msg.isOutgoing ? 'flex-row-reverse' : ''}">
-              ${
-                !msg.isOutgoing
-                  ? `
-                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span class="text-blue-600 font-semibold text-xs">${this.activeChat.initials}</span>
-                </div>
-              `
-                  : ''
-              }
-              
-              <div class="max-w-md ${msg.isOutgoing ? 'bg-black text-white' : 'bg-white text-gray-900'} rounded-2xl px-4 py-3 shadow-sm">
-                <p class="text-sm">${msg.text}</p>
-                <div class="flex items-center gap-1 mt-1 ${msg.isOutgoing ? 'text-gray-400' : 'text-gray-400'} justify-end">
-                  <span class="text-xs">${msg.time}</span>
-                  ${
-                    msg.isOutgoing
-                      ? `
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  `
-                      : ''
-                  }
-                </div>
-              </div>
-            </div>
-          `,
-            )
-            .join('')}
-        </div>
-
-        <!-- Поле ввода -->
-        <div class="p-4 bg-white border-t border-gray-200">
-          <div class="flex items-end gap-3">
-            <button class="p-2 text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-              </svg>
-            </button>
-            
-            <div class="flex-1 bg-gray-50 rounded-2xl px-4 py-3">
-              <input type="text" placeholder="Напишите сообщение..." 
-                class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-sm">
-            </div>
-            
-            <button class="p-2 text-gray-400 hover:text-gray-600">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </button>
-            
-            <button class="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center hover:bg-gray-800 transition-colors">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   /**
    * Основной рендер страницы
    */
@@ -444,12 +365,5 @@ export class PageChats {
     const data = await ServerApi.getChats();
     this.chats = data.items;
     this.isLoading = false;
-  }
-
-  /**
-   * Установка активного чата
-   */
-  setActiveChat(chatId) {
-    this.activeChat = this.chats.find((c) => c.id === chatId) || null;
   }
 }

@@ -10,5 +10,5 @@ function showPage(PageClass) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  showPage(PageIndex);
+  showPage(PageChats);
 });
