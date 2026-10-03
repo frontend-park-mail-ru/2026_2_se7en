@@ -16,17 +16,7 @@ export class PageRegister extends Page {
     constructor() {
         super();
         this.container = null;
-        this.currentStep = 1;
-        this.fieldErrors = {};
-        this.generalError = null;
-        this.formData = {
-            first_name: '',
-            last_name: '',
-            nickname: '',
-            phone_number: '',
-            email: '',
-            password: '',
-        };
+        this.resetFormState();
     }
 
     /**
@@ -58,6 +48,23 @@ export class PageRegister extends Page {
     }
 
     /**
+     * Сбрасывает всё состояние формы к начальным значениям
+     */
+    resetFormState() {
+        this.currentStep = 1;
+        this.fieldErrors = {};
+        this.generalError = null;
+        this.formData = {
+            first_name: '',
+            last_name: '',
+            nickname: '',
+            phone_number: '',
+            email: '',
+            password: '',
+        };
+    }
+
+    /**
      * Инициализирует страницу
      */
     mount() {
@@ -68,14 +75,7 @@ export class PageRegister extends Page {
         this.fieldErrors = {};
         this.generalError = null;
         this.currentStep = 1;
-        this.formData = {
-            first_name: '',
-            last_name: '',
-            nickname: '',
-            phone_number: '',
-            email: '',
-            password: '',
-        };
+        this.resetFormState();
         this.container.innerHTML = this.render();
         this.bindEvents();
         return true;
@@ -109,9 +109,7 @@ export class PageRegister extends Page {
      */
     goToPreviousStep() {
         if (this.currentStep === 2) {
-            this.currentStep = 1;
-            this.fieldErrors = {};
-            this.generalError = null;
+            this.resetFormState();
             this.container.innerHTML = this.render();
             this.bindEvents();
         } else {
