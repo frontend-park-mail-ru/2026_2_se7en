@@ -1,142 +1,130 @@
+import { AuthLayout } from '../../components/AuthLayout.js';
+import { AuthForm } from '../../components/AuthForm.js';
+import { loginRequest } from '../../api/login.js';
+import { HttpStatus } from '../../constants/HttpStatus.js';
 import { validateEmail, validatePassword } from '../../helpers/validation.js';
 import { APP_ID } from '../../constants/App.js';
 import { debugError } from '../../helpers/error.js';
 
+const FORM_ID = 'login-form';
+const SUBMIT_ID = 'login-submit';
+
 export class LoginPage {
+  constructor() {
+    this.container = null;
+    this.fieldErrors = {};
+    this.generalError = '';
+    this.values = { email: '', password: '' };
+  }
+
   render() {
-    return `
-      <div class="min-h-screen flex">
-        <div class="hidden md:flex md:w-1/2 bg-slate-50 flex-col justify-between p-10">
-          <div class="flex items-center gap-2">
-            <div class="w-10 h-10 rounded-xl bg-black"></div>
-            <span class="text-xl font-bold">SVяZъ</span>
-          </div>
+    return AuthLayout({
+      title: 'Общение, которое<br />всегда рядом',
+      subtitle: 'Продолжайте разговоры на большом экране',
+      children: AuthForm({
+        formId: FORM_ID,
+        submitId: SUBMIT_ID,
+        title: 'С возвращением',
+        subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
+        fields: this.buildFields(),
+        submitText: 'Войти',
+        footer:
+          'Впервые здесь? <a href="/register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>',
+      }),
+    });
+  }
 
-          <div>
-            <h2 class="text-4xl font-bold leading-tight mb-3">
-              Общение, которое<br />всегда рядом
-            </h2>
-            <p class="text-gray-500">
-              Продолжайте разговоры на большом экране
-            </p>
-          </div>
-        </div>
-
-        <div class="w-full md:w-1/2 flex items-center justify-center p-6 bg-white">
-          <div class="w-full max-w-md border border-gray-200 rounded-2xl p-8 shadow-sm">
-            <h1 class="text-2xl font-bold mb-2">С возвращением</h1>
-            <p class="text-gray-500 text-sm mb-6">
-              Введите адрес электронной почты, чтобы продолжить общение в Связь.
-            </p>
-
-            <div class="mb-4">
-              <label for="email" class="block text-sm text-gray-600 mb-1">
-                Электронная почта
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-black"
-              />
-              <span id="email-error" class="block text-sm text-red-500 mt-1"></span>
-            </div>
-
-            <div class="mb-6">
-              <label for="password" class="block text-sm text-gray-600 mb-1">
-                Пароль
-              </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="password"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-black"
-              />
-              <span id="password-error" class="block text-sm text-red-500 mt-1"></span>
-            </div>
-
-            <p id="general-error" class="text-sm text-red-500 mb-3"></p>
-
-            <button
-              id="submit-btn"
-              class="w-full py-2 rounded-full bg-black text-white font-medium hover:bg-gray-800"
-            >
-              Добро пожаловать!
-            </button>
-
-            <p class="text-sm text-gray-500 text-center mt-6">
-              Впервые здесь?
-              <a href="#" class="text-black font-semibold hover:underline">
-                Создать аккаунт
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
-    `;
+  buildFields() {
+    return [
+      {
+        id: 'email',
+        name: 'email',
+        type: 'email',
+        label: 'Электронная почта',
+        placeholder: 'name@example.com',
+        value: this.values.email,
+        error: this.fieldErrors.email || '',
+      },
+      {
+        id: 'password',
+        name: 'password',
+        type: 'password',
+        label: 'Пароль',
+        placeholder: 'password',
+        value: this.values.password,
+        error: this.fieldErrors.password || '',
+      },
+    ];
   }
 
   mount() {
-    const container = document.getElementById(APP_ID);
-    if (!container) {
+    this.container = document.getElementById(APP_ID);
+    if (!this.container) {
       debugError(`Элемент с id=${APP_ID} не найден`);
       return;
     }
+    this.container.innerHTML = this.render();
+    this.bindEvents();
+  }
 
-    container.innerHTML = this.render();
-
+  rerender() {
+    this.container.innerHTML = this.render();
     this.bindEvents();
   }
 
   bindEvents() {
-    document.getElementById('submit-btn').addEventListener('click', () => {
+    const form = document.getElementById(FORM_ID);
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
       this.submit();
     });
   }
 
   async submit() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    const emailEl = document.getElementById('email');
+    const passwordEl = document.getElementById('password');
 
-    document.getElementById('email-error').textContent = '';
-    document.getElementById('password-error').textContent = '';
-    document.getElementById('general-error').textContent = '';
+    this.values.email = emailEl.value.trim().toLowerCase();
+    this.values.password = passwordEl.value;
+    this.fieldErrors = {};
+    this.generalError = '';
 
-    const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
+    const emailError = validateEmail(this.values.email);
+    const passwordError = validatePassword(this.values.password);
 
-    if (emailError) {
-      document.getElementById('email-error').textContent = emailError;
+    if (emailError) this.fieldErrors.email = emailError;
+    if (passwordError) this.fieldErrors.password = passwordError;
+
+    if (emailError || passwordError) {
+      this.rerender();
+      return;
     }
 
-    if (passwordError) {
-      document.getElementById('password-error').textContent = passwordError;
-    }
-
-    if (emailError || passwordError) return;
+    const submitBtn = document.getElementById(SUBMIT_ID);
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Входим...';
 
     try {
-      const response = await fetch('http://localhost:3001/api/v1/auth/login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const { status, data } = await loginRequest(this.values.email, this.values.password);
 
-      if (response.status === 401) {
-        document.getElementById('general-error').textContent = 'Неверный email или пароль';
+      if (status === HttpStatus.UNAUTHORIZED) {
+        this.generalError = 'Неверный email или пароль';
+        this.rerender();
         return;
       }
 
-      if (!response.ok) {
-        document.getElementById('general-error').textContent = 'Не удалось войти';
+      if (status !== HttpStatus.OK) {
+        this.generalError = data?.message || 'Не удалось войти';
+        this.rerender();
         return;
       }
 
       window.location.href = '/';
     } catch (error) {
       debugError(error);
-      document.getElementById('general-error').textContent = 'Сервер недоступен';
+      this.generalError = 'Сервер недоступен';
+      this.rerender();
     }
   }
 }
