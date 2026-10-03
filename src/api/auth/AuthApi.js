@@ -1,6 +1,7 @@
 import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants.js';
 import { ServerApi } from '../ServerApi.js';
 import { ApiSuccess, ApiError } from '../ApiResponse.js';
+import { mockLogin } from './AuthApi.mocks.js';
 
 const USING_MOCK = true;
 
@@ -25,23 +26,7 @@ export class AuthApi extends ServerApi {
    * @returns {Promise<ApiSuccess | ApiError>}
    */
   static async login(email, password) {
-    if (USING_MOCK) {
-      await new Promise((r) => setTimeout(r, 300));
-
-      if (email === '1@1.ru' && password === '228228228') {
-        return new ApiSuccess(
-          {
-            id: '1',
-            email,
-            phoneNumber: null,
-            profile: { id: '2', nickname: 'nick' },
-          },
-          200,
-        );
-      }
-
-      return new ApiError('INVALID_CREDENTIALS', 'Неверный email или пароль', 401, null);
-    }
+    if (USING_MOCK) return mockLogin(email, password);
 
     return this._request(LOGIN_URL, {
       method: 'POST',

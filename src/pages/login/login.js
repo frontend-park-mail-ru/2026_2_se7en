@@ -5,8 +5,7 @@ import { validateEmail, validatePassword } from '../../helpers/validation.js';
 import { APP_ID } from '../../constants/App.js';
 import { debugError } from '../../helpers/error.js';
 
-const FORM_ID = 'login-form';
-const SUBMIT_ID = 'login-submit';
+import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID, LOGIN_ROUTES } from '../../constants/Login.js';
 
 export class LoginPage {
   constructor() {
@@ -21,14 +20,13 @@ export class LoginPage {
       title: 'Общение, которое<br />всегда рядом',
       subtitle: 'Продолжайте разговоры на большом экране',
       children: AuthForm({
-        formId: FORM_ID,
-        submitId: SUBMIT_ID,
+        formId: LOGIN_FORM_ID,
+        submitId: LOGIN_SUBMIT_ID,
         title: 'С возвращением',
         subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
         fields: this.buildFields(),
         submitText: 'Войти',
-        footer:
-          'Впервые здесь? <a href="/register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>',
+        footer: `Впервые здесь? <a href="${LOGIN_ROUTES.REGISTER}" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
         generalError: this.generalError,
       }),
     });
@@ -73,7 +71,7 @@ export class LoginPage {
   }
 
   bindEvents() {
-    const form = document.getElementById(FORM_ID);
+    const form = document.getElementById(LOGIN_FORM_ID);
     form?.addEventListener('submit', (e) => {
       e.preventDefault();
       this.submit();
@@ -100,7 +98,7 @@ export class LoginPage {
       return;
     }
 
-    const submitBtn = document.getElementById(SUBMIT_ID);
+    const submitBtn = document.getElementById(LOGIN_SUBMIT_ID);
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Входим...';
@@ -113,6 +111,6 @@ export class LoginPage {
       return;
     }
 
-    window.location.href = '/';
+    window.location.href = LOGIN_ROUTES.HOME;
   }
 }

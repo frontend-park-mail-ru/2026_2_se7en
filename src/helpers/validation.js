@@ -1,29 +1,19 @@
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  EMAIL_REGEX,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  VALIDATION_MESSAGES,
+} from '../constants/Validation.js';
 
 export function validateEmail(email) {
-  if (!email) {
-    return `Email обязателен`;
-  }
-
-  if (!EMAIL_REGEX.test(email)) {
-    return `Email некорректен`;
-  }
-
+  if (!email) return VALIDATION_MESSAGES.EMAIL_REQUIRED;
+  if (!EMAIL_REGEX.test(email)) return VALIDATION_MESSAGES.EMAIL_INVALID;
   return null;
 }
 
 export function validatePassword(password) {
-  if (!password) {
-    return `Пароль обязателен`;
-  }
-
-  if (password.length < 8) {
-    return `Пароль минимум 8 символом`;
-  }
-
-  if (password.length > 16) {
-    return `Пароль максимум 16 символов`;
-  }
-
+  if (!password) return VALIDATION_MESSAGES.PASSWORD_REQUIRED;
+  if (password.length < PASSWORD_MIN_LENGTH) return VALIDATION_MESSAGES.PASSWORD_TOO_SHORT;
+  if (password.length > PASSWORD_MAX_LENGTH) return VALIDATION_MESSAGES.PASSWORD_TOO_LONG;
   return null;
 }
