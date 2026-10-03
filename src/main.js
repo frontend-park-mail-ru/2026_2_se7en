@@ -1,14 +1,15 @@
 import { PageIndex } from './pages/index/index.js';
-import { PageChats } from './pages/chat/Chats.js';
+import { ChatsPage } from './pages/chat/ChatsPage.js';
 
 const app = document.getElementById('app');
 
-function showPage(PageClass) {
+async function showPage(PageClass) {
   const page = new PageClass();
   app.innerHTML = page.render();
-  page.mount();
+  await page.mount();
+  app.innerHTML = page.render();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  showPage(PageChats);
+  showPage(ChatsPage);
 });

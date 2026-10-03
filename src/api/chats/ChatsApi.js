@@ -1,4 +1,5 @@
-import { GET_CHATS_URL } from './chats.constants';
+import { GET_CHATS_URL } from './chats.constants.js';
+import { ServerApi } from '../ServerApi.js';
 
 /**
  * Класс для взаимодействия с API чатов.
@@ -11,6 +12,6 @@ export class ChatsApi {
    * @returns {Promise<ApiSuccess | ApiError>}
    */
   static async getChats({ limit = 20, offset = 0 } = {}) {
-    return this._request(`${GET_CHATS_URL}?limit=${limit}&offset=${offset}`);
+    return ServerApi._request(`${GET_CHATS_URL}?limit=${limit}&offset=${offset}`);
   }
 }
