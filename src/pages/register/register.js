@@ -7,6 +7,7 @@ import { renderRegisterNavigation } from '../../components/register-navigation.j
 import { renderRegisterForm } from '../../components/register-form.js';
 import { renderRegisterError } from '../../components/register-error.js';
 import { validateForm } from './register.helpers.js';
+import { registerUser } from '../../api/register.js';
 
 /**
  * Класс описывающий страницу регистрации
@@ -72,9 +73,6 @@ export class PageRegister extends Page {
             return false;
         }
 
-        this.fieldErrors = {};
-        this.generalError = null;
-        this.currentStep = 1;
         this.resetFormState();
         this.container.innerHTML = this.render();
         this.bindEvents();
@@ -234,42 +232,26 @@ export class PageRegister extends Page {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Создание...';
 
-        try {
-            const response = await fetch('/api/v1/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(this.getFormData()),
-            });
+        const result = await registerUser(this.getFormData());
 
-            const data = await response.json();
-
-            if (response.status === ERROR_STATUSES.StatusCreated) {
-                window.location.href = '/login';
-                return;
-            }
-
-            if (response.status === ERROR_STATUSES.StatusBadRequest && data.code === 'VALIDATION_ERROR' && data.details) {
-                this.displayErrors(data.details);
-            } else if (response.status === ERROR_STATUSES.StatusConflict) {
-                if (data.code === 'EMAIL_TAKEN' || data.code === 'NICKNAME_TAKEN') {
-                    if (data.code === 'EMAIL_TAKEN') this.fieldErrors.email = 'already_exists';
-                    if (data.code === 'NICKNAME_TAKEN') this.fieldErrors.nickname = 'already_exists';
-
-                    this.container.innerHTML = this.render();
-                    this.bindEvents();
-                } else {
-                    this.showGeneralError(data.message || 'Произошла ошибка');
-                }
-            } else {
-                this.showGeneralError(data.message || 'Произошла ошибка при регистрации');
-            }
-        } catch (error) {
-            debugError(error);
-            this.showGeneralError('Не удалось отправить данные');
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
+        if (result.status === ERROR_STATUSES.StatusCreated) {
+            window.location.href = '/login';
+            return;
         }
+
+        if (result.status === ERROR_STATUSES.StatusBadRequest && result.code === 'VALIDATION_ERROR') {
+            this.displayErrors(result.details);
+        } else if (result.status === ERROR_STATUSES.StatusConflict) {
+            if (result.code === 'EMAIL_TAKEN') this.fieldErrors.email = 'already_exists';
+            if (result.code === 'NICKNAME_TAKEN') this.fieldErrors.nickname = 'already_exists';
+
+            this.container.innerHTML = this.render();
+            this.bindEvents();
+        } else {
+            this.showGeneralError(result.message);
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 }
