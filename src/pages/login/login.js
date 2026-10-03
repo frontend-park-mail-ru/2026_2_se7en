@@ -1,7 +1,6 @@
 import { AuthLayout } from '../../components/AuthLayout.js';
 import { AuthForm } from '../../components/AuthForm.js';
-import { loginRequest } from '../../api/login.js';
-import { HttpStatus } from '../../constants/HttpStatus.js';
+import { AuthApi } from '../../api/auth/AuthApi.js';
 import { validateEmail, validatePassword } from '../../helpers/validation.js';
 import { APP_ID } from '../../constants/App.js';
 import { debugError } from '../../helpers/error.js';
@@ -105,26 +104,14 @@ export class LoginPage {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Входим...';
 
-    try {
-      const { status, data } = await loginRequest(this.values.email, this.values.password);
+    const result = await AuthApi.login(this.values.email, this.values.password);
 
-      if (status === HttpStatus.UNAUTHORIZED) {
-        this.generalError = 'Неверный email или пароль';
-        this.rerender();
-        return;
-      }
-
-      if (status !== HttpStatus.OK) {
-        this.generalError = data?.message || 'Не удалось войти';
-        this.rerender();
-        return;
-      }
-
-      window.location.href = '/';
-    } catch (error) {
-      debugError(error);
-      this.generalError = 'Сервер недоступен';
+    if (!result.success) {
+      this.generalError = result.message;
       this.rerender();
+      return;
     }
+
+    window.location.href = '/';
   }
 }

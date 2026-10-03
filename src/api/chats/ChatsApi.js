@@ -1,4 +1,4 @@
-import { GET_CHATS_URL } from './chats.constants';
+import { GET_CHATS_URL } from './chats.constants.js';
 
 /**
  * Класс для взаимодействия с API чатов.
