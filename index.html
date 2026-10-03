@@ -11,11 +11,15 @@
       rel="stylesheet"
     />
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <script>
+      window.APP_CONFIG = {
+        BACKEND_URL: '{{BACKEND_URL}}',
+      };
+    </script>
     <script type="importmap">
       {
         "imports": {
-          "handlebars": "https://cdn.jsdelivr.net/npm/handlebars@4.7.8/+esm"
+          "handlebars": "https://cdn.jsdelivr.net/npm/handlebars@latest"
         }
       }
     </script>
