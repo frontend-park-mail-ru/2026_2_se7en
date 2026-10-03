@@ -28,28 +28,6 @@ export class PageRegister {
      */
     render() {
         return `
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-            
-            * {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            }
-            
-            h1 {
-                font-weight: 700;
-                font-size: 44px;
-                line-height: 108%;
-                letter-spacing: -1.5px;
-            }
-            
-            h2 {
-                font-weight: 700;
-                font-size: 32px;
-                line-height: 120%;
-                letter-spacing: -0.5px;
-            }
-        </style>
-        
         <div class="min-h-screen flex bg-white">
             <div class="hidden lg:flex lg:w-1/2 bg-[#f5f9ff] p-12 flex-col">
                 <div class="flex items-center gap-3">
