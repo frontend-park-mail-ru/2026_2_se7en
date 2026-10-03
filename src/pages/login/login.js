@@ -29,6 +29,7 @@ export class LoginPage {
         submitText: 'Войти',
         footer:
           'Впервые здесь? <a href="/register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>',
+        generalError: this.generalError,
       }),
     });
   }
