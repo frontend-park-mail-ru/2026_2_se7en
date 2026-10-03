@@ -1,5 +1,4 @@
 import { ELEMENT_IDS, VALIDATION_RULES } from './register.constants.js';
-import { APP_ID } from '../../constants/App.js';
 import { debugError } from '../../helpers/error.js';
 
 import { Page } from '../page.js';
@@ -7,6 +6,7 @@ import { renderRegisterHeader } from '../../components/register-header.js';
 import { renderRegisterNavigation } from '../../components/register-navigation.js';
 import { renderRegisterForm } from '../../components/register-form.js';
 import { renderRegisterError } from '../../components/register-error.js';
+import { validateForm } from './register.helpers.js';
 
 /**
  * Класс описывающий страницу регистрации
@@ -122,45 +122,10 @@ export class PageRegister extends Page {
      * @returns {Object} Объект с флагом валидности и массивом ошибок
      */
     validateForm() {
-        this.fieldErrors = {};
-        const errors = [];
-
-        const fieldsToValidate = this.currentStep === 1 
-            ? ['first_name', 'last_name']
-            : ['nickname', 'email', 'password', 'phone_number'];
-
-        for (const field of fieldsToValidate) {
-            const rules = VALIDATION_RULES[field];
+        return validateForm(this.currentStep, (field) => {
             const input = document.getElementById(field);
-            if (!input) continue;
-
-            const value = input.value.trim();
-
-            if (field === 'phone_number' && !value) {
-                continue;
-            }
-
-            if (rules.required && !value) {
-                this.fieldErrors[field] = 'required';
-                errors.push({ field, reason: 'required' });
-                continue;
-            }
-
-            if (value) {
-                if (rules.minLength && value.length < rules.minLength) {
-                    this.fieldErrors[field] = `length_must_be_${rules.minLength}_to_${rules.maxLength}`;
-                    errors.push({ field, reason: `length_must_be_${rules.minLength}_to_${rules.maxLength}` });
-                } else if (rules.maxLength && value.length > rules.maxLength) {
-                    this.fieldErrors[field] = 'max_length_exceeded';
-                    errors.push({ field, reason: 'max_length_exceeded' });
-                } else if (rules.pattern && !rules.pattern.test(value)) {
-                    this.fieldErrors[field] = 'invalid_format';
-                    errors.push({ field, reason: 'invalid_format' });
-                }
-            }
-        }
-
-        return { isValid: errors.length === 0, errors };
+            return input ? input.value.trim() : '';
+        });
     }
 
     /**
