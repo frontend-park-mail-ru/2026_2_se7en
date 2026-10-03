@@ -1,9 +1,10 @@
-import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants';
+import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants.js';
+import { ServerApi } from '../ServerApi.js';
 
 /**
  * Класс для взаимодействия с API аутентификации и управления сессией пользователя.
  */
-export class AuthApi {
+export class AuthApi extends ServerApi {
   /**
    * @param {Object} user_data
    * @returns {Promise<ApiSuccess | ApiError>}

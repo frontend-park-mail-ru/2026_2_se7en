@@ -1,6 +1,6 @@
-import { PageIndex } from './pages/index/index.js';
+import { LoginPage } from './pages/login/login.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const page = new PageIndex();
+  const page = new LoginPage();
   page.mount();
 });
