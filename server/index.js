@@ -32,7 +32,7 @@ app.post('/api/v1/auth/login', (req, res) => {
   const { email, password } = req.body;
 
   if (email === `1@1.ru` && password === `228228228`) {
-    res.cookie(`sessio_id`, `mock-session-id`, {
+    res.cookie(`session_id`, `mock-session-id`, {
       httpOnly: true,
       sameSite: `lax`,
       maxAge: 30 * 24 * 1000,
