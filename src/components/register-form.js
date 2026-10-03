@@ -1,6 +1,6 @@
 import { ELEMENT_IDS, ERROR_MESSAGES } from '../pages/register/register.constants.js';
 import { Button } from './Button.js';
-import { FormField } from './register-form-field.js';
+import { FormField } from './regform-field.js';
 
 /**
  * Компонент формы регистрации
@@ -44,7 +44,14 @@ export function renderRegisterForm({ currentStep, formData, fieldErrors }) {
     `;
 }
 
-function renderStep1Fields(formData, fieldErrors, getError) {
+/**
+ * Генерирует HTML-разметку полей для первого шага регистрации.
+ * 
+ * @param {Object} formData - Текущие данные формы.
+ * @param {Function} getError - Функция, возвращающая текст ошибки для заданного ID поля.
+ * @returns {string} HTML-строка с разметкой полей первого шага.
+ */
+function renderStep1Fields(formData, getError) {
     return `
         <div class="grid grid-cols-2 gap-4">
             ${FormField({
@@ -67,7 +74,14 @@ function renderStep1Fields(formData, fieldErrors, getError) {
     `;
 }
 
-function renderStep2Fields(formData, fieldErrors, getError) {
+/**
+ * Генерирует HTML-разметку полей для второго шага регистрации.
+ * 
+ * @param {Object} formData - Текущие данные формы.
+ * @param {Function} getError - Функция, возвращающая текст ошибки для заданного ID поля.
+ * @returns {string} HTML-строка с разметкой полей второго шага.
+ */
+function renderStep2Fields(formData, getError) {
     return `
         <div class="space-y-4">
             ${FormField({
