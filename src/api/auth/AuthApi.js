@@ -24,7 +24,7 @@ export class AuthApi extends ServerApi {
    * @returns {Promise<ApiSuccess | ApiError>}
    */
   static async login(email, password) {
-    if (USING_MOCK) return mockLogin(email, password);
+    if (USING_MOCK.AUTH) return mockLogin(email, password);
 
     return this._request(LOGIN_URL, {
       method: 'POST',
