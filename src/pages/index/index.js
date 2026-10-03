@@ -2,6 +2,7 @@ import { Header } from '../../components/Header.js';
 import { Button } from '../../components/Button.js';
 import { SERVER_STATUS, ELEMENT_IDS } from './index.constants.js';
 import { APP_ID } from '../../constants/App.js';
+import { debugError } from '../../helpers/error.js';
 
 /**
  * Класс, представляющий главную страницу приложения (PageIndex).
@@ -73,6 +74,7 @@ export class PageIndex {
       this.serverStatus = data.message;
       this.updateStatus();
     } catch (error) {
+      debugError(error);
       this.serverStatus = SERVER_STATUS.ERROR;
       this.updateStatus();
     }

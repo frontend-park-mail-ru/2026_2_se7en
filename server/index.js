@@ -21,6 +21,9 @@ app.use(
 app.use(express.json());
 
 app.use('/src', express.static(path.join(__dirname, '../src')));
+
+app.use(express.static(path.join(__dirname, '../public')));
+
 app.get('/', (req, res) => {
   const templatePath = path.join(__dirname, '../index.html');
   let html = fs.readFileSync(templatePath, 'utf-8');
@@ -32,6 +35,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Express сервер работает!' });
 });
 
+/* eslint-disable no-console */
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

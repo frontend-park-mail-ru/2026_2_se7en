@@ -1,9 +1,10 @@
-import { GET_CHATS_URL } from './chats.constants';
+import { ServerApi } from '../ServerApi.js';
+import { GET_CHATS_URL } from './chats.constants.js';
 
 /**
  * Класс для взаимодействия с API чатов.
  */
-export class ChatsApi {
+export class ChatsApi extends ServerApi {
   /**
    * @param {Object} [params]
    * @param {number} [params.limit=20]
