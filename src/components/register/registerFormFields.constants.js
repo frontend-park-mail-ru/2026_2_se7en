@@ -34,7 +34,7 @@ export const STEP_2_FIELDS = [
     id: ELEMENT_IDS.PHONE_NUMBER,
     name: 'phone_number',
     label: 'Телефон',
-    placeholder: '+7 999 806 1092',
+    placeholder: '+7 800 555 35 35',
     type: 'tel',
     hint: 'необязательно',
   },
