@@ -16,7 +16,7 @@ export function renderRegisterNavigation(currentStep) {
                 text: currentStep === 2 ? 'Вернуться к шагу 1' : 'Вернуться ко входу',
                 mode: 'ghost',
                 className: 'flex items-center gap-2 text-sm',
-                iconBefore: backIcon
+                iconBefore: backIcon,
             })}
             <span class="text-sm font-bold text-gray-900">Шаг ${currentStep} из 2</span>
         </div>
