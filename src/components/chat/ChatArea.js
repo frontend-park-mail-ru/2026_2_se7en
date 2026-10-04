@@ -1,6 +1,6 @@
-import { Button } from './Button.js';
+import { Button } from '../core/Button.js';
 import { ChatSkeleton } from './ChatSkeleton.js';
-import { loadTemplate } from '../helpers/LoadTemplate.js';
+import { loadTemplate } from '../../helpers/LoadTemplate.js';
 
 /**
  * Компонент области чата

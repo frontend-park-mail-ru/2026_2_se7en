@@ -1,7 +1,7 @@
-import { Button } from './Button.js';
-import { Input } from './Input.js';
+import { Button } from '../core/Button.js';
+import { Input } from '../core/Input.js';
 import { renderChatListLoading } from './ChatListLoading.js';
-import { loadTemplate } from '../helpers/LoadTemplate.js';
+import { loadTemplate } from '../../helpers/LoadTemplate.js';
 
 /**
  * Компонент списка чатов

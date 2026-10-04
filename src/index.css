@@ -1,5 +1,13 @@
 @import 'tailwindcss';
 
+html {
+  zoom: 1.25;
+}
+
+#app > .min-h-screen {
+  min-height: 80vh;
+}
+
 body {
   font-family:
     'Inter',
