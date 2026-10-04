@@ -40,10 +40,6 @@ export class PageIndex {
 
   mount() {
     this.container = document.getElementById(APP_ID);
-    if (!this.container) {
-      debugError(`Элемент с ${APP_ID} id не найден`);
-      return;
-    }
     this.container.innerHTML = this.render();
     this.bindEvents();
   }
@@ -73,8 +69,7 @@ export class PageIndex {
       const data = await response.json();
       this.serverStatus = data.message;
       this.updateStatus();
-    } catch (error) {
-      debugError(error);
+    } catch (_error) {
       this.serverStatus = SERVER_STATUS.ERROR;
       this.updateStatus();
     }

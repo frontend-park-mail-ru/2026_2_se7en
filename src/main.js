@@ -1,6 +1,13 @@
-import { LoginPage } from './pages/login/login.js';
+import { ChatsPage } from './pages/chat/ChatsPage.js';
+
+const app = document.getElementById('app');
+
+async function showPage(PageClass) {
+  const page = new PageClass();
+  app.innerHTML = page.render();
+  await page.mount();
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-  const page = new LoginPage();
-  page.mount();
+  showPage(ChatsPage);
 });
