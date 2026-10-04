@@ -1,13 +1,16 @@
-import { AuthLayout } from '../../components/Auth/AuthLayout.js';
-import { AuthForm } from '../../components/Auth/AuthForm.js';
+import { AuthLayout, loadAuthLayoutTemplate } from '../../components/Auth/AuthLayout.js';
+import { AuthForm, loadAuthFormTemplate } from '../../components/Auth/AuthForm.js';
+import { loadFieldTemplate } from '../../components/Auth/Field.js';
 import { AuthApi } from '../../api/auth/AuthApi.js';
 import { validateEmail, validatePassword } from '../../helpers/validation.js';
 import { Page } from '../Page.js';
 import { ROUTES } from '../../constants/Routes.js';
 import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '../../constants/Login.js';
+import { STATUSES } from '../../constants/Statuses.js';
 import { ERROR_CODES, ERROR_HINTS, ERROR_MESSAGES } from '../../api/error.constants.js';
-import { showPage } from '../../router.js';
+import { showPage } from '../../helpers/showPage.js';
 import { ChatsPage } from '../ChatsPage/ChatsPage.js';
+import { RegisterPage } from '../RegisterPage/RegisterPage.js';
 
 /**
  * Страница авторизации.
@@ -28,17 +31,17 @@ export class LoginPage extends Page {
   /**
    * Генерирует HTML-разметку страницы: лейаут с формой логина.
    *
-   * @returns {Promise<string>} HTML-строка с разметкой страницы.
+   * @returns {string} HTML-строка с разметкой страницы.
    */
-  async render() {
-    const authForm = await AuthForm({
+  render() {
+    const authForm = AuthForm({
       formId: LOGIN_FORM_ID,
       submitId: LOGIN_SUBMIT_ID,
       title: 'С возвращением',
       subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
       fields: this.buildFields(),
       submitText: 'Войти',
-      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
+      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
       generalError: this.generalError,
       generalErrorHint: this.generalErrorHint,
       loading: this.loading,
@@ -49,6 +52,14 @@ export class LoginPage extends Page {
       subtitle: 'Продолжайте разговоры на большом экране',
       children: authForm,
     });
+  }
+
+  async loadTemplates() {
+    await Promise.all([
+      loadAuthFormTemplate(),
+      loadAuthLayoutTemplate(),
+      loadFieldTemplate(),
+    ]);
   }
 
   /**
@@ -80,13 +91,10 @@ export class LoginPage extends Page {
   }
 
   /**
-   * Монтирует страницу: вставляет HTML в контейнер и навешивает обработчики.
-   */
-  /**
    * Перерисовывает страницу с сохранением текущего состояния.
    */
-  async rerender() {
-    this.container.innerHTML = await this.render();
+  rerender() {
+    this.container.innerHTML = this.render();
     this.bindEvents();
   }
 
@@ -102,6 +110,11 @@ export class LoginPage extends Page {
 
     this.container.querySelectorAll('[data-toggle-password]').forEach((btn) => {
       btn.addEventListener('click', () => this.togglePassword(btn));
+    });
+
+    this.container.querySelector('[data-page-route="register"]')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      void showPage(RegisterPage);
     });
   }
 
@@ -146,12 +159,12 @@ export class LoginPage extends Page {
     if (passwordError) this.fieldErrors.password = passwordError;
 
     if (emailError || passwordError) {
-      await this.rerender();
+      this.rerender();
       return;
     }
 
     this.loading = true;
-    await this.rerender();
+    this.rerender();
 
     const result = await AuthApi.login(this.values.email, this.values.password);
 
@@ -162,7 +175,7 @@ export class LoginPage extends Page {
       // общий текст о недоступности сервиса для остальных ошибок API.
       const isCredentialsError = result.code === ERROR_CODES.UNAUTHORIZED
         || result.code === ERROR_CODES.INVALID_CREDENTIALS
-        || result.status === 400;
+        || result.status === STATUSES.BAD_REQUEST;
       const errorCode = isCredentialsError
         ? ERROR_CODES.INVALID_CREDENTIALS
         : [ERROR_CODES.NETWORK_ERROR, ERROR_CODES.INTERNAL_ERROR].includes(result.code)
@@ -170,7 +183,7 @@ export class LoginPage extends Page {
           : ERROR_CODES.INTERNAL_ERROR;
       this.generalError = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR];
       this.generalErrorHint = ERROR_HINTS[errorCode] || ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
-      await this.rerender();
+      this.rerender();
       return;
     }
 

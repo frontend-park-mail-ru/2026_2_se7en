@@ -68,10 +68,7 @@ app.use('/api/v1', (req, res) => {
 app.use('/src', express.static(path.join(__dirname, '../src')));
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/templates', express.static(path.join(__dirname, '../src/templates')));
-app.get('/', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../index.html'));
-});
-app.get(/^\/(login|register|chats)\/?$/, (_req, res) => {
+app.get(/^\/(login|register|chats)?\/?$/, (_req, res) => {
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 

@@ -4,13 +4,17 @@ import { Field } from './Field.js';
 
 let templates = {};
 
+/** Загружает шаблон карточки формы авторизации. */
+export async function loadAuthFormTemplate() {
+  templates = await loadTemplate(templates, 'auth-form');
+}
+
 /**
  * Генерирует разметку карточки формы авторизации.
- *
- * @param {Object} params
- * @returns {Promise<string>}
+ * @param {Object} params Параметры формы.
+ * @returns {string} HTML-разметка формы.
  */
-export async function AuthForm({
+export function AuthForm({
   formId,
   submitId,
   title,
@@ -22,18 +26,15 @@ export async function AuthForm({
   generalErrorHint = '',
   loading = false,
 }) {
-  const fieldsHtml = [];
-  for (const field of fields) {
-    fieldsHtml.push(await Field(field));
-  }
+  if (!templates['auth-form']) throw new Error('Шаблон формы авторизации ещё не загружен');
 
-  templates = await loadTemplate(templates, 'auth-form');
+  const fieldsHtml = fields.map((field) => Field(field)).join('');
   return templates['auth-form']({
     formId,
     submitId,
     title,
     subtitle,
-    fieldsHtml: fieldsHtml.join(''),
+    fieldsHtml,
     submitText,
     footer,
     generalError,

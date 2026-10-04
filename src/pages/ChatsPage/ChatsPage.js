@@ -6,68 +6,12 @@ import { Sidebar } from '../../components/chat/Sidebar.js';
 import { ChatList } from '../../components/chat/ChatList.js';
 import { ChatArea } from '../../components/chat/ChatArea.js';
 import { debugError } from '../../helpers/debugError.js';
+import { toDisplayChat } from '../../helpers/chat.js';
 import { ROUTES } from '../../constants/Routes.js';
+import { STATUSES } from '../../constants/Statuses.js';
 import { Page } from '../Page.js';
-import { showPage } from '../../router.js';
+import { showPage } from '../../helpers/showPage.js';
 import { LoginPage } from '../LoginPage/LoginPage.js';
-
-function formatMessageTime(messageDate) {
-  if (!messageDate || Number.isNaN(messageDate.getTime())) return '';
-
-  const now = new Date();
-  const isSameDay = (left, right) =>
-    left.getFullYear() === right.getFullYear()
-    && left.getMonth() === right.getMonth()
-    && left.getDate() === right.getDate();
-
-  if (isSameDay(messageDate, now)) {
-    return messageDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  if (isSameDay(messageDate, yesterday)) return 'вчера';
-
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const messageDayStart = new Date(
-    messageDate.getFullYear(),
-    messageDate.getMonth(),
-    messageDate.getDate(),
-  );
-  const daysAgo = Math.round((todayStart - messageDayStart) / 86_400_000);
-
-  if (daysAgo > 1 && daysAgo < 7) {
-    return messageDate.toLocaleDateString('ru-RU', { weekday: 'short' });
-  }
-
-  return messageDate.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    ...(messageDate.getFullYear() !== now.getFullYear() ? { year: 'numeric' } : {}),
-  });
-}
-
-function toDisplayChat(chat) {
-  const initials = chat.name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-  const messageDate = chat.last_message?.created_at
-    ? new Date(chat.last_message.created_at)
-    : null;
-
-  return {
-    ...chat,
-    initials,
-    isOnline: false,
-    time: formatMessageTime(messageDate),
-    lastMessage: chat.last_message?.content || '',
-    unreadCount: 0,
-  };
-}
 
 /**
  * Класс, представляющий страницу чатов.
@@ -100,7 +44,7 @@ export class ChatsPage extends Page {
   async loadCurrentUser() {
     const response = await AuthApi.getCurrentUser();
     if (response instanceof ApiError) {
-      if (response.status === 401 || response.code === ERROR_CODES.UNAUTHORIZED) {
+      if (response.status === STATUSES.UNAUTHORIZED || response.code === ERROR_CODES.UNAUTHORIZED) {
         await showPage(LoginPage);
         return false;
       }
@@ -125,7 +69,7 @@ export class ChatsPage extends Page {
     const response = await ChatsApi.getChats();
 
     if (response instanceof ApiError) {
-      if (response.status === 401 || response.code === ERROR_CODES.UNAUTHORIZED) {
+      if (response.status === STATUSES.UNAUTHORIZED || response.code === ERROR_CODES.UNAUTHORIZED) {
         await showPage(LoginPage);
         return;
       }
@@ -171,7 +115,7 @@ export class ChatsPage extends Page {
     button.disabled = true;
 
     const result = await AuthApi.logout();
-    if (result.success || result.status === 401) {
+    if (result.success || result.status === STATUSES.UNAUTHORIZED) {
       await showPage(LoginPage);
       return;
     }
@@ -197,7 +141,6 @@ export class ChatsPage extends Page {
   }
 
   async afterMount() {
-    await this.loadTemplates();
     if (!(await this.loadCurrentUser())) return;
     await this.loadChats();
   }

@@ -28,6 +28,7 @@ export class Page {
         }
 
         mountedPage = this;
+        await this.loadTemplates();
         this.container.innerHTML = await this.render();
         this.bindEvents();
         await this.afterMount();
@@ -37,6 +38,8 @@ export class Page {
     render() {
         return '';
     }
+
+    async loadTemplates() {}
 
     bindEvents() {}
 
