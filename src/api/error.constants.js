@@ -26,7 +26,7 @@ export const ERROR_HINTS = {
   [ERROR_CODES.NICKNAME_TAKEN]: 'Попробуйте другой никнейм.',
   [ERROR_CODES.UNAUTHORIZED]: 'Войдите заново, чтобы продолжить.',
   [ERROR_CODES.VALIDATION_ERROR]: 'Проверьте правильность заполнения полей.',
-  [ERROR_CODES.NETWORK_ERROR]: 'Проверьте Wi-Fi или мобильную сеть и попробуйте ещё раз.',
+  [ERROR_CODES.NETWORK_ERROR]: 'Проверьте Wi‑Fi или мобильную сеть и попробуйте ещё раз.',
   [ERROR_CODES.INTERNAL_ERROR]: 'Не удалось выполнить действие. Попробуйте позже.',
   [ERROR_CODES.UNKNOWN_ERROR]: 'Попробуйте позже.',
 };

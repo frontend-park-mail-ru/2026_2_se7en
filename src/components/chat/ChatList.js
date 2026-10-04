@@ -1,7 +1,8 @@
-import { Button } from './Button.js';
-import { Input } from './Input.js';
+import { Button } from '../core/Button.js';
+import { Input } from '../core/Input.js';
 import { renderChatListLoading } from './ChatListLoading.js';
-import { loadTemplate } from '../helpers/LoadTemplate.js';
+import { loadTemplate } from '../../helpers/LoadTemplate.js';
+import { debugError } from '../../helpers/debugError.js';
 
 /**
  * Компонент списка чатов
@@ -20,7 +21,10 @@ export class ChatList {
    */
   renderChatItem(chat, activeChatId) {
     const template = this.templates['chat-item'];
-    if (!template) return '';
+    if (!template) {
+      debugError('Шаблон элемента чата ещё не загружен');
+      return '';
+    }
 
     return template({
       id: chat.id,

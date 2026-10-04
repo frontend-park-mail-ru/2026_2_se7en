@@ -45,7 +45,7 @@ export function renderRegisterForm({ formData, fieldErrors }) {
                 <div class="text-center mt-4">
                     <p class="text-gray-500 text-sm">
                         Уже есть аккаунт?
-                        <a href="${ROUTES.LOGIN}" class="font-semibold text-gray-900 hover:underline">Войти</a>
+                        <a href="${ROUTES.LOGIN}" data-page-route="login" class="font-semibold text-gray-900 hover:underline">Войти</a>
                     </p>
                 </div>
             </form>

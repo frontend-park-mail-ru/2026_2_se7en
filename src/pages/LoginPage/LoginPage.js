@@ -1,20 +1,26 @@
-import { AuthLayout } from '../../components/AuthLayout.js';
-import { AuthForm } from '../../components/AuthForm.js';
+import { AuthLayout, loadAuthLayoutTemplate } from '../../components/Auth/AuthLayout.js';
+import { AuthForm, loadAuthFormTemplate } from '../../components/Auth/AuthForm.js';
+import { loadFieldTemplate } from '../../components/Auth/Field.js';
 import { AuthApi } from '../../api/auth/AuthApi.js';
 import { validateEmail, validatePassword } from '../../helpers/validation.js';
-import { APP_ID } from '../../constants/App.js';
-import { debugError } from '../../helpers/error.js';
+import { Page } from '../Page.js';
 import { ROUTES } from '../../constants/Routes.js';
 import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '../../constants/Login.js';
-import { ERROR_CODES, ERROR_HINTS } from '../../api/error.constants.js';
+import { STATUSES } from '../../constants/Statuses.js';
+import { ERROR_CODES, ERROR_HINTS, ERROR_MESSAGES } from '../../api/error.constants.js';
+import { showPage } from '../../helpers/showPage.js';
+import { ChatsPage } from '../ChatsPage/ChatsPage.js';
+import { RegisterPage } from '../RegisterPage/RegisterPage.js';
 
 /**
  * Страница авторизации.
  * Отвечает за рендеринг формы, клиентскую валидацию и отправку данных на сервер.
  */
-export class LoginPage {
+export class LoginPage extends Page {
+  static route = ROUTES.LOGIN;
+
   constructor() {
-    this.container = null;
+    super();
     this.fieldErrors = {};
     this.generalError = '';
     this.generalErrorHint = '';
@@ -28,22 +34,32 @@ export class LoginPage {
    * @returns {string} HTML-строка с разметкой страницы.
    */
   render() {
+    const authForm = AuthForm({
+      formId: LOGIN_FORM_ID,
+      submitId: LOGIN_SUBMIT_ID,
+      title: 'С возвращением',
+      subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
+      fields: this.buildFields(),
+      submitText: 'Войти',
+      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
+      generalError: this.generalError,
+      generalErrorHint: this.generalErrorHint,
+      loading: this.loading,
+    });
+
     return AuthLayout({
       title: 'Общение, которое<br />всегда рядом',
       subtitle: 'Продолжайте разговоры на большом экране',
-      children: AuthForm({
-        formId: LOGIN_FORM_ID,
-        submitId: LOGIN_SUBMIT_ID,
-        title: 'С возвращением',
-        subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
-        fields: this.buildFields(),
-        submitText: 'Войти',
-        footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
-        generalError: this.generalError,
-        generalErrorHint: this.generalErrorHint,
-        loading: this.loading,
-      }),
+      children: authForm,
     });
+  }
+
+  async loadTemplates() {
+    await Promise.all([
+      loadAuthFormTemplate(),
+      loadAuthLayoutTemplate(),
+      loadFieldTemplate(),
+    ]);
   }
 
   /**
@@ -75,19 +91,6 @@ export class LoginPage {
   }
 
   /**
-   * Монтирует страницу: вставляет HTML в контейнер и навешивает обработчики.
-   */
-  mount() {
-    this.container = document.getElementById(APP_ID);
-    if (!this.container) {
-      debugError(`Элемент с id=${APP_ID} не найден`);
-      return;
-    }
-    this.container.innerHTML = this.render();
-    this.bindEvents();
-  }
-
-  /**
    * Перерисовывает страницу с сохранением текущего состояния.
    */
   rerender() {
@@ -108,6 +111,11 @@ export class LoginPage {
     this.container.querySelectorAll('[data-toggle-password]').forEach((btn) => {
       btn.addEventListener('click', () => this.togglePassword(btn));
     });
+
+    this.container.querySelector('[data-page-route="register"]')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      void showPage(RegisterPage);
+    });
   }
 
   /**
@@ -122,8 +130,8 @@ export class LoginPage {
     const show = input.type === 'password';
     input.type = show ? 'text' : 'password';
 
-    btn.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', show);
-    btn.querySelector('[data-eye="open"]')?.classList.toggle('hidden', !show);
+    btn.querySelector('[data-eye="open"]')?.classList.toggle('hidden', show);
+    btn.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', !show);
   }
 
   /**
@@ -163,12 +171,22 @@ export class LoginPage {
     this.loading = false;
 
     if (!result.success) {
-      this.generalError = result.message;
-      this.generalErrorHint = ERROR_HINTS[result.code] || ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
+      // Макет предусматривает отдельный текст для неверных данных входа и
+      // общий текст о недоступности сервиса для остальных ошибок API.
+      const isCredentialsError = result.code === ERROR_CODES.UNAUTHORIZED
+        || result.code === ERROR_CODES.INVALID_CREDENTIALS
+        || result.status === STATUSES.BAD_REQUEST;
+      const errorCode = isCredentialsError
+        ? ERROR_CODES.INVALID_CREDENTIALS
+        : [ERROR_CODES.NETWORK_ERROR, ERROR_CODES.INTERNAL_ERROR].includes(result.code)
+          ? result.code
+          : ERROR_CODES.INTERNAL_ERROR;
+      this.generalError = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR];
+      this.generalErrorHint = ERROR_HINTS[errorCode] || ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
       this.rerender();
       return;
     }
 
-    window.location.href = ROUTES.HOME;
+    await showPage(ChatsPage);
   }
 }

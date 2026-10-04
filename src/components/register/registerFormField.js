@@ -64,7 +64,7 @@ export function FormField({
     : '';
 
   return `
-        <div>
+        <div data-form-field>
             <label for="${id}" class="block text-xs font-medium ${labelColor} mb-1.5">
                 ${label}${hintHtml}
             </label>

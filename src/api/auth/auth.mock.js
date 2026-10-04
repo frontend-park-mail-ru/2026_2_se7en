@@ -1,5 +1,6 @@
 import { ApiSuccess, ApiError } from '../ApiResponse.js';
 import { ERROR_CODES, ERROR_MESSAGES } from '../error.constants.js';
+import { STATUSES } from '../../constants/Statuses.js';
 
 export const MOCK_CREDENTIALS = {
   email: '1@1.ru',
@@ -25,13 +26,13 @@ export async function mockLogin(email, password) {
   await new Promise((r) => setTimeout(r, 300));
 
   if (email === MOCK_CREDENTIALS.email && password === MOCK_CREDENTIALS.password) {
-    return new ApiSuccess(MOCK_USER, 200);
+    return new ApiSuccess(MOCK_USER, STATUSES.OK);
   }
 
   return new ApiError(
     ERROR_CODES.INVALID_CREDENTIALS,
     ERROR_MESSAGES[ERROR_CODES.INVALID_CREDENTIALS],
-    401,
+    STATUSES.UNAUTHORIZED,
     null,
   );
 }

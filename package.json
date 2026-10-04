@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npm run dev:server",
     "dev:server": "cd server && npm run dev",
+    "start": "npm --prefix server start",
     "lint": "eslint .",
     "prepare": "husky"
   },

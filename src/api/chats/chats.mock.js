@@ -1,5 +1,6 @@
 import { ApiSuccess, ApiError } from '../ApiResponse.js';
 import { ERROR_CODES, ERROR_MESSAGES } from '../error.constants.js';
+import { STATUSES } from '../../constants/Statuses.js';
 
 export const MOCK_CHATS = [
   {
@@ -87,13 +88,13 @@ export async function mockGetChats({ limit = 20, offset = 0 } = {}) {
         items: paginatedChats,
         total: MOCK_CHATS.length,
       },
-      200,
+      STATUSES.OK,
     );
   } catch (_error) {
     return new ApiError(
       ERROR_CODES.INTERNAL_ERROR,
       ERROR_MESSAGES[ERROR_CODES.INTERNAL_ERROR],
-      500,
+      STATUSES.INTERNAL_SERVER_ERROR,
       null,
     );
   }

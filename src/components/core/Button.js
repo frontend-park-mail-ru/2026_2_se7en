@@ -9,6 +9,9 @@
  * @param {string} [params.iconBefore] - SVG иконка перед текстом.
  * @param {string} [params.iconAfter] - SVG иконка после текста.
  * @param {'button' | 'submit' | 'reset'} [params.type='button'] - Тип кнопки.
+ * @param {string} [params.ariaLabel] - Доступное имя кнопки.
+ * @param {string} [params.title] - Всплывающая подсказка кнопки.
+ * @param {boolean} [params.disabled=false] - Отключена ли кнопка.
  * @returns {string} HTML-строка с разметкой кнопки.
  */
 export function Button({
@@ -19,6 +22,9 @@ export function Button({
     iconBefore = '',
     iconAfter = '',
     type = 'button',
+    ariaLabel = '',
+    title = '',
+    disabled = false,
 }) {
     const baseClasses =
         'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-1';
@@ -34,6 +40,9 @@ export function Button({
 
     const modeClasses = variants[mode] || variants.primary;
     const idAttr = id ? `id="${id}"` : '';
+    const ariaLabelAttr = ariaLabel ? `aria-label="${ariaLabel}"` : '';
+    const titleAttr = title ? `title="${title}"` : '';
+    const disabledAttr = disabled ? 'disabled' : '';
     const iconBeforeHtml = iconBefore
         ? `<span class="inline-flex items-center">${iconBefore}</span>`
         : '';
@@ -43,7 +52,7 @@ export function Button({
     const finalClasses = `${baseClasses} ${modeClasses} ${className}`.trim();
 
     return `
-        <button ${idAttr} type="${type}" class="${finalClasses}">
+        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${disabledAttr} type="${type}" class="${finalClasses}">
                         ${iconBeforeHtml}${text}${iconAfterHtml}
         </button>
     `;
