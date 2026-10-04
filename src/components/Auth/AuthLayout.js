@@ -1,4 +1,5 @@
 import { loadTemplate } from '../../helpers/LoadTemplate.js';
+import { debugError } from '../../helpers/debugError.js';
 
 let templates = {};
 
@@ -13,7 +14,10 @@ export async function loadAuthLayoutTemplate() {
  * @returns {string} HTML-разметка страницы.
  */
 export function AuthLayout({ title, subtitle, topBar = '', children }) {
-  if (!templates['auth-layout']) throw new Error('Шаблон страницы авторизации ещё не загружен');
+  if (!templates['auth-layout']) {
+    debugError('Шаблон страницы авторизации ещё не загружен');
+    return '';
+  }
 
   return templates['auth-layout']({ title, subtitle, topBar, children });
 }

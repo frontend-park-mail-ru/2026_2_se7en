@@ -1,4 +1,5 @@
 import { loadTemplate } from '../../helpers/LoadTemplate.js';
+import { debugError } from '../../helpers/debugError.js';
 import { BannerErrorIcon, SpinnerIcon } from '../core/Icons.js';
 import { Field } from './Field.js';
 
@@ -26,7 +27,10 @@ export function AuthForm({
   generalErrorHint = '',
   loading = false,
 }) {
-  if (!templates['auth-form']) throw new Error('Шаблон формы авторизации ещё не загружен');
+  if (!templates['auth-form']) {
+    debugError('Шаблон формы авторизации ещё не загружен');
+    return '';
+  }
 
   const fieldsHtml = fields.map((field) => Field(field)).join('');
   return templates['auth-form']({

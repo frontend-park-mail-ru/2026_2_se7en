@@ -1,4 +1,5 @@
 import { loadTemplate } from '../../helpers/LoadTemplate.js';
+import { debugError } from '../../helpers/debugError.js';
 import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '../core/Icons.js';
 
 let templates = {};
@@ -24,7 +25,10 @@ export function Field({
   value = '',
   error = '',
 }) {
-  if (!templates.field) throw new Error('Шаблон поля авторизации ещё не загружен');
+  if (!templates.field) {
+    debugError('Шаблон поля авторизации ещё не загружен');
+    return '';
+  }
 
   return templates.field({
     id,
