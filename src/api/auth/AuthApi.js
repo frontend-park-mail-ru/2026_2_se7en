@@ -1,5 +1,7 @@
-import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants';
-import { ServerApi } from '../ServerApi';
+import { REGISTER_URL, LOGIN_URL, LOGOUT_URL, GET_CURRENT_USER_URL } from './auth.constants.js';
+import { ServerApi } from '../ServerApi.js';
+import { mockLogin } from './auth.mock.js';
+import { USING_MOCK } from '../api.constants.js';
 
 /**
  * Класс для взаимодействия с API аутентификации и управления сессией пользователя.
@@ -22,6 +24,8 @@ export class AuthApi extends ServerApi {
    * @returns {Promise<ApiSuccess | ApiError>}
    */
   static async login(email, password) {
+    if (USING_MOCK.AUTH) return mockLogin(email, password);
+
     return this._request(LOGIN_URL, {
       method: 'POST',
       body: { email, password },

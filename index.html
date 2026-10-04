@@ -4,12 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>sVyaZь и тОчка</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/pictures/icon.png" />
+    <link rel="stylesheet" href="/src/styles/reset.css" />
+    <link rel="stylesheet" href="/src/index.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.min.js"></script>
     <script>
-    window.APP_CONFIG = {
-      BACKEND_URL: "{{BACKEND_URL}}"
-    };
+      window.APP_CONFIG = {
+        BACKEND_URL: '{{BACKEND_URL}}',
+      };
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "handlebars": "https://cdn.jsdelivr.net/npm/handlebars@4.7.8/+esm"
+        }
+      }
     </script>
   </head>
   <body>
