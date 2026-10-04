@@ -237,9 +237,9 @@ export class PageRegister extends Page {
       return;
     }
 
-    if (result.status === ERROR_STATUSES.StatusBadRequest && result.code === 'VALIDATION_ERROR') {
+    if (result.status === ERROR_STATUSES.STATUS_BAD_REQUEST && result.code === 'VALIDATION_ERROR') {
       this.displayErrors(result.details);
-    } else if (result.status === ERROR_STATUSES.StatusConflict) {
+    } else if (result.status === ERROR_STATUSES.STATUS_CONFLICT) {
       if (result.code === 'EMAIL_TAKEN') {
         this.fieldErrors.email = 'already_exists';
       }
