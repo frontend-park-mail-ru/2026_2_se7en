@@ -1,7 +1,7 @@
 import { ERROR_MESSAGES } from '../../pages/register/register.constants.js';
 import { Button } from '../Button.js';
 import { FormField } from './registerFormField.js';
-import { STEP_1_FIELDS, STEP_2_FIELDS } from './registerFormFields.config.js';
+import { STEP_1_FIELDS, STEP_2_FIELDS } from './registerFormFields.constants.js';
 
 /**
  * Компонент формы регистрации
