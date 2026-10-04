@@ -1,3 +1,5 @@
+import { Input } from '../Input.js';
+
 /**
  * Универсальный компонент поля формы
  * @param {Object} params
@@ -27,6 +29,14 @@ export function FormField({
   const borderColor = hasError ? 'border-red-500' : 'border-transparent';
   const labelColor = hasError ? 'text-red-500' : 'text-gray-500';
   const hintHtml = hint ? ` <span class="text-gray-400 font-normal">(${hint})</span>` : '';
+  const inputHtml = Input({
+    id,
+    name,
+    type,
+    placeholder,
+    value,
+    inputClassName: `w-full px-4 py-3 bg-[#f5f9ff] border ${borderColor} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${className}`,
+  });
 
   const errorHtml = hasError
     ? `
@@ -43,14 +53,7 @@ export function FormField({
             <label for="${id}" class="block text-xs font-medium ${labelColor} mb-1.5">
                 ${label}${hintHtml}
             </label>
-            <input 
-                type="${type}" 
-                id="${id}" 
-                name="${name}" 
-                class="w-full px-4 py-3 bg-[#f5f9ff] border ${borderColor} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${className}"
-                placeholder="${placeholder}"
-                value="${value}" 
-            />
+            ${inputHtml}
             ${errorHtml}
         </div>
     `;

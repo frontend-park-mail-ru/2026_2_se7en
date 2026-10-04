@@ -7,6 +7,7 @@ import { renderRegisterForm } from '../../components/register/registerForm.js';
 import { renderRegisterError } from '../../components/register/registerError.js';
 import { validateForm } from './register.helpers.js';
 import { AuthApi } from '../../api/auth/AuthApi.js';
+import { ROUTES } from '../../constants/Routes.js';
 
 /**
  * Класс описывающий страницу регистрации
@@ -109,7 +110,7 @@ export class PageRegister extends Page {
       this.container.innerHTML = this.render();
       this.bindEvents();
     } else {
-      window.location.href = '/login';
+      window.location.href = ROUTES.LOGIN;
     }
   }
 
@@ -233,7 +234,7 @@ export class PageRegister extends Page {
     const result = await AuthApi.register(this.getFormData());
 
     if (result.success) {
-      window.location.href = '/login';
+      window.location.href = ROUTES.LOGIN;
       return;
     }
 

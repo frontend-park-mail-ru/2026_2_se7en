@@ -1,4 +1,5 @@
 import { ERROR_MESSAGES } from '../../pages/register/register.constants.js';
+import { ROUTES } from '../../constants/Routes.js';
 import { Button } from '../Button.js';
 import { FormField } from './registerFormField.js';
 import { STEP_1_FIELDS, STEP_2_FIELDS } from './registerFormFields.constants.js';
@@ -42,7 +43,7 @@ export function renderRegisterForm({ currentStep, formData, fieldErrors }) {
                 <div class="text-center mt-4">
                     <p class="text-gray-500 text-sm">
                         Уже есть аккаунт?
-                        <a href="/login" class="font-semibold text-gray-900 hover:underline">Войти</a>
+                        <a href="${ROUTES.LOGIN}" class="font-semibold text-gray-900 hover:underline">Войти</a>
                     </p>
                 </div>
             </form>
