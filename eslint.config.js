@@ -17,6 +17,7 @@ export default [
         },
       ],
       'no-console': 'error',
+      'eol-last': ['error', 'always'],
     },
   },
 ];

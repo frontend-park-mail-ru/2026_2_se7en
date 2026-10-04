@@ -44,7 +44,7 @@ export function Button({
 
     return `
         <button ${idAttr} type="${type}" class="${finalClasses}">
-            ${iconBeforeHtml}${text}${iconAfterHtml}
+                        ${iconBeforeHtml}${text}${iconAfterHtml}
         </button>
     `;
 }
