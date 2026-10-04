@@ -5,6 +5,7 @@ import { Sidebar } from '../../components/Sidebar.js';
 import { ChatList } from '../../components/ChatList.js';
 import { ChatArea } from '../../components/ChatArea.js';
 import { debugError } from '../../helpers/error.js';
+import { ROUTES } from '../../constants/Routes.js';
 
 /**
  * Класс, представляющий страницу чатов.
@@ -43,7 +44,7 @@ export class ChatsPage {
     if (response instanceof ApiError) {
       switch (response.code) {
         case ERROR_CODES.UNAUTHORIZED:
-          window.location.href = '/login';
+          window.location.href = ROUTES.LOGIN;
           return;
         case ERROR_CODES.NETWORK_ERROR:
           this.hasNetworkError = true;
@@ -60,10 +61,6 @@ export class ChatsPage {
     this.update();
   }
 
-  async retryLoadChats() {
-    await this.loadChats();
-  }
-
   update() {
     const root = document.getElementById('app');
     if (root) {
@@ -75,7 +72,7 @@ export class ChatsPage {
   bindEvents() {
     const retryButton = document.getElementById('retry-connection-btn');
     if (retryButton) {
-      retryButton.addEventListener('click', () => this.retryLoadChats());
+      retryButton.addEventListener('click', () => this.loadChats());
     }
   }
 
