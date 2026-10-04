@@ -13,34 +13,32 @@
  * @returns {string} HTML строка поля
  */
 export function FormField({
-    id,
-    name,
-    label,
-    type = 'text',
-    placeholder,
-    value = '',
-    error = '',
-    hint = '',
-    className = '',
+  id,
+  name,
+  label,
+  type = 'text',
+  placeholder,
+  value = '',
+  error = '',
+  hint = '',
+  className = '',
 }) {
-    const hasError = !!error;
-    const borderColor = hasError ? 'border-red-500' : 'border-transparent';
-    const labelColor = hasError ? 'text-red-500' : 'text-gray-500';
-    const hintHtml = hint 
-        ? ` <span class="text-gray-400 font-normal">(${hint})</span>` 
-        : '';
+  const hasError = !!error;
+  const borderColor = hasError ? 'border-red-500' : 'border-transparent';
+  const labelColor = hasError ? 'text-red-500' : 'text-gray-500';
+  const hintHtml = hint ? ` <span class="text-gray-400 font-normal">(${hint})</span>` : '';
 
-    const errorHtml = hasError 
-        ? `
+  const errorHtml = hasError
+    ? `
         <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 flex-shrink-0 text-red-500">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
             ${error}
         </p>`
-        : '';
+    : '';
 
-    return `
+  return `
         <div>
             <label for="${id}" class="block text-xs font-medium ${labelColor} mb-1.5">
                 ${label}${hintHtml}

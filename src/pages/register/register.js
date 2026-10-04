@@ -1,10 +1,10 @@
 import { ELEMENT_IDS, VALIDATION_RULES, ERROR_STATUSES } from './register.constants.js';
 
 import { Page } from '../page.js';
-import { renderRegisterHeader } from '../../components/register-header.js';
-import { renderRegisterNavigation } from '../../components/register-navigation.js';
-import { renderRegisterForm } from '../../components/register-form.js';
-import { renderRegisterError } from '../../components/register-error.js';
+import { renderRegisterHeader } from '../../components/register/registerHeader.js';
+import { renderRegisterNavigation } from '../../components/register/registerNavigation.js';
+import { renderRegisterForm } from '../../components/register/registerForm.js';
+import { renderRegisterError } from '../../components/register/registerError.js';
 import { validateForm } from './register.helpers.js';
 import { registerUser } from '../../api/register.js';
 
