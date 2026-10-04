@@ -37,6 +37,4 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Express сервер работает!' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => {});

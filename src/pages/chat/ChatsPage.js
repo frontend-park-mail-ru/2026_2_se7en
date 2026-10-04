@@ -1,7 +1,10 @@
 import { ChatsApi } from '../../api/chats/ChatsApi.js';
+import { ApiError } from '../../api/ApiResponse.js';
+import { ERROR_CODES } from '../../api/error.constants.js';
 import { Sidebar } from '../../components/Sidebar.js';
 import { ChatList } from '../../components/ChatList.js';
 import { ChatArea } from '../../components/ChatArea.js';
+import { debugError } from '../../helpers/error.js';
 
 /**
  * Класс, представляющий страницу чатов.
@@ -12,6 +15,7 @@ export class ChatsPage {
     this.chats = [];
     this.activeChat = null;
     this.isLoading = false;
+    this.hasNetworkError = false;
     this.currentUser = {
       initials: 'ВМ',
       name: 'Вы',
@@ -22,9 +26,6 @@ export class ChatsPage {
     this.chatArea = new ChatArea();
   }
 
-  /**
-   * Загрузка всех шаблонов
-   */
   async loadTemplates() {
     await Promise.all([this.chatList.loadTemplates(), this.chatArea.loadTemplates()]);
   }
@@ -34,49 +35,64 @@ export class ChatsPage {
    */
   async loadChats() {
     this.isLoading = true;
+    this.hasNetworkError = false;
+    this.update();
 
-    try {
-      const data = await ChatsApi.getChats();
-      this.chats = data?.items || [];
-    } catch (error) {
-      console.error('Ошибка при загрузке чатов:', error);
+    const response = await ChatsApi.getChats();
+
+    if (response instanceof ApiError) {
+      switch (response.code) {
+        case ERROR_CODES.UNAUTHORIZED:
+          window.location.href = '/login';
+          return;
+        case ERROR_CODES.NETWORK_ERROR:
+          this.hasNetworkError = true;
+          break;
+        default:
+          debugError(response.message);
+      }
       this.chats = [];
-    } finally {
-      this.isLoading = false;
-      this.update();
+    } else {
+      this.chats = response.data?.items || [];
     }
+
+    this.isLoading = false;
+    this.update();
+  }
+
+  async retryLoadChats() {
+    await this.loadChats();
   }
 
   update() {
     const root = document.getElementById('app');
     if (root) {
       root.innerHTML = this.render();
+      this.bindEvents();
     }
   }
 
-  /**
-   * Установка активного чата
-   */
+  bindEvents() {
+    const retryButton = document.getElementById('retry-connection-btn');
+    if (retryButton) {
+      retryButton.addEventListener('click', () => this.retryLoadChats());
+    }
+  }
+
   setActiveChat(chatId) {
     this.activeChat = this.chats.find((c) => c.id === chatId) || null;
   }
 
-  /**
-   * Основной рендер страницы
-   */
   render() {
     return `
       <div class="min-h-screen bg-gray-50 flex">
         ${this.sidebar.render()}
         ${this.chatList.render(this.chats, this.activeChat?.id, this.isLoading)}
-        ${this.chatArea.render(this.activeChat, this.chats, this.isLoading)}
+        ${this.chatArea.render(this.activeChat, this.chats, this.isLoading, this.hasNetworkError)}
       </div>
     `;
   }
 
-  /**
-   * Инициализация страницы
-   */
   async mount() {
     await this.loadTemplates();
     await this.loadChats();

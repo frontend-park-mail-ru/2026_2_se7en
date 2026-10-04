@@ -12,7 +12,7 @@ export class ChatList {
   }
 
   async loadTemplates() {
-    await loadTemplate(this.templates, 'chat-item');
+    this.templates = await loadTemplate(this.templates, 'chat-item');
   }
 
   /**

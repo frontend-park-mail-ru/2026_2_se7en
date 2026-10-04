@@ -51,7 +51,7 @@ export class ServerApi {
         response.status,
         responseData?.details || null,
       );
-    } catch (error) {
+    } catch (_error) {
       return new ApiError(
         ERROR_CODES.NETWORK_ERROR,
         ERROR_MESSAGES[ERROR_CODES.NETWORK_ERROR],

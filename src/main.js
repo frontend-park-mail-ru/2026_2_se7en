@@ -1,4 +1,3 @@
-import { PageIndex } from './pages/index/index.js';
 import { ChatsPage } from './pages/chat/ChatsPage.js';
 
 const app = document.getElementById('app');

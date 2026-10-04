@@ -8,7 +8,14 @@ export default [
       globals: { ...globals.node, ...globals.browser },
     },
     rules: {
-      'no-unused-vars': 'error',
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       'no-console': 'error',
     },
   },
