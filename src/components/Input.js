@@ -4,21 +4,25 @@
  * @param {Object} params - Параметры инпута.
  * @param {string} [params.placeholder=''] - Текст-подсказка.
  * @param {string} [params.id] - Уникальный идентификатор элемента.
+ * @param {string} [params.name] - Имя элемента формы.
  * @param {string} [params.type='text'] - Тип инпута (text, password, email и т.д.).
  * @param {string} [params.value=''] - Начальное значение.
  * @param {string} [params.icon=''] - SVG-иконка (HTML-строка).
  * @param {'left' | 'right'} [params.iconPosition='left'] - Позиция иконки.
  * @param {string} [params.className=''] - Дополнительные CSS-классы.
+ * @param {string} [params.inputClassName] - CSS-классы поля ввода вместо стандартных.
  * @returns {string} HTML-строка с разметкой инпута.
  */
 export function Input({
   placeholder = '',
   id,
+  name,
   type = 'text',
   value = '',
   icon = '',
   iconPosition = 'left',
   className = '',
+  inputClassName = '',
 }) {
   const baseStyle =
     'w-full py-2 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
@@ -29,7 +33,9 @@ export function Input({
   };
 
   const idAttr = id ? `id="${id}"` : '';
+  const nameAttr = name ? `name="${name}"` : '';
   const valueAttr = value ? `value="${value}"` : '';
+  const inputClasses = inputClassName || `${baseStyle} ${paddingClasses[iconPosition]}`;
 
   const iconHtml = icon
     ? `
@@ -47,9 +53,10 @@ export function Input({
       <input 
         type="${type}" 
         ${idAttr}
+        ${nameAttr}
         placeholder="${placeholder}" 
         ${valueAttr}
-        class="${baseStyle} ${paddingClasses[iconPosition]}"
+        class="${inputClasses}"
       >
       ${iconPosition === 'right' ? iconHtml : ''}
     </div>
