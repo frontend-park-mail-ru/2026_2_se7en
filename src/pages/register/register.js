@@ -6,7 +6,7 @@ import { renderRegisterNavigation } from '../../components/register/registerNavi
 import { renderRegisterForm } from '../../components/register/registerForm.js';
 import { renderRegisterError } from '../../components/register/registerError.js';
 import { validateForm } from './register.helpers.js';
-import { registerUser } from '../../api/register.js';
+import { AuthApi } from '../../api/auth/AuthApi.js';
 
 /**
  * Класс описывающий страницу регистрации
@@ -15,7 +15,6 @@ import { registerUser } from '../../api/register.js';
 export class PageRegister extends Page {
   constructor() {
     super();
-    this.container = null;
     this.resetFormState();
   }
 
@@ -118,7 +117,7 @@ export class PageRegister extends Page {
    * Валидирует поля формы
    * @returns {Object} Объект с флагом валидности и массивом ошибок
    */
-  validateForm() {
+  validate() {
     return validateForm(this.currentStep, (field) => {
       const input = document.getElementById(field);
       return input ? input.value.trim() : '';
@@ -188,7 +187,7 @@ export class PageRegister extends Page {
   async handleSubmit(event) {
     event.preventDefault();
 
-    const { isValid, errors } = this.validateForm();
+    const { isValid, errors } = this.validate();
     if (!isValid) {
       this.displayErrors(errors);
       return;
@@ -231,9 +230,9 @@ export class PageRegister extends Page {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Создание...';
 
-    const result = await registerUser(this.getFormData());
+    const result = await AuthApi.register(this.getFormData());
 
-    if (result.status === ERROR_STATUSES.StatusCreated) {
+    if (result.success) {
       window.location.href = '/login';
       return;
     }
@@ -241,13 +240,17 @@ export class PageRegister extends Page {
     if (result.status === ERROR_STATUSES.StatusBadRequest && result.code === 'VALIDATION_ERROR') {
       this.displayErrors(result.details);
     } else if (result.status === ERROR_STATUSES.StatusConflict) {
-      if (result.code === 'EMAIL_TAKEN') this.fieldErrors.email = 'already_exists';
-      if (result.code === 'NICKNAME_TAKEN') this.fieldErrors.nickname = 'already_exists';
+      if (result.code === 'EMAIL_TAKEN') {
+        this.fieldErrors.email = 'already_exists';
+      }
+      if (result.code === 'NICKNAME_TAKEN') {
+        this.fieldErrors.nickname = 'already_exists';
+      }
 
       this.container.innerHTML = this.render();
       this.bindEvents();
     } else {
-      this.showGeneralError(result.message);
+      this.showGeneralError(result.message || 'Произошла ошибка при регистрации');
     }
 
     submitBtn.disabled = false;
