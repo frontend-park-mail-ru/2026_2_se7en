@@ -1,5 +1,12 @@
 import { VALIDATION_RULES } from './register.constants.js';
 
+/**
+ * Нормализует причину ошибки валидации, приводя к стандартному виду для отображения у пользователя
+ * 
+ * @param {*} field - Имя поля формы, 
+ * @param {*} reason - Исходное сообщение причины ошибки
+ * @returns 
+ */
 export function normalizeValidationReason(field, reason) {
     const normalized = String(reason).toLowerCase();
 
