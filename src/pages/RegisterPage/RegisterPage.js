@@ -6,7 +6,7 @@ import { renderRegisterError } from '../../components/register/registerError.js'
 import { normalizeValidationReason, validateForm } from './register.helpers.js';
 import { AuthApi } from '../../api/auth/AuthApi.js';
 import { ROUTES } from '../../constants/Routes.js';
-import { showPage } from '../../router.js';
+import { showPage } from '../../helpers/showPage.js';
 import { LoginPage } from '../LoginPage/LoginPage.js';
 
 /** Страница регистрации с одной формой для всех обязательных данных. */
@@ -53,6 +53,11 @@ export class RegisterPage extends Page {
   bindEvents() {
     document.getElementById(ELEMENT_IDS.FORM)?.addEventListener('submit', (event) => {
       this.handleSubmit(event);
+    });
+
+    this.container.querySelector('[data-page-route="login"]')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      void showPage(LoginPage);
     });
 
     Object.keys(VALIDATION_RULES).forEach((fieldName) => {
