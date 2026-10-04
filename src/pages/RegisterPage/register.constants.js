@@ -28,9 +28,7 @@ export const VALIDATION_RULES = {
   },
   first_name: {
     required: true,
-    minLength: 2,
     maxLength: 32,
-    pattern: /^[^0-9]*$/,
   },
 };
 
@@ -44,8 +42,13 @@ export const ERROR_MESSAGES = {
   email_invalid_format: 'Введите почту в формате name@example.com',
   email_max_length: 'Электронная почта должна содержать не более 255 символов',
   email_already_exists: 'Такая электронная почта уже используется',
-  first_name_length: 'Имя должно быть от 2 до 32 символов',
-  first_name_invalid_format: 'Имя не должно содержать цифры',
+  first_name_max_length: 'Имя должно содержать не более 32 символов',
   invalid_format: 'Неверный формат',
   max_length_exceeded: 'Превышена максимальная длина',
+};
+
+export const ERROR_STATUSES = {
+  STATUS_CREATED: 201,
+  STATUS_BAD_REQUEST: 400,
+  STATUS_CONFLICT: 409,
 };

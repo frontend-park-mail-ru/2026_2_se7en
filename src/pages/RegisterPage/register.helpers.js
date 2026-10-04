@@ -1,5 +1,12 @@
 import { VALIDATION_RULES } from './register.constants.js';
 
+/**
+ * Нормализует причину ошибки валидации, приводя к стандартному виду для отображения у пользователя
+ * 
+ * @param {string} field - Имя поля формы, 
+ * @param {string} reason - Исходное сообщение причины ошибки
+ * @returns 
+ */
 export function normalizeValidationReason(field, reason) {
     const normalized = String(reason).toLowerCase();
 
@@ -15,38 +22,11 @@ export function normalizeValidationReason(field, reason) {
         if (normalized.includes('maximum length')) return 'email_max_length';
         if (normalized.includes('format')) return 'email_invalid_format';
     }
-    if (field === 'first_name' && normalized.includes('length')) {
-        return `${field}_length`;
-    }
-    if (field === 'first_name' && (normalized.includes('digit') || normalized.includes('number'))) {
-        return 'first_name_invalid_format';
+    if (field === 'first_name' && normalized.includes('maximum length')) {
+        return 'first_name_max_length';
     }
 
     return 'invalid_format';
-}
-
-export function validateField(field, value) {
-    const rules = VALIDATION_RULES[field];
-    if (!rules) return '';
-
-    const normalizedValue = field === 'password' ? value : value.trim();
-    if (rules.required && !normalizedValue) return 'required';
-    if (!normalizedValue) return '';
-
-    const length = field === 'first_name'
-        ? Array.from(normalizedValue).length
-        : normalizedValue.length;
-
-    if (field === 'first_name' && rules.pattern && !rules.pattern.test(normalizedValue)) {
-        return `${field}_invalid_format`;
-    }
-    if (rules.minLength && length < rules.minLength) return `${field}_length`;
-    if (rules.maxLength && length > rules.maxLength) {
-        return field === 'email' ? 'email_max_length' : `${field}_length`;
-    }
-    if (rules.pattern && !rules.pattern.test(normalizedValue)) return `${field}_invalid_format`;
-
-    return '';
 }
 
 /**
@@ -62,10 +42,31 @@ export function validateForm(getFieldValue) {
     const fieldsToValidate = ['first_name', 'nickname', 'email', 'password'];
 
     for (const field of fieldsToValidate) {
-        const reason = validateField(field, getFieldValue(field));
-        if (reason) {
-            fieldErrors[field] = reason;
-            errors.push({ field, reason });
+        const rules = VALIDATION_RULES[field];
+        const value = getFieldValue(field);
+
+        if (rules.required && !value) {
+            fieldErrors[field] = 'required';
+            errors.push({ field, reason: 'required' });
+            continue;
+        }
+
+        if (value) {
+            if (rules.minLength && value.length < rules.minLength) {
+                const reason = field === 'nickname' ? 'nickname_length' : 'password_length';
+                fieldErrors[field] = reason;
+                errors.push({ field, reason });
+            } else if (rules.maxLength && value.length > rules.maxLength) {
+                const reason = field === 'nickname' || field === 'password'
+                    ? `${field}_length`
+                    : `${field}_max_length`;
+                fieldErrors[field] = reason;
+                errors.push({ field, reason });
+            } else if (rules.pattern && !rules.pattern.test(value)) {
+                const reason = field === 'nickname' ? 'nickname_invalid_format' : `${field}_invalid_format`;
+                fieldErrors[field] = reason;
+                errors.push({ field, reason });
+            }
         }
     }
 

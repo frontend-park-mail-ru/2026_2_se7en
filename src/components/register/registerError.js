@@ -1,4 +1,4 @@
-import { BannerErrorIcon } from '../core/Icons.js';
+import { escapeHtml } from '../../helpers/escapeHtml.js';
 
 /**
  * Компонент блока общей ошибки
@@ -7,16 +7,14 @@ import { BannerErrorIcon } from '../core/Icons.js';
 export function renderRegisterError(generalError) {
   if (!generalError) return '';
 
-  const safeMessage = String(generalError).replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  })[char]);
+  const safeMessage = escapeHtml(generalError);
 
   return `
         <div id="error-container" role="alert" aria-live="assertive" class="mb-4 bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg">
             <div class="flex items-start gap-3">
                 ${BannerErrorIcon}
                 <div>
-                    <p class="text-red-800 text-sm font-medium">Не удалось создать аккаунт</p>
+                    <p class="text-red-800 text-sm font-medium">Не удалось отправить данные</p>
                     <p class="text-red-600 text-xs mt-0.5">${safeMessage}</p>
                 </div>
             </div>
