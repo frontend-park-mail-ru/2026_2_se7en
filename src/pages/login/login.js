@@ -6,6 +6,7 @@ import { APP_ID } from '../../constants/App.js';
 import { debugError } from '../../helpers/error.js';
 import { ROUTES } from '../../constants/Routes.js';
 import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '../../constants/Login.js';
+import { ERROR_CODES, ERROR_HINTS } from '../../api/error.constants.js';
 
 /**
  * Страница авторизации.
@@ -16,6 +17,8 @@ export class LoginPage {
     this.container = null;
     this.fieldErrors = {};
     this.generalError = '';
+    this.generalErrorHint = '';
+    this.loading = false;
     this.values = { email: '', password: '' };
   }
 
@@ -37,6 +40,8 @@ export class LoginPage {
         submitText: 'Войти',
         footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
         generalError: this.generalError,
+        generalErrorHint: this.generalErrorHint,
+        loading: this.loading,
       }),
     });
   }
@@ -84,7 +89,6 @@ export class LoginPage {
 
   /**
    * Перерисовывает страницу с сохранением текущего состояния.
-   * Используется после изменения fieldErrors и generalError.
    */
   rerender() {
     this.container.innerHTML = this.render();
@@ -92,7 +96,7 @@ export class LoginPage {
   }
 
   /**
-   * Навешивает обработчик submit на форму логина.
+   * Навешивает обработчики на форму и кнопки показа пароля.
    */
   bindEvents() {
     const form = document.getElementById(LOGIN_FORM_ID);
@@ -100,6 +104,26 @@ export class LoginPage {
       e.preventDefault();
       this.submit();
     });
+
+    this.container.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+      btn.addEventListener('click', () => this.togglePassword(btn));
+    });
+  }
+
+  /**
+   * Переключает видимость пароля и меняет иконку глаза.
+   *
+   * @param {HTMLElement} btn - Кнопка переключения.
+   */
+  togglePassword(btn) {
+    const input = document.getElementById(btn.dataset.togglePassword);
+    if (!input) return;
+
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+
+    btn.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', show);
+    btn.querySelector('[data-eye="open"]')?.classList.toggle('hidden', !show);
   }
 
   /**
@@ -109,6 +133,8 @@ export class LoginPage {
    * @async
    */
   async submit() {
+    if (this.loading) return;
+
     const emailEl = document.getElementById('email');
     const passwordEl = document.getElementById('password');
 
@@ -116,6 +142,7 @@ export class LoginPage {
     this.values.password = passwordEl.value;
     this.fieldErrors = {};
     this.generalError = '';
+    this.generalErrorHint = '';
 
     const emailError = validateEmail(this.values.email);
     const passwordError = validatePassword(this.values.password);
@@ -128,14 +155,16 @@ export class LoginPage {
       return;
     }
 
-    const submitBtn = document.getElementById(LOGIN_SUBMIT_ID);
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Входим...';
+    this.loading = true;
+    this.rerender();
 
     const result = await AuthApi.login(this.values.email, this.values.password);
 
+    this.loading = false;
+
     if (!result.success) {
       this.generalError = result.message;
+      this.generalErrorHint = ERROR_HINTS[result.code] || ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
       this.rerender();
       return;
     }
