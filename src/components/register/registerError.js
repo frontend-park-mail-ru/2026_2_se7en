@@ -1,3 +1,5 @@
+import { escapeHtml } from '../../helpers/escapeHtml.js';
+
 /**
  * Компонент блока общей ошибки
  * @param {string|null} generalError - текст ошибки (если ошибки нет - null)
@@ -5,9 +7,7 @@
 export function renderRegisterError(generalError) {
   if (!generalError) return '';
 
-  const safeMessage = String(generalError).replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  })[char]);
+  const safeMessage = escapeHtml(generalError);
 
   return `
         <div id="error-container" class="absolute -top-8 left-0 right-0 z-10 bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg">

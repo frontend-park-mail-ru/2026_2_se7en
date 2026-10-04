@@ -1,15 +1,6 @@
 import { Input } from '../core/Input.js';
 import { EyeClosedIcon, EyeOpenIcon } from '../core/Icons.js';
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-})[char]);
-}
+import { escapeHtml } from '../../helpers/escapeHtml.js';
 
 const registerEyeIcons = `${EyeOpenIcon.replace('w-5 h-5 hidden', 'w-5 h-5')}${EyeClosedIcon.replace('w-5 h-5"', 'w-5 h-5 hidden"')}`;
 
