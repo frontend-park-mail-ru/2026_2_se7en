@@ -1,12 +1,10 @@
 export const ELEMENT_IDS = {
-  FORM: 'register_form',
+  FORM: 'register-form',
   EMAIL: 'email',
   PASSWORD: 'password',
-  PHONE_NUMBER: 'phone_number',
   NICKNAME: 'nickname',
   FIRST_NAME: 'first_name',
-  LAST_NAME: 'last_name',
-  SUBMIT_BUTTON: 'submit-btn',
+  SUBMIT_BUTTON: 'submit-button',
   ERROR_CONTAINER: 'error-container',
   ERROR_MESSAGE: 'error-message',
 };
@@ -15,7 +13,7 @@ export const VALIDATION_RULES = {
   email: {
     required: true,
     maxLength: 255,
-    pattern: /^[a-zA-Z0-9_]+@[a-zA-Z]\.[a-zA-Z]{2,}$/,
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   },
   password: {
     required: true,
@@ -28,15 +26,7 @@ export const VALIDATION_RULES = {
     maxLength: 16,
     pattern: /^[a-zA-Z0-9_]+$/,
   },
-  phone_number: {
-    required: false,
-    pattern: /^\+?[1-9]\d{1,14}$/,
-  },
   first_name: {
-    required: true,
-    maxLength: 32,
-  },
-  last_name: {
     required: true,
     maxLength: 32,
   },
@@ -44,11 +34,17 @@ export const VALIDATION_RULES = {
 
 export const ERROR_MESSAGES = {
   required: 'Обязательное поле',
+  nickname_length: 'Длина никнейма должна быть от 3 до 16 символов',
+  nickname_invalid_format:
+    'Можно использовать только латинские буквы, цифры и нижнее подчёркивание',
+  nickname_already_exists: 'Такой никнейм уже используется',
+  password_length: 'Длина пароля должна быть от 8 до 16 символов',
+  email_invalid_format: 'Введите почту в формате name@example.com',
+  email_max_length: 'Электронная почта должна содержать не более 255 символов',
+  email_already_exists: 'Такая электронная почта уже используется',
+  first_name_max_length: 'Имя должно содержать не более 32 символов',
   invalid_format: 'Неверный формат',
   max_length_exceeded: 'Превышена максимальная длина',
-  length_must_be_8_to_16: 'Длина должна быть от 8 до 16 символов',
-  length_must_be_3_to_16: 'Длина должна быть от 3 до 16 символов',
-  already_exists: 'Уже используется',
 };
 
 export const ERROR_STATUSES = {

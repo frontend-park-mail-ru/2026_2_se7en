@@ -1,4 +1,17 @@
-import { Input } from '../Input.js';
+import { Input } from '../core/Input.js';
+import { EyeClosedIcon, EyeOpenIcon } from '../core/Icons.js';
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+})[char]);
+}
+
+const registerEyeIcons = `${EyeOpenIcon.replace('w-5 h-5 hidden', 'w-5 h-5')}${EyeClosedIcon.replace('w-5 h-5"', 'w-5 h-5 hidden"')}`;
 
 /**
  * Универсальный компонент поля формы
@@ -11,6 +24,7 @@ import { Input } from '../Input.js';
  * @param {string} params.value - Текущее значение
  * @param {string} [params.error] - Текст ошибки (если есть)
  * @param {string} [params.hint] - Подсказка после лейбла (например "необязательно")
+ * @param {string} [params.description] - Подсказка под полем
  * @param {string} [params.className] - Дополнительные классы для input
  * @returns {string} HTML строка поля
  */
@@ -23,6 +37,7 @@ export function FormField({
   value = '',
   error = '',
   hint = '',
+  description = '',
   className = '',
 }) {
   const hasError = !!error;
@@ -34,9 +49,18 @@ export function FormField({
     name,
     type,
     placeholder,
-    value,
-    inputClassName: `w-full px-4 py-3 bg-[#f5f9ff] border ${borderColor} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${className}`,
+    value: escapeHtml(value),
+    inputClassName: `w-full px-4 py-3 ${type === 'password' ? 'pr-12' : ''} bg-[#f5faff] border ${borderColor} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${className}`,
   });
+
+  const inputWithToggle = type === 'password'
+    ? `<div class="relative">
+        ${inputHtml}
+        <button type="button" data-toggle-password="${id}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700" aria-label="Показать пароль" aria-pressed="false">
+          ${registerEyeIcons}
+        </button>
+      </div>`
+    : inputHtml;
 
   const errorHtml = hasError
     ? `
@@ -44,7 +68,7 @@ export function FormField({
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 flex-shrink-0 text-red-500">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
-            ${error}
+            ${escapeHtml(error)}
         </p>`
     : '';
 
@@ -53,7 +77,8 @@ export function FormField({
             <label for="${id}" class="block text-xs font-medium ${labelColor} mb-1.5">
                 ${label}${hintHtml}
             </label>
-            ${inputHtml}
+            ${inputWithToggle}
+            ${description && !hasError ? `<p class="mt-1.5 text-xs text-gray-400">${escapeHtml(description)}</p>` : ''}
             ${errorHtml}
         </div>
     `;

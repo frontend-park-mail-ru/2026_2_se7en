@@ -1,10 +1,10 @@
-import { ELEMENT_IDS } from '../../constants/App.js';
+import { ELEMENT_IDS } from '../../pages/RegisterPage/register.constants.js';
 
 /**
- * Конфигурация полей для первого шага регистрации
+ * Поля формы регистрации в порядке макета
  * @type {Array<{id: string, name: string, label: string, placeholder: string, type?: string}>}
  */
-export const STEP_1_FIELDS = [
+export const REGISTER_FIELDS = [
   {
     id: ELEMENT_IDS.FIRST_NAME,
     name: 'first_name',
@@ -12,31 +12,10 @@ export const STEP_1_FIELDS = [
     placeholder: 'Введите имя',
   },
   {
-    id: ELEMENT_IDS.LAST_NAME,
-    name: 'last_name',
-    label: 'Фамилия',
-    placeholder: 'Введите фамилию',
-  },
-];
-
-/**
- * Конфигурация полей для второго шага регистрации
- * @type {Array<{id: string, name: string, label: string, placeholder: string, type?: string, hint?: string}>}
- */
-export const STEP_2_FIELDS = [
-  {
     id: ELEMENT_IDS.NICKNAME,
     name: 'nickname',
     label: 'Никнейм',
     placeholder: 'nickname',
-  },
-  {
-    id: ELEMENT_IDS.PHONE_NUMBER,
-    name: 'phone_number',
-    label: 'Телефон',
-    placeholder: '+7 800 555 35 35',
-    type: 'tel',
-    hint: 'необязательно',
   },
   {
     id: ELEMENT_IDS.EMAIL,
@@ -51,5 +30,6 @@ export const STEP_2_FIELDS = [
     label: 'Пароль',
     placeholder: 'password',
     type: 'password',
+    description: 'От 8 до 16 символов. Можно использовать латинские буквы, цифры и нижнее подчёркивание.',
   },
 ];

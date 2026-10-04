@@ -1,14 +1,14 @@
-import { Image } from '../Image.js';
+import { Image } from '../core/Image.js';
 
 /**
  * Компонент хедера
  */
 export function renderRegisterHeader() {
   return `
-        <div class="hidden lg:flex lg:w-1/2 bg-[#f5f9ff] p-12 flex-col">
+        <div class="hidden lg:flex lg:w-1/2 bg-[#f5faff] p-12 flex-col">
             <div class="flex items-center gap-3">
                 ${Image({
-                  src: '../../public/pictures/icon.png',
+                  src: '/pictures/icon.png',
                   alt: 'Логотип',
                   width: 'w-12',
                   height: 'h-12',
