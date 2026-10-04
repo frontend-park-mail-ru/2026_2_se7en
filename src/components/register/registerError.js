@@ -1,9 +1,13 @@
+import { escapeHtml } from '../../helpers/escapeHtml.js';
+
 /**
  * Компонент блока общей ошибки
  * @param {string|null} generalError - текст ошибки (если ошибки нет - null)
  */
 export function renderRegisterError(generalError) {
   if (!generalError) return '';
+
+  const safeMessage = escapeHtml(generalError);
 
   return `
         <div id="error-container" class="absolute -top-8 left-0 right-0 z-10 bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg">
@@ -13,7 +17,7 @@ export function renderRegisterError(generalError) {
                 </svg>
                 <div>
                     <p class="text-red-800 text-sm font-medium">Не удалось отправить данные</p>
-                    <p class="text-red-600 text-xs mt-0.5">Проверьте соединение и попробуйте ещё раз.</p>
+                    <p class="text-red-600 text-xs mt-0.5">${safeMessage}</p>
                 </div>
             </div>
         </div>
