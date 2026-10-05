@@ -19,14 +19,12 @@ export class Sidebar {
 
     return `
       <aside class="w-20 bg-white border-r border-gray-200 flex flex-col">
-        <!-- Логотип -->
         <div class="p-3 flex justify-center">
           <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center overflow-hidden">
             <img src="/pictures/icon.png" alt="Логотип" class="w-full h-full object-cover rounded-xl">
           </div>
         </div>
 
-        <!-- Навигация -->
         <nav class="flex-1 flex flex-col gap-2 px-2">
           <button class="flex flex-col items-center justify-center p-3 rounded-xl bg-blue-50 text-blue-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,7 +41,6 @@ export class Sidebar {
           </button>
         </nav>
 
-        <!-- Низ боковой панели -->
         <div class="p-3 flex flex-col items-center gap-3">
           ${Button({
             id: 'logout-button',

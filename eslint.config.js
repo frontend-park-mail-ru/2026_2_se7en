@@ -20,4 +20,10 @@ export default [
       'eol-last': ['error', 'always'],
     },
   },
+  {
+    files: ['src/helpers/debugError.js'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ];
