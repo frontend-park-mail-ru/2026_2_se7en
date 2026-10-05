@@ -1,5 +1,5 @@
 import { Button } from '../core/Button.js';
-import { escapeHTML } from '../../helpers/escapeHTML.js';
+import { escapeHtml } from '../../helpers/escapeHtml.js';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
@@ -8,9 +8,9 @@ export class Sidebar {
   }
 
   render() {
-    const firstLetter = Array.from(String(this.currentUser.name || '').trim())[0]
-      ?.toLocaleUpperCase('ru-RU') || '?';
-    const safeFirstLetter = escapeHTML(firstLetter);
+    const firstLetter =
+      Array.from(String(this.currentUser.name || '').trim())[0]?.toLocaleUpperCase('ru-RU') || '?';
+    const safeFirstLetter = escapeHtml(firstLetter);
     const logoutIcon = `
       <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4m4-4 4-4-4-4m4 4H9" />
@@ -53,7 +53,8 @@ export class Sidebar {
             ariaLabel: 'Выйти из аккаунта',
             title: 'Выйти',
             iconBefore: logoutIcon,
-            className: 'w-9 h-9 p-0 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-500 disabled:opacity-50',
+            className:
+              'w-9 h-9 p-0 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-500 disabled:opacity-50',
           })}
           <div class="relative mx-auto w-10 h-10">
             <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
