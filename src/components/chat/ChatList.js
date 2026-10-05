@@ -124,7 +124,7 @@ export class ChatList {
           </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-2 space-y-1">
+        <div class="flex flex-col gap-1 flex-1 overflow-y-auto p-2">
           ${chatItems}
         </div>
 
