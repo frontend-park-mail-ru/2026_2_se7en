@@ -36,7 +36,7 @@ export class ChatSkeleton {
             </div>
           </div>
         </div>
-        <div class="flex-1 p-4 space-y-4">
+        <div class="flex flex-col gap-4 flex-1 p-4">
           ${skeletonItems}
         </div>
         <div class="p-4 bg-white border-t border-gray-200">

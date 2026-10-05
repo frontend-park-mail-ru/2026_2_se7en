@@ -171,8 +171,6 @@ export class LoginPage extends Page {
     this.loading = false;
 
     if (!result.success) {
-      // Макет предусматривает отдельный текст для неверных данных входа и
-      // общий текст о недоступности сервиса для остальных ошибок API.
       const isCredentialsError = result.code === ERROR_CODES.UNAUTHORIZED
         || result.code === ERROR_CODES.INVALID_CREDENTIALS
         || result.status === STATUSES.BAD_REQUEST;

@@ -21,8 +21,8 @@ export function renderRegisterForm({ formData, fieldErrors }) {
             <h2 class="text-gray-900 mb-1 font-bold text-[32px] leading-[120%] tracking-[-0.5px]">Создайте аккаунт</h2>
             <p class="text-gray-500 text-sm mb-6">Заполните основные данные</p>
 
-            <form id="${ELEMENT_IDS.FORM}" class="space-y-4" novalidate>
-                <div class="space-y-4">
+            <form id="${ELEMENT_IDS.FORM}" class="flex flex-col gap-4" novalidate>
+                <div class="flex flex-col gap-4">
                     ${REGISTER_FIELDS.map((field) =>
                       FormField({
                         ...field,
@@ -42,7 +42,7 @@ export function renderRegisterForm({ formData, fieldErrors }) {
                       type: 'submit',
                     })}
                 </div>
-                <div class="text-center mt-4">
+                <div class="text-center">
                     <p class="text-gray-500 text-sm">
                         Уже есть аккаунт?
                         <a href="${ROUTES.LOGIN}" data-page-route="login" class="font-semibold text-gray-900 hover:underline">Войти</a>
