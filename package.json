@@ -4,14 +4,15 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run dev:server",
-    "dev:server": "cd server && npm run dev",
+    "dev": "vite",
+    "build": "npm run build:client",
+    "build:client": "vite build",
     "start": "npm --prefix server start",
     "lint": "eslint .",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,css,md}": [
+    "*.{js,ts,json,css,scss}": [
       "npx prettier --write"
     ]
   },
@@ -22,7 +23,11 @@
     "globals": "^15.12.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "sass": "^1.105.1",
+    "vite": "^8.3.4",
+    "vite-imagetools": "^12.0.1",
+    "vite-plugin-compression2": "^2.5.3"
   },
   "dependencies": {
     "handlebars": "^4.7.9"
