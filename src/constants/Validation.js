@@ -9,3 +9,11 @@ export const VALIDATION_MESSAGES = {
   PASSWORD_TOO_SHORT: 'Длина пароля должна быть от 8 до 16 символов',
   PASSWORD_TOO_LONG: 'Длина пароля должна быть от 8 до 16 символов',
 };
+
+export const VALIDATION_CHARACTERS = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
