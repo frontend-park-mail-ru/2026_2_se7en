@@ -1,17 +1,9 @@
-interface MountablePage {
-  mount(): Promise<boolean>;
-}
-
-interface PageConstructor {
-  new (): MountablePage;
-  readonly route?: string;
-  readonly name: string;
-}
+import { Page } from '@/pages/Page';
 
 /**
  * Переключает страницу приложения без полной перезагрузки.
  */
-export async function showPage(PageClass: PageConstructor): Promise<boolean> {
+export async function showPage(PageClass: typeof Page): Promise<boolean> {
   const route = PageClass.route;
 
   if (!route) {
