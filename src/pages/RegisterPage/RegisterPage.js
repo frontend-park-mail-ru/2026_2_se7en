@@ -8,6 +8,7 @@ import { AuthApi } from '../../api/auth/AuthApi.js';
 import { ROUTES } from '../../constants/Routes.js';
 import { showPage } from '../../helpers/showPage.js';
 import { LoginPage } from '../LoginPage/LoginPage.js';
+import { ChatsPage } from '../ChatsPage/ChatsPage.js';
 
 /** Страница регистрации с одной формой для всех обязательных данных. */
 export class RegisterPage extends Page {
@@ -122,7 +123,7 @@ export class RegisterPage extends Page {
 
     this.isSubmitting = false;
     if (result.success) {
-      await showPage(LoginPage);
+      await showPage(ChatsPage);
       return;
     }
 
