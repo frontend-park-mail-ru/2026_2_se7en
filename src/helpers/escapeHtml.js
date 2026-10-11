@@ -1,14 +1,16 @@
 /**
- * Экранирует HTML-специальные символы для предотвращения XSS-атак
- * @param {string} value - Строка для экранирования
- * @returns {string} Экранированная строка
+ * Экранирует текст перед вставкой в HTML-разметку.
+ * @param {unknown} value Значение для экранирования.
+ * @returns {string} Экранированная строка.
  */
-export function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({
+export function escapeHTML(value) {
+  const characters = {
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#39;',
-})[char]);
+  };
+
+  return String(value).replace(/[&<>"']/g, (character) => characters[character]);
 }
