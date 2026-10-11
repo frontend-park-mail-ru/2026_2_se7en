@@ -3,7 +3,7 @@ import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_MAX_LENGTH,
   VALIDATION_MESSAGES,
-} from '@/constants/Validation.js';
+} from '@/constants/Validation.ts';
 
 /**
  * Проверяет email на непустоту и соответствие регулярному выражению.

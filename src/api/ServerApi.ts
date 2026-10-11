@@ -1,6 +1,6 @@
 import { ApiSuccess, ApiError, type ApiResult } from '@/api/ApiResponse.ts';
-import { BASE_URL } from '@/api/api.constants.js';
-import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.js';
+import { BASE_URL } from '@/api/api.constants.ts';
+import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 
 interface ApiRequestOptions extends Omit<RequestInit, 'body' | 'headers' | 'credentials'> {
   body?: unknown;

@@ -3,12 +3,12 @@ import {
   LOGIN_URL,
   LOGOUT_URL,
   GET_CURRENT_USER_URL,
-} from '@/api/auth/auth.constants.js';
-import { ServerApi } from '@/api/ServerApi.js';
-import { mockLogin } from '@/api/auth/auth.mock.js';
-import { USING_MOCK } from '@/api/api.constants.js';
+} from '@/api/auth/auth.constants.ts';
+import { ServerApi } from '@/api/ServerApi.ts';
+import { mockLogin } from '@/api/auth/auth.mock.ts';
+import { USING_MOCK } from '@/api/api.constants.ts';
 import type { ApiResult } from '@/api/ApiResponse.ts';
-import type { LoginData, RegisterData, User } from '@/api/auth/auth.types.js';
+import type { LoginData, RegisterData, User } from '@/api/auth/auth.types.ts';
 
 /**
  * API авторизации и управления сессией пользователя.

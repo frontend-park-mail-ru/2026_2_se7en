@@ -1,4 +1,4 @@
-import { VALIDATION_CHARACTERS } from '@/constants/Validation.js';
+import { VALIDATION_CHARACTERS } from '@/constants/Validation.ts';
 
 /**
  * Экранирует текст перед вставкой в HTML-разметку.

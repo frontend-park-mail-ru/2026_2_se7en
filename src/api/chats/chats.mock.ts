@@ -1,7 +1,7 @@
 import { ApiSuccess, ApiError, type ApiResult } from '@/api/ApiResponse.ts';
-import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.js';
-import { STATUSES } from '@/constants/Statuses.js';
-import type { ChatsResponse } from '@/api/chats/chats.types.js';
+import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
+import { STATUSES } from '@/constants/Statuses.ts';
+import type { ChatsResponse } from '@/api/chats/chats.types.ts';
 
 export const MOCK_CHATS = [
   {
