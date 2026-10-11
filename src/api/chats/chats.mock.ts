@@ -1,6 +1,7 @@
-import { ApiSuccess, ApiError } from '../ApiResponse.js';
-import { ERROR_CODES, ERROR_MESSAGES } from '../error.constants.js';
-import { STATUSES } from '../../constants/Statuses.js';
+import { ApiSuccess, ApiError, type ApiResult } from '@/api/ApiResponse.ts';
+import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.js';
+import { STATUSES } from '@/constants/Statuses.js';
+import type { ChatsResponse } from '@/api/chats/chats.types.js';
 
 export const MOCK_CHATS = [
   {
@@ -68,34 +69,29 @@ export const MOCK_CHATS = [
   },
 ];
 
-/**
- * Мок-ответ на запрос получения списка чатов.
- * Работает без реального сервера: возвращает пагинированный список чатов.
- *
- * @param {Object} [params]
- * @param {number} [params.limit=20]
- * @param {number} [params.offset=0]
- * @returns {Promise<ApiSuccess|ApiError>} Успешный ответ с пагинированными чатами или ошибка.
- */
-export async function mockGetChats({ limit = 20, offset = 0 } = {}) {
-  await new Promise((resolve) => setTimeout(resolve, 500));
+export async function mockGetChats({
+  limit = 20,
+  offset = 0,
+}: {
+  limit?: number;
+  offset?: number;
+} = {}): Promise<ApiResult<ChatsResponse>> {
+  await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
   try {
     const paginatedChats = MOCK_CHATS.slice(offset, offset + limit);
 
-    return new ApiSuccess(
-      {
-        items: paginatedChats,
-        total: MOCK_CHATS.length,
-      },
-      STATUSES.OK,
-    );
-  } catch (_error) {
+    const data: ChatsResponse = {
+      items: paginatedChats,
+      total: MOCK_CHATS.length,
+    };
+
+    return new ApiSuccess<ChatsResponse>(data, STATUSES.OK);
+  } catch {
     return new ApiError(
       ERROR_CODES.INTERNAL_ERROR,
       ERROR_MESSAGES[ERROR_CODES.INTERNAL_ERROR],
       STATUSES.INTERNAL_SERVER_ERROR,
-      null,
     );
   }
 }
