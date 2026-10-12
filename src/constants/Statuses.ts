@@ -1,4 +1,7 @@
-export const STATUSES = {
+type Statuses =
+  'OK' | 'CREATED' | 'BAD_REQUEST' | 'UNAUTHORIZED' | 'CONFLICT' | 'INTERNAL_SERVER_ERROR';
+
+export const STATUSES: Record<Statuses, number> = {
   OK: 200,
   CREATED: 201,
   BAD_REQUEST: 400,

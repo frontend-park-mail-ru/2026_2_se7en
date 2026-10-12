@@ -1,4 +1,4 @@
-import { ApiSuccess, ApiError, type ApiResult } from '@/api/ApiResponse.ts';
+import { ApiSuccess, ApiError, type ApiResult, type ErrorData } from '@/api/ApiResponse.ts';
 import { BASE_URL } from '@/api/api.constants.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 
@@ -39,11 +39,7 @@ export class ServerApi {
     };
 
     if (options.body !== undefined) {
-      if (isFormData) {
-        config.body = options.body as FormData;
-      } else {
-        config.body = JSON.stringify(options.body);
-      }
+      config.body = isFormData ? <FormData>options.body : JSON.stringify(options.body);
     }
 
     try {
@@ -60,10 +56,8 @@ export class ServerApi {
         return new ApiSuccess<T>(responseData as T, response.status);
       }
 
-      const errorData =
-        responseData && typeof responseData === 'object'
-          ? (responseData as { code?: string; message?: string })
-          : {};
+      const errorData: ErrorData =
+        responseData && typeof responseData === 'object' ? (responseData as ErrorData) : {};
 
       return new ApiError(
         errorData.code ?? ERROR_CODES.UNKNOWN_ERROR,

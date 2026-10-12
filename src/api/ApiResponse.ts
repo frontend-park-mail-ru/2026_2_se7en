@@ -29,3 +29,11 @@ export class ApiError {
  * Общий тип результата API-запроса.
  */
 export type ApiResult<T = unknown> = ApiSuccess<T> | ApiError;
+
+/**
+ * Структура данных ошибки, возвращаемой сервером.
+ */
+export interface ErrorData {
+  code?: string;
+  message?: string;
+}

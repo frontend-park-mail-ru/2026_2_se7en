@@ -17,7 +17,7 @@ export class AuthApi extends ServerApi {
   /**
    * Регистрация нового пользователя.
    */
-  static async register(userData: RegisterData): Promise<ApiResult<unknown>> {
+  static async register(userData: RegisterData) {
     return this._request(REGISTER_URL, {
       method: 'POST',
       body: userData,
@@ -41,7 +41,7 @@ export class AuthApi extends ServerApi {
   /**
    * Завершение пользовательской сессии.
    */
-  static async logout(): Promise<ApiResult<unknown>> {
+  static async logout() {
     return this._request(LOGOUT_URL, {
       method: 'POST',
     });

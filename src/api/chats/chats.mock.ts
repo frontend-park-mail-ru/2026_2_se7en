@@ -1,9 +1,9 @@
 import { ApiSuccess, ApiError, type ApiResult } from '@/api/ApiResponse.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
-import type { ChatsResponse } from '@/api/chats/chats.types.ts';
+import type { ChatsResponse, Chat, GetChatsParams } from '@/api/chats/chats.types.ts';
 
-export const MOCK_CHATS = [
+export const MOCK_CHATS: Chat[] = [
   {
     id: 1,
     name: 'Алексей Смирнов',
@@ -69,17 +69,15 @@ export const MOCK_CHATS = [
   },
 ];
 
-export async function mockGetChats({
-  limit = 20,
-  offset = 0,
-}: {
-  limit?: number;
-  offset?: number;
-} = {}): Promise<ApiResult<ChatsResponse>> {
+/**
+ * Мок-ответ на запрос получения списка чатов.
+ * Работает без реального сервера: возвращает пагинированный список чатов.
+ */
+export async function mockGetChats(params: GetChatsParams = {}): Promise<ApiResult<ChatsResponse>> {
   await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
   try {
-    const paginatedChats = MOCK_CHATS.slice(offset, offset + limit);
+    const paginatedChats = MOCK_CHATS.slice(params.offset, params.offset + params.limit);
 
     const data: ChatsResponse = {
       items: paginatedChats,
