@@ -1,4 +1,15 @@
-export const ELEMENT_IDS = {
+import type { ValidationRule } from '@/pages/RegisterPage/register.types.ts';
+
+type ElementIds =
+  | 'FORM'
+  | 'EMAIL'
+  | 'PASSWORD'
+  | 'NICKNAME'
+  | 'FIRST_NAME'
+  | 'SUBMIT_BUTTON'
+  | 'ERROR_CONTAINER'
+  | 'ERROR_MESSAGE';
+export const ELEMENT_IDS: Record<ElementIds, string> = {
   FORM: 'register-form',
   EMAIL: 'email',
   PASSWORD: 'password',
@@ -9,7 +20,10 @@ export const ELEMENT_IDS = {
   ERROR_MESSAGE: 'error-message',
 };
 
-export const VALIDATION_RULES = {
+export const VALIDATION_RULES: Record<
+  'first_name' | 'nickname' | 'email' | 'password',
+  ValidationRule
+> = {
   email: {
     required: true,
     maxLength: 255,
@@ -47,7 +61,8 @@ export const ERROR_MESSAGES = {
   max_length_exceeded: 'Превышена максимальная длина',
 };
 
-export const ERROR_STATUSES = {
+type ErrorStatuses = 'STATUS_CREATED' | 'STATUS_BAD_REQUEST' | 'STATUS_CONFLICT';
+export const ERROR_STATUSES: Record<ErrorStatuses, number> = {
   STATUS_CREATED: 201,
   STATUS_BAD_REQUEST: 400,
   STATUS_CONFLICT: 409,
