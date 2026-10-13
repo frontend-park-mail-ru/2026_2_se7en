@@ -1,10 +1,11 @@
+import { Page } from '@/pages/Page';
+
 /**
  * Переключает страницу приложения без полной перезагрузки.
- * @param {typeof import('../pages/Page.js').Page} PageClass Класс целевой страницы.
- * @returns {Promise<boolean>} Результат монтирования страницы.
  */
-export async function showPage(PageClass) {
+export async function showPage(PageClass: typeof Page): Promise<boolean> {
   const route = PageClass.route;
+
   if (!route) {
     throw new Error(`${PageClass.name} не объявляет маршрут`);
   }

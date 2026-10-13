@@ -18,6 +18,14 @@ export default [
       ],
       'no-console': 'error',
       'eol-last': ['error', 'always'],
+      'sort-imports': [
+        'error',
+        {
+          ignoreDeclarationSort: false,
+          ignoreMemberSort: false,
+          allowSeparatedGroups: false,
+        },
+      ],
     },
   },
   {
