@@ -7,8 +7,8 @@ export class ApiSuccess<T = unknown> {
   readonly success = true;
 
   constructor(
-    public readonly data: T,
-    public readonly status: number,
+    readonly data: T,
+    readonly status: number,
   ) {}
 }
 
@@ -19,9 +19,9 @@ export class ApiError {
   readonly success = false;
 
   constructor(
-    public readonly code: string,
-    public readonly message: string,
-    public readonly status: number,
+    readonly code: string,
+    readonly message: string,
+    readonly status: number,
   ) {}
 }
 

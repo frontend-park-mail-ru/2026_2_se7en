@@ -2,7 +2,7 @@ import { Button } from '../core/Button.js';
 import { Input } from '../core/Input.js';
 import { renderChatListLoading } from './ChatListLoading.js';
 import { loadTemplate } from '../../helpers/LoadTemplate.js';
-import { debugError } from '../../helpers/DebugError.js';
+import { debugError } from '../../helpers/DebugError.ts';
 
 /**
  * Компонент списка чатов
