@@ -29,7 +29,7 @@ export interface CurrentUser {
 export interface LoginFieldConfig {
   id: string;
   name: string;
-  type: 'email' | 'password';
+  type: keyof LoginData;
   label: string;
   placeholder: string;
   value: string;
@@ -47,4 +47,4 @@ export interface RegisterFormData {
 
 export type RegisterField = keyof RegisterFormData;
 
-export type RegisterFieldErrors = Partial<Record<keyof RegisterFormData, string>>;
+export type RegisterFieldErrors = Partial<Record<RegisterField, string>>;

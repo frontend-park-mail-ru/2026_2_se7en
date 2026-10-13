@@ -1,4 +1,5 @@
 import type { ValidationRule } from '@/pages/RegisterPage/register.types.ts';
+import type { RegisterField } from '@/api/auth/auth.types';
 
 type ElementIds =
   | 'FORM'
@@ -20,10 +21,7 @@ export const ELEMENT_IDS: Record<ElementIds, string> = {
   ERROR_MESSAGE: 'error-message',
 };
 
-export const VALIDATION_RULES: Record<
-  'first_name' | 'nickname' | 'email' | 'password',
-  ValidationRule
-> = {
+export const VALIDATION_RULES: Record<RegisterField, ValidationRule> = {
   email: {
     required: true,
     maxLength: 255,
@@ -59,11 +57,4 @@ export const ERROR_MESSAGES = {
   first_name_max_length: 'Имя должно содержать не более 32 символов',
   invalid_format: 'Неверный формат',
   max_length_exceeded: 'Превышена максимальная длина',
-};
-
-type ErrorStatuses = 'STATUS_CREATED' | 'STATUS_BAD_REQUEST' | 'STATUS_CONFLICT';
-export const ERROR_STATUSES: Record<ErrorStatuses, number> = {
-  STATUS_CREATED: 201,
-  STATUS_BAD_REQUEST: 400,
-  STATUS_CONFLICT: 409,
 };

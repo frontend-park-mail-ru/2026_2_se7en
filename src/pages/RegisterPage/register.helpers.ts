@@ -6,6 +6,9 @@ import type {
   FieldValidationError,
 } from '@/pages/RegisterPage/register.types.ts';
 
+/**
+ * Нормализует причину ошибки валидации от сервера в типизированный формат.
+ */
 export function normalizeValidationReason(field: RegisterField, reason: string): ValidationReason {
   const normalized = String(reason).toLowerCase();
 
@@ -52,6 +55,9 @@ export function normalizeValidationReason(field: RegisterField, reason: string):
   return 'invalid_format';
 }
 
+/**
+ * Валидирует все поля формы регистрации на клиенте.
+ */
 export function validateForm(getFieldValue: (field: RegisterField) => string): ValidationResult {
   const fieldErrors: RegisterFieldErrors = {};
   const errors: FieldValidationError[] = [];

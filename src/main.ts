@@ -3,10 +3,9 @@ import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { showPage } from '@/helpers/ShowPage.js';
+import { Page } from '@/pages/Page.js';
 
-type PageConstructor = new () => {
-  mount(): unknown;
-};
+type PageConstructor = typeof Page;
 
 const pages: Record<string, PageConstructor> = {
   [ROUTES.HOME]: ChatsPage,
@@ -20,11 +19,11 @@ function pageForPath(pathname: string): PageConstructor {
   return pages[normalizedPath] ?? ChatsPage;
 }
 
-function mountPageForCurrentPath(): unknown {
+async function mountPageForCurrentPath(): Promise<boolean> {
   const PageClass = pageForPath(window.location.pathname);
   const page = new PageClass();
 
-  return page.mount();
+  return await page.mount();
 }
 
 window.addEventListener('popstate', () => {

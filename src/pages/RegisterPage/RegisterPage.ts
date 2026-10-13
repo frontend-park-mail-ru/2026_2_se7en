@@ -1,8 +1,5 @@
-import {
-  ELEMENT_IDS,
-  VALIDATION_RULES,
-  ERROR_STATUSES,
-} from '@/pages/RegisterPage/register.constants.js';
+import { STATUSES } from '@/constants/Statuses';
+import { ELEMENT_IDS, VALIDATION_RULES } from './register.constants';
 import { Page } from '@/pages/Page.js';
 import { renderRegisterHeader } from '@/components/register/registerHeader.js';
 import { renderRegisterForm } from '@/components/register/registerForm.js';
@@ -18,11 +15,11 @@ import type { RegisterFormData, RegisterFieldErrors, RegisterField } from '@/api
 export class RegisterPage extends Page {
   static route = ROUTES.REGISTER;
 
-  fieldErrors: RegisterFieldErrors = {};
-  generalError: string | null = null;
-  isSubmitting = false;
+  private fieldErrors: RegisterFieldErrors = {};
+  private generalError: string | null = null;
+  private isSubmitting = false;
 
-  formData: RegisterFormData = {
+  private formData: RegisterFormData = {
     first_name: '',
     nickname: '',
     email: '',
@@ -164,7 +161,7 @@ export class RegisterPage extends Page {
       return;
     }
 
-    if (result.status === ERROR_STATUSES.STATUS_CONFLICT && result instanceof ApiError) {
+    if (result.status === STATUSES.CONFLICT && result instanceof ApiError) {
       if (result.code === 'EMAIL_TAKEN') {
         this.fieldErrors.email = 'email_already_exists';
       }

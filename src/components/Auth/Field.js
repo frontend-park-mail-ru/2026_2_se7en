@@ -1,5 +1,5 @@
 import { loadTemplate } from '../../helpers/LoadTemplate.js';
-import { debugError } from '../../helpers/debugError.js';
+import { debugError } from '../../helpers/DebugError.js';
 import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '../core/Icons.js';
 
 let templates = {};

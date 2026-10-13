@@ -17,12 +17,12 @@ import type { LoginData, LoginFieldConfig, LoginFieldErrors } from '@/api/auth/a
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;
 
-  fieldErrors: LoginFieldErrors = {};
-  generalError = '';
-  generalErrorHint = '';
-  loading = false;
+  private fieldErrors: LoginFieldErrors = {};
+  private generalError = '';
+  private generalErrorHint = '';
+  private loading = false;
 
-  values: LoginData = {
+  private values: LoginData = {
     email: '',
     password: '',
   };

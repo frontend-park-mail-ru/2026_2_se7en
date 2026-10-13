@@ -5,7 +5,7 @@ import { ERROR_CODES } from '@/api/error.constants.js';
 import { Sidebar } from '@/components/chat/Sidebar.js';
 import { ChatList } from '@/components/chat/ChatList.js';
 import { ChatArea } from '@/components/chat/ChatArea.js';
-import { debugError } from '@/helpers/debugError.js';
+import { debugError } from '@/helpers/DebugError.js';
 import { toDisplayChat } from '@/helpers/chat.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { STATUSES } from '@/constants/Statuses.js';
@@ -18,21 +18,21 @@ import type { CurrentUser } from '@/api/auth/auth.types.ts';
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
 
-  chats: DisplayChat[] = [];
-  activeChat: DisplayChat | null = null;
+  private chats: DisplayChat[] = [];
+  private activeChat: DisplayChat | null = null;
 
-  isLoading = true;
-  hasNetworkError = false;
-  logoutError = false;
-  isLoggingOut = false;
+  private isLoading = true;
+  private hasNetworkError = false;
+  private logoutError = false;
+  private isLoggingOut = false;
 
   currentUser: CurrentUser = {
     name: '',
   };
 
-  sidebar: Sidebar;
-  chatList: ChatList;
-  chatArea: ChatArea;
+  private readonly sidebar: Sidebar;
+  private readonly chatList: ChatList;
+  private readonly chatArea: ChatArea;
 
   constructor() {
     super();
