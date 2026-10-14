@@ -1,5 +1,6 @@
+import { eventBus } from '@/helpers/EventBus.js';
 import { Button } from '../core/Button.js';
-import { escapeHtml } from '@/helpers/escapeHtml.ts';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
@@ -62,5 +63,17 @@ export class Sidebar {
         </div>
       </aside>
     `;
+  }
+
+  bindEvents() {
+    const logoutButton = document.getElementById('logout-button');
+
+    logoutButton?.addEventListener('click', (event) => {
+      const button = event.currentTarget;
+
+      if (button instanceof HTMLButtonElement) button.disabled = true;
+
+      eventBus.emit('user:logout', undefined);
+    });
   }
 }
