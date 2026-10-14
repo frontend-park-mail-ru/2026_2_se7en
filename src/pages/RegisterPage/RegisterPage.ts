@@ -152,6 +152,7 @@ export class RegisterPage extends Page {
       email: this.formData.email.trim().toLowerCase(),
       password: this.formData.password,
       nickname: this.formData.nickname.trim(),
+      first_name: this.formData.first_name.trim(),
     });
 
     this.isSubmitting = false;
