@@ -29,7 +29,7 @@ class EventBus {
       try {
         (callback as EventListener<K>)(payload);
       } catch {
-        debugError('Error! EventBus emit: "${String(event)}"');
+        debugError(`Error! EventBus emit: "${String(event)}"`);
       }
     }
   }

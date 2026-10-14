@@ -1,11 +1,13 @@
 import { ApiSuccess, ApiError, type ApiResult, type ErrorData } from '@/api/ApiResponse.ts';
 import { BASE_URL } from '@/api/api.constants.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
+import { eventBus } from '@/helpers/EventBus';
 
 interface ApiRequestOptions extends Omit<RequestInit, 'body' | 'headers' | 'credentials'> {
   body?: unknown;
   headers?: HeadersInit;
   contentType?: string;
+  skipAuthRedirect?: boolean;
 }
 
 /**
@@ -58,6 +60,9 @@ export class ServerApi {
 
       const errorData: ErrorData =
         responseData && typeof responseData === 'object' ? (responseData as ErrorData) : {};
+
+      if (response.status === 401 && !options.skipAuthRedirect)
+        eventBus.emit('auth:unauthorized', undefined);
 
       return new ApiError(
         errorData.code ?? ERROR_CODES.UNKNOWN_ERROR,

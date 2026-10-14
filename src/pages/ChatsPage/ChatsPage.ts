@@ -60,10 +60,7 @@ export class ChatsPage extends Page {
     const response = await AuthApi.getCurrentUser();
 
     if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED || response.code === ERROR_CODES.UNAUTHORIZED) {
-        await showPage(LoginPage);
-        return false;
-      }
+      if (response.status === STATUSES.UNAUTHORIZED) return false;
 
       debugError(response.message);
       return true;
@@ -88,8 +85,7 @@ export class ChatsPage extends Page {
     const response = await ChatsApi.getChats();
 
     if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED || response.code === ERROR_CODES.UNAUTHORIZED) {
-        await showPage(LoginPage);
+      if (response.status === STATUSES.UNAUTHORIZED) {
         return;
       }
 
@@ -97,7 +93,6 @@ export class ChatsPage extends Page {
         case ERROR_CODES.NETWORK_ERROR:
           this.hasNetworkError = true;
           break;
-
         default:
           debugError(response.message);
       }

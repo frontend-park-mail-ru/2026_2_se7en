@@ -4,6 +4,7 @@ import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { showPage } from '@/helpers/ShowPage.js';
 import { Page } from '@/pages/Page.js';
+import { eventBus } from './helpers/EventBus';
 
 type PageConstructor = typeof Page;
 
@@ -25,6 +26,12 @@ async function mountPageForCurrentPath(): Promise<boolean> {
 
   return await page.mount();
 }
+
+eventBus.on('auth:unauthorized', () => {
+  if (window.location.pathname === ROUTES.LOGIN) return;
+
+  void showPage(LoginPage);
+});
 
 window.addEventListener('popstate', () => {
   void mountPageForCurrentPath();
