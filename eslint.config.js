@@ -8,6 +8,16 @@ export default [
       globals: { ...globals.node, ...globals.browser },
     },
     rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../**'],
+            },
+          ],
+        },
+      ],
       'no-unused-vars': [
         'error',
         {

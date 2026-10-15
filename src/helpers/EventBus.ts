@@ -1,6 +1,12 @@
 import { debugError } from './DebugError';
 import { EventMap, EventName, EventListener } from '@/types/events';
 
+type VoidEventName = {
+  [K in EventName]: EventMap[K] extends void ? K : never;
+}[EventName];
+
+type PayloadEventName = Exclude<EventName, VoidEventName>;
+
 class EventBus {
   private listeners: Partial<Record<EventName, Set<EventListener<EventName>>>> = {};
 
@@ -25,20 +31,17 @@ class EventBus {
     }
   }
 
-  emit<K extends EventName>(
-    event: K,
-    ...args: EventMap[K] extends void ? [undefined?] : [EventMap[K]]
-  ): void {
+  emit<K extends VoidEventName>(event: K): void;
+  emit<K extends PayloadEventName>(event: K, payload: EventMap[K]): void;
+  emit(event: EventName, payload?: unknown): void {
     const subscribers = this.listeners[event];
     if (!subscribers) return;
 
-    const payload = args[0] as EventMap[K];
-
     for (const callback of [...subscribers]) {
       try {
-        (callback as EventListener<K>)(payload);
-      } catch {
-        debugError(`Error! EventBus emit: "${String(event)}"`);
+        (callback as (p: unknown) => void)(payload);
+      } catch (error) {
+        debugError(`EventBus: ошибка в обработчике "${String(event)}": ${error}`);
       }
     }
   }
