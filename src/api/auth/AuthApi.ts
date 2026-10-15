@@ -21,6 +21,7 @@ export class AuthApi extends ServerApi {
     return this._request(REGISTER_URL, {
       method: 'POST',
       body: userData,
+      skipAuthRedirect: true,
     });
   }
 
@@ -35,6 +36,7 @@ export class AuthApi extends ServerApi {
     return this._request<User>(LOGIN_URL, {
       method: 'POST',
       body: loginData,
+      skipAuthRedirect: true,
     });
   }
 
@@ -44,6 +46,7 @@ export class AuthApi extends ServerApi {
   static async logout() {
     return this._request(LOGOUT_URL, {
       method: 'POST',
+      skipAuthRedirect: true,
     });
   }
 

@@ -14,6 +14,7 @@ import { showPage } from '@/helpers/ShowPage.ts';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import type { CurrentUser } from '@/api/auth/auth.types.ts';
+import { eventBus } from '@/helpers/EventBus';
 
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
@@ -34,12 +35,21 @@ export class ChatsPage extends Page {
   private readonly chatList: ChatList;
   private readonly chatArea: ChatArea;
 
+  private offLogout?: () => void;
+
   constructor() {
     super();
 
     this.sidebar = new Sidebar(this.currentUser);
     this.chatList = new ChatList();
     this.chatArea = new ChatArea();
+  }
+
+  unmount(): void {
+    this.offLogout?.();
+    this.offLogout = null;
+
+    super.unmount();
   }
 
   async loadTemplates(): Promise<void> {
@@ -50,10 +60,7 @@ export class ChatsPage extends Page {
     const response = await AuthApi.getCurrentUser();
 
     if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED || response.code === ERROR_CODES.UNAUTHORIZED) {
-        await showPage(LoginPage);
-        return false;
-      }
+      if (response.status === STATUSES.UNAUTHORIZED) return false;
 
       debugError(response.message);
       return true;
@@ -78,8 +85,7 @@ export class ChatsPage extends Page {
     const response = await ChatsApi.getChats();
 
     if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED || response.code === ERROR_CODES.UNAUTHORIZED) {
-        await showPage(LoginPage);
+      if (response.status === STATUSES.UNAUTHORIZED) {
         return;
       }
 
@@ -87,7 +93,6 @@ export class ChatsPage extends Page {
         case ERROR_CODES.NETWORK_ERROR:
           this.hasNetworkError = true;
           break;
-
         default:
           debugError(response.message);
       }
@@ -105,7 +110,7 @@ export class ChatsPage extends Page {
   async update(): Promise<void> {
     if (!this.container) return;
 
-    this.container.innerHTML = await this.render();
+    this.container.innerHTML = this.render();
     this.bindEvents();
   }
 
@@ -116,22 +121,14 @@ export class ChatsPage extends Page {
       void this.loadChats();
     });
 
-    document.getElementById('logout-button')?.addEventListener('click', (event: MouseEvent) => {
-      const target = event.currentTarget;
-
-      if (!(target instanceof HTMLButtonElement)) return;
-
-      void this.logout(target);
-    });
+    this.sidebar.bindEvents();
   }
 
-  async logout(button: HTMLButtonElement): Promise<void> {
+  async handleLogout(): Promise<void> {
     if (this.isLoggingOut) return;
 
     this.isLoggingOut = true;
     this.logoutError = false;
-
-    button.disabled = true;
 
     const result = await AuthApi.logout();
 
@@ -173,6 +170,8 @@ export class ChatsPage extends Page {
   }
 
   async afterMount(): Promise<void> {
+    this.offLogout = eventBus.on('user:logout', this.handleLogout.bind(this));
+
     if (!(await this.loadCurrentUser())) return;
 
     await this.loadChats();
