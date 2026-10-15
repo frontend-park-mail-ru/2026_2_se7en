@@ -73,7 +73,7 @@ export class Sidebar {
 
       if (button instanceof HTMLButtonElement) button.disabled = true;
 
-      eventBus.emit('user:logout', undefined);
+      eventBus.emit('user:logout');
     });
   }
 }

@@ -1,12 +1,6 @@
-/**
- * Карта всех событий приложения.
- *
- * Каждый ключ — имя события, значение — тип payload'а.
- * Для событий без данных используем `void`, при эмите передаётся `undefined`.
- *
- * Чтобы добавить новое событие — допиши строчку сюда.
- * После этого TS подскажет имя события в `emit`/`on` и проверит payload.
- */
+/** Тип уведомления для Snackbar */
+export type SnackbarType = 'success' | 'error' | 'info';
+
 export type EventMap = {
   /** Пользователь успешно вошёл в аккаунт. */
   'user:login': { id: string; name: string };
@@ -18,11 +12,11 @@ export type EventMap = {
   'auth:unauthorized': void;
 
   /** Показать всплывающее уведомление. */
-  'snackbar:show': { text: string; type: 'success' | 'error' | 'info' };
+  'snackbar:show': { text: string; type: SnackbarType };
 };
 
 /** Имя любого события. */
 export type EventName = keyof EventMap;
 
 /** Колбэк-подписчик. Принимает payload, соответствующий событию. */
-export type EventListener<K extends EventName> = (payload: EventMap[K]) => void;
+export type EventListener<K extends EventName = EventName> = (payload: EventMap[K]) => void;

@@ -47,7 +47,7 @@ export class ChatsPage extends Page {
 
   unmount(): void {
     this.offLogout?.();
-    this.offLogout = undefined;
+    this.offLogout = null;
 
     super.unmount();
   }
@@ -170,9 +170,7 @@ export class ChatsPage extends Page {
   }
 
   async afterMount(): Promise<void> {
-    this.offLogout = eventBus.on('user:logout', () => {
-      void this.handleLogout();
-    });
+    this.offLogout = eventBus.on('user:logout', this.handleLogout.bind(this));
 
     if (!(await this.loadCurrentUser())) return;
 

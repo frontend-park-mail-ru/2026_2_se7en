@@ -2,6 +2,7 @@ import { ApiSuccess, ApiError, type ApiResult, type ErrorData } from '@/api/ApiR
 import { BASE_URL } from '@/api/api.constants.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { eventBus } from '@/helpers/EventBus';
+import { STATUSES } from '@/constants/Statuses';
 
 interface ApiRequestOptions extends Omit<RequestInit, 'body' | 'headers' | 'credentials'> {
   body?: unknown;
@@ -50,7 +51,7 @@ export class ServerApi {
       let responseData: unknown = null;
       const contentType = response.headers.get('content-type');
 
-      if (contentType?.includes('application/json') && response.status !== 204) {
+      if (contentType?.includes('application/json') && response.status !== STATUSES.NO_CONTENT) {
         responseData = await response.json().catch(() => null);
       }
 
@@ -61,8 +62,8 @@ export class ServerApi {
       const errorData: ErrorData =
         responseData && typeof responseData === 'object' ? (responseData as ErrorData) : {};
 
-      if (response.status === 401 && !options.skipAuthRedirect)
-        eventBus.emit('auth:unauthorized', undefined);
+      if (response.status === STATUSES.UNAUTHORIZED && !options.skipAuthRedirect)
+        eventBus.emit('auth:unauthorized');
 
       return new ApiError(
         errorData.code ?? ERROR_CODES.UNKNOWN_ERROR,

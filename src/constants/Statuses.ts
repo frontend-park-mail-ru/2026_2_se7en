@@ -1,8 +1,15 @@
 type Statuses =
-  'OK' | 'CREATED' | 'BAD_REQUEST' | 'UNAUTHORIZED' | 'CONFLICT' | 'INTERNAL_SERVER_ERROR';
+  | 'OK'
+  | 'CREATED'
+  | 'NO_CONTENT'
+  | 'BAD_REQUEST'
+  | 'UNAUTHORIZED'
+  | 'CONFLICT'
+  | 'INTERNAL_SERVER_ERROR';
 export const STATUSES: Record<Statuses, number> = {
   OK: 200,
   CREATED: 201,
+  NO_CONTENT: 204,
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   CONFLICT: 409,
