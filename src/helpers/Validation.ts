@@ -3,6 +3,8 @@ import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_MAX_LENGTH,
   VALIDATION_MESSAGES,
+  EMOJI_REGEX,
+  CONTROL_CHARS_REGEX,
 } from '@/constants/Validation.ts';
 
 /**
@@ -36,5 +38,18 @@ export function validatePassword(password: string): string | null {
     return VALIDATION_MESSAGES.PASSWORD_TOO_LONG;
   }
 
+  return null;
+}
+
+/**
+ * Проверяет на запрещённые символы.
+ */
+export function validateForbiddenChars(value: string): string | null {
+  if (EMOJI_REGEX.test(value)) {
+    return VALIDATION_MESSAGES.CONTAINS_EMOJI;
+  }
+  if (CONTROL_CHARS_REGEX.test(value)) {
+    return VALIDATION_MESSAGES.CONTAINS_INVALID_CHARS;
+  }
   return null;
 }

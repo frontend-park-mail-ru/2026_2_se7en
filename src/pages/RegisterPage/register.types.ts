@@ -10,6 +10,8 @@ export type ValidationReason =
   | 'email_max_length'
   | 'email_invalid_format'
   | 'first_name_max_length'
+  | 'contains_emoji'
+  | 'contains_invalid_chars'
   | 'invalid_format';
 
 export interface FieldValidationError {
