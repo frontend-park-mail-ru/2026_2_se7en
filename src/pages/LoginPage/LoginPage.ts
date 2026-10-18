@@ -11,7 +11,7 @@ import { showPage } from '@/helpers/ShowPage.js';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { ApiError } from '@/api/ApiResponse';
 import type { LoginData, LoginFieldConfig, LoginFieldErrors } from '@/api/auth/auth.types';
-import { user } from '@/helpers/User.ts';
+import { user } from '@/store/User';
 
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;

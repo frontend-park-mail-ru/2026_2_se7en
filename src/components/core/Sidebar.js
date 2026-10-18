@@ -2,7 +2,7 @@ import { Button } from '@/components/core/Button.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { router } from '@/helpers/Router.ts';
 import { ROUTES } from '@/constants/Routes.ts';
-import { user } from '@/helpers/User.ts';
+import { user } from '@/store/User';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
@@ -49,7 +49,6 @@ export class Sidebar {
             ariaLabel: 'Выйти из аккаунта',
             title: 'Выйти',
             iconBefore: logoutIcon,
-            onClick: "document.dispatchEvent(new CustomEvent('sidebar:logout'))",
             className:
               'w-9 h-9 p-0 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-500 disabled:opacity-50',
           })}
@@ -65,26 +64,19 @@ export class Sidebar {
   }
 
   bindEvents() {
-    if (!this.handleLogoutBound) {
-      this.handleLogoutBound = this.handleLogout.bind(this);
-      document.addEventListener('sidebar:logout', this.handleLogoutBound);
-    }
+    document.getElementById('logout-button')?.addEventListener('click', this.handleLogout);
   }
 
-  async handleLogout() {
-    const logoutBtn = document.getElementById('logout-button');
-    if (logoutBtn instanceof HTMLButtonElement) {
-      logoutBtn.disabled = true;
-    }
+  handleLogout = async (event) => {
+    const btn = event?.currentTarget;
+
+    if (btn instanceof HTMLButtonElement) btn.disabled = true;
 
     await user.logout();
     void router.goTo(ROUTES.LOGIN, { replace: true });
-  }
+  };
 
   unbindEvents() {
-    if (this.handleLogoutBound) {
-      document.removeEventListener('sidebar:logout', this.handleLogoutBound);
-      this.handleLogoutBound = null;
-    }
+    document.getElementById('logout-button')?.removeEventListener('click', this.handleLogout);
   }
 }

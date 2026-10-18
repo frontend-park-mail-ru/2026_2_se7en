@@ -9,6 +9,7 @@ import { ROUTES } from '@/constants/Routes.js';
 import { Page } from '@/pages/Page.js';
 import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import { STATUSES } from '@/constants/Statuses';
 
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
@@ -51,7 +52,7 @@ export class ChatsPage extends Page {
     const response = await ChatsApi.getChats();
 
     if (response instanceof ApiError) {
-      if (response.status === 401) {
+      if (response.status === STATUSES.UNAUTHORIZED) {
         return;
       }
 

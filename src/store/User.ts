@@ -4,27 +4,33 @@ import { router } from '@/helpers/Router.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
 import type { CurrentUser, LoginData } from '@/api/auth/auth.types.ts';
+import { isAuthPath } from '@/constants/Routes.ts';
 
 /**
  * Сервис управления состоянием текущего пользователя и авторизации.
  */
 class User {
   /** Флаг статуса авторизации пользователя. */
-  isAuth = false;
+  private _isAuth = false;
 
   /** Данные текущего пользователя. */
   data: CurrentUser = { name: '' };
 
   constructor() {
     eventBus.on('auth:unauthorized', () => {
-      this.isAuth = false;
+      this._isAuth = false;
       this.data.name = '';
 
       const currentPath = window.location.pathname;
-      if (currentPath !== ROUTES.LOGIN && currentPath !== ROUTES.REGISTER) {
+
+      if (!isAuthPath(window.location.pathname)) {
         void router.goTo(ROUTES.LOGIN, { replace: true });
       }
     });
+  }
+
+  getIsAuth(): boolean {
+    return this._isAuth;
   }
 
   /**
@@ -34,10 +40,12 @@ class User {
    */
   async login(loginData: LoginData) {
     const result = await AuthApi.login(loginData);
+
     if (result.success) {
-      this.isAuth = true;
+      this._isAuth = true;
       this.data.name = result.data.profile?.nickname || '';
     }
+
     return result;
   }
 
@@ -46,10 +54,12 @@ class User {
    */
   async logout() {
     const result = await AuthApi.logout();
-    if (result.success || ('status' in result && result.status === STATUSES.UNAUTHORIZED)) {
-      this.isAuth = false;
+
+    if (result.success || result.status === STATUSES.UNAUTHORIZED) {
+      this._isAuth = false;
       this.data.name = '';
     }
+
     return result;
   }
 
@@ -58,13 +68,15 @@ class User {
    */
   async updateCurrentUser() {
     const response = await AuthApi.getCurrentUser();
+
     if (response.success) {
-      this.isAuth = true;
+      this._isAuth = true;
       this.data.name = response.data?.profile?.nickname || '';
     } else {
-      this.isAuth = false;
+      this._isAuth = false;
       this.data.name = '';
     }
+
     return response;
   }
 }

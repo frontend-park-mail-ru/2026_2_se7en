@@ -3,9 +3,9 @@ import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.ts';
 import { router } from '@/helpers/Router.ts';
 import { ROUTES } from '@/constants/Routes.ts';
-import { user } from '@/helpers/User.ts';
+import { user } from '@/store/User';
 
-router.setAuthCheck(() => user.isAuth);
+router.setAuthCheck(() => user.getIsAuth());
 
 router
   .use(ROUTES.HOME, ChatsPage, { requiresAuth: true })
