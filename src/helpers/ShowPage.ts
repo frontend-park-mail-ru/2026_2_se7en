@@ -11,13 +11,12 @@ interface ShowPageOptions {
 export async function showPage(
   PageClass: typeof Page,
   options: ShowPageOptions = {},
-): Promise<boolean> {
+): Promise<void> {
   const route = PageClass.route;
 
   if (!route) {
     throw new Error(`${PageClass.name} не объявляет маршрут`);
   }
 
-  await router.go(route, options);
-  return true;
+  await router.goTo(route, options);
 }

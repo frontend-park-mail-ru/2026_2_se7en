@@ -1,16 +1,14 @@
-import { eventBus } from '@/helpers/EventBus.js';
 import { Button } from '@/components/core/Button.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { router } from '@/helpers/Router.ts';
+import { ROUTES } from '@/constants/Routes.ts';
+import { user } from '@/helpers/User.ts';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
-  constructor(currentUser) {
-    this.currentUser = currentUser;
-  }
-
   render() {
     const firstLetter =
-      Array.from(String(this.currentUser.name || '').trim())[0]?.toLocaleUpperCase('ru-RU') || '?';
+      Array.from(String(user.data.name || '').trim())[0]?.toLocaleUpperCase('ru-RU') || '?';
     const safeFirstLetter = escapeHtml(firstLetter);
     const logoutIcon = `
       <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,6 +49,7 @@ export class Sidebar {
             ariaLabel: 'Выйти из аккаунта',
             title: 'Выйти',
             iconBefore: logoutIcon,
+            onClick: "document.dispatchEvent(new CustomEvent('sidebar:logout'))",
             className:
               'w-9 h-9 p-0 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-500 disabled:opacity-50',
           })}
@@ -66,14 +65,26 @@ export class Sidebar {
   }
 
   bindEvents() {
-    const logoutButton = document.getElementById('logout-button');
+    if (!this.handleLogoutBound) {
+      this.handleLogoutBound = this.handleLogout.bind(this);
+      document.addEventListener('sidebar:logout', this.handleLogoutBound);
+    }
+  }
 
-    logoutButton?.addEventListener('click', (event) => {
-      const button = event.currentTarget;
+  async handleLogout() {
+    const logoutBtn = document.getElementById('logout-button');
+    if (logoutBtn instanceof HTMLButtonElement) {
+      logoutBtn.disabled = true;
+    }
 
-      if (button instanceof HTMLButtonElement) button.disabled = true;
+    await user.logout();
+    void router.goTo(ROUTES.LOGIN, { replace: true });
+  }
 
-      eventBus.emit('user:logout');
-    });
+  unbindEvents() {
+    if (this.handleLogoutBound) {
+      document.removeEventListener('sidebar:logout', this.handleLogoutBound);
+      this.handleLogoutBound = null;
+    }
   }
 }

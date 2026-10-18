@@ -1,7 +1,6 @@
 import { AuthLayout, loadAuthLayoutTemplate } from '@/components/Auth/AuthLayout.js';
 import { AuthForm, loadAuthFormTemplate } from '@/components/Auth/AuthForm.js';
 import { loadFieldTemplate } from '@/components/Auth/Field.js';
-import { AuthApi } from '@/api/auth/AuthApi.js';
 import { validateEmail, validatePassword } from '@/helpers/Validation.ts';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
@@ -10,10 +9,9 @@ import { STATUSES } from '@/constants/Statuses.js';
 import { ERROR_CODES, ERROR_HINTS, ERROR_MESSAGES } from '@/api/error.constants.js';
 import { showPage } from '@/helpers/ShowPage.js';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
 import { ApiError } from '@/api/ApiResponse';
 import type { LoginData, LoginFieldConfig, LoginFieldErrors } from '@/api/auth/auth.types';
-import { router } from '@/helpers/Router';
+import { user } from '@/helpers/User.ts';
 
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;
@@ -155,7 +153,7 @@ export class LoginPage extends Page {
     this.loading = true;
     this.rerender();
 
-    const result = await AuthApi.login(this.values);
+    const result = await user.login(this.values);
 
     this.loading = false;
 
@@ -178,8 +176,6 @@ export class LoginPage extends Page {
       this.rerender();
       return;
     }
-
-    router.setAuthState(true);
 
     await showPage(ChatsPage, { replace: true });
   }

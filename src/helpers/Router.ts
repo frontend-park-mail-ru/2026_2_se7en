@@ -1,11 +1,12 @@
 import { Page } from '@/pages/Page.ts';
+import { ROUTES } from '@/constants/Routes.ts';
 
 export type PageConstructor = typeof Page;
 
 /** Конфигурация одного маршрута. */
 export interface Route {
-  /** URL-путь, например `/chats`. */
-  path: string;
+  /** URL-путь (строка или регулярное выражение, например `/chats`). */
+  path: string | RegExp;
   /** Класс страницы, который нужно отрендерить для этого пути. */
   page: PageConstructor;
   /** Если `true` — страница доступна только неавторизованным. */
@@ -21,7 +22,9 @@ export interface NavigateOptions {
 }
 
 /**
- * SPA-роутер
+ * SPA-роутер.
+ *
+ * Отвечает за навигацию, URL и монтирование страниц.
  *
  * Задачи:
  * - Регистрирование маршрутов с мета-информацией (`requiresAuth`, `guestOnly`).
@@ -34,41 +37,36 @@ export interface NavigateOptions {
  *     .use('/chats', ChatsPage, { requiresAuth: true })
  *     .use('/login', LoginPage, { guestOnly: true });
  *
- *   router.setAuthState(true);
+ *   router.setAuthCheck(() => user.isAuth);
  *   router.start();
  */
 export class Router {
   private static instance: Router;
   private routes: Route[] = [];
   private currentPage: Page | null = null;
-  private isAuth: boolean = false;
+  private checkAuth: () => boolean = () => false;
 
   constructor() {
-    if (Router.instance) {
-      return Router.instance;
-    }
-    Router.instance = this;
+    Router.instance ??= this;
+    return Router.instance;
   }
 
   /**
-   * Устанавливает статус авторизации пользователя.
+   * Устанавливает функцию проверки авторизации.
    * Используется `requiresAuth` и `guestOnly` при навигации.
    *
-   * @param isAuth `true`, если пользователь авторизован.
+   * @param checkFn Функция, возвращающая текущий статус авторизации.
    * @returns Текущий экземпляр роутера (для чейнинга).
-   *
-   * @example
-   *   router.setAuthState(false);
    */
-  setAuthState(isAuth: boolean): this {
-    this.isAuth = isAuth;
+  setAuthCheck(checkFn: () => boolean): this {
+    this.checkAuth = checkFn;
     return this;
   }
 
   /**
    * Регистрирует маршрут.
    *
-   * @param path URL-путь (должен начинаться с `/`).
+   * @param path URL-путь или регулярное выражение.
    * @param page Класс страницы-наследника `Page`.
    * @param meta Мета-данные маршрута: `guestOnly` или `requiresAuth`.
    * @returns Текущий экземпляр роутера (для чейнинга).
@@ -77,7 +75,7 @@ export class Router {
    *   router.use('/login', LoginPage, { guestOnly: true });
    */
   use(
-    path: string,
+    path: string | RegExp,
     page: PageConstructor,
     meta: { guestOnly?: boolean; requiresAuth?: boolean } = {},
   ): this {
@@ -100,26 +98,29 @@ export class Router {
    * @param options Опции навигации (`replace`).
    * @returns Промис, который резолвится после монтирования страницы.
    */
-  async go(pathname: string, options: NavigateOptions = {}): Promise<void> {
+  async goTo(pathname: string, options: NavigateOptions = {}): Promise<void> {
+    const isAuth = this.checkAuth();
     let targetPath = pathname.replace(/\/+$/, '') || '/';
 
     if (targetPath === '/') {
-      targetPath = this.isAuth ? '/chats' : '/login';
+      targetPath = isAuth ? ROUTES.HOME : ROUTES.LOGIN;
       options.replace = true;
     }
 
-    const route = this.routes.find((r) => r.path === targetPath);
+    const route = this.routes.find((r) =>
+      r.path instanceof RegExp ? r.path.test(targetPath) : r.path === targetPath,
+    );
 
-    if (route?.requiresAuth && !this.isAuth) {
-      return this.go('/login', { replace: true });
+    if (route?.requiresAuth && !isAuth) {
+      return this.goTo(ROUTES.LOGIN, { replace: true });
     }
 
-    if (route?.guestOnly && this.isAuth) {
-      return this.go('/chats', { replace: true });
+    if (route?.guestOnly && isAuth) {
+      return this.goTo(ROUTES.HOME, { replace: true });
     }
 
     if (!route) {
-      return this.go('/chats', { replace: true });
+      return this.goTo(ROUTES.HOME, { replace: true });
     }
 
     if (window.location.pathname === targetPath && this.currentPage instanceof route.page) {
@@ -155,7 +156,7 @@ export class Router {
    */
   start(): void {
     window.addEventListener('popstate', () => {
-      void this.go(window.location.pathname, { replace: true });
+      void this.goTo(window.location.pathname, { replace: true });
     });
 
     document.addEventListener('click', (event: MouseEvent) => {
@@ -163,15 +164,17 @@ export class Router {
       if (!link) return;
 
       const href = link.getAttribute('href');
-      if (!href || href.startsWith('http') || href.startsWith('//') || href.startsWith('#')) {
+      const ignoredPrefixes = ['http', '//', '#'];
+
+      if (!href || ignoredPrefixes.some((prefix) => href.startsWith(prefix))) {
         return;
       }
 
       event.preventDefault();
-      void this.go(href);
+      void this.goTo(href);
     });
 
-    void this.go(window.location.pathname, { replace: true });
+    void this.goTo(window.location.pathname, { replace: true });
   }
 }
 

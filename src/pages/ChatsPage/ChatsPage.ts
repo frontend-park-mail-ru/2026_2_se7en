@@ -1,77 +1,42 @@
 import { ChatsApi } from '@/api/chats/ChatsApi.js';
-import { AuthApi } from '@/api/auth/AuthApi.js';
 import { ApiError } from '@/api/ApiResponse.js';
 import { ERROR_CODES } from '@/api/error.constants.js';
-import { Sidebar } from '@/components/chat/Sidebar.js';
 import { ChatList } from '@/components/chat/ChatList.js';
 import { ChatArea } from '@/components/chat/ChatArea.js';
 import { debugError } from '@/helpers/DebugError.js';
 import { toDisplayChat } from '@/helpers/chat.js';
 import { ROUTES } from '@/constants/Routes.js';
-import { STATUSES } from '@/constants/Statuses.js';
 import { Page } from '@/pages/Page.js';
-import { showPage } from '@/helpers/ShowPage.ts';
-import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
+import { DefaultLayout } from '@/components/layout/DefaultLayout';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
-import type { CurrentUser } from '@/api/auth/auth.types.ts';
-import { eventBus } from '@/helpers/EventBus';
-import { router } from '@/helpers/Router';
 
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
 
   private chats: DisplayChat[] = [];
   private activeChat: DisplayChat | null = null;
-
   private isLoading = true;
   private hasNetworkError = false;
-  private logoutError = false;
-  private isLoggingOut = false;
 
-  currentUser: CurrentUser = {
-    name: '',
-  };
-
-  private readonly sidebar: Sidebar;
+  private readonly layout: DefaultLayout;
   private readonly chatList: ChatList;
   private readonly chatArea: ChatArea;
-
-  private offLogout?: () => void;
 
   constructor() {
     super();
 
-    this.sidebar = new Sidebar(this.currentUser);
+    this.layout = new DefaultLayout();
     this.chatList = new ChatList();
     this.chatArea = new ChatArea();
   }
 
   unmount(): void {
-    this.offLogout?.();
-    this.offLogout = null;
-
+    this.layout.unmount();
     super.unmount();
   }
 
   async loadTemplates(): Promise<void> {
     await Promise.all([this.chatList.loadTemplates(), this.chatArea.loadTemplates()]);
-  }
-
-  async loadCurrentUser(): Promise<boolean> {
-    const response = await AuthApi.getCurrentUser();
-
-    if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED) return false;
-
-      debugError(response.message);
-      return true;
-    }
-
-    this.currentUser.name = response.data?.profile?.nickname || '';
-
-    await this.update();
-
-    return true;
   }
 
   /**
@@ -86,7 +51,7 @@ export class ChatsPage extends Page {
     const response = await ChatsApi.getChats();
 
     if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED) {
+      if (response.status === 401) {
         return;
       }
 
@@ -122,28 +87,7 @@ export class ChatsPage extends Page {
       void this.loadChats();
     });
 
-    this.sidebar.bindEvents();
-  }
-
-  async handleLogout(): Promise<void> {
-    if (this.isLoggingOut) return;
-
-    this.isLoggingOut = true;
-    this.logoutError = false;
-
-    const result = await AuthApi.logout();
-
-    if (result.success || result.status === STATUSES.UNAUTHORIZED) {
-      router.setAuthState(false);
-
-      await showPage(LoginPage, { replace: true });
-      return;
-    }
-
-    this.isLoggingOut = false;
-    this.logoutError = true;
-
-    await this.update();
+    this.layout.bindEvents();
   }
 
   setActiveChat(chatId: string): void {
@@ -151,32 +95,15 @@ export class ChatsPage extends Page {
   }
 
   render(): string {
-    return `
-      <div class="min-h-screen bg-gray-50 flex">
-        ${this.sidebar.render()}
-        ${this.chatList.render(this.chats, this.activeChat?.id, this.isLoading)}
-        ${this.chatArea.render(this.activeChat, this.chats, this.isLoading, this.hasNetworkError)}
-        ${
-          this.logoutError
-            ? `
-              <div
-                role="alert"
-                class="fixed right-4 top-4 rounded-xl bg-white border border-red-200 px-4 py-3 text-sm text-red-700 shadow-md"
-              >
-                Не удалось выйти. Попробуйте ещё раз.
-              </div>
-            `
-            : ''
-        }
-      </div>
+    const content = `
+      ${this.chatList.render(this.chats, this.activeChat?.id, this.isLoading)}
+      ${this.chatArea.render(this.activeChat, this.chats, this.isLoading, this.hasNetworkError)}
     `;
+
+    return this.layout.render(content);
   }
 
   async afterMount(): Promise<void> {
-    this.offLogout = eventBus.on('user:logout', this.handleLogout.bind(this));
-
-    if (!(await this.loadCurrentUser())) return;
-
     await this.loadChats();
   }
 }
