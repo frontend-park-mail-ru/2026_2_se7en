@@ -1,5 +1,5 @@
 import { eventBus } from '@/helpers/EventBus.js';
-import { Button } from '@/core/Button.js';
+import { Button } from '@/components/core/Button.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 
 /** Компонент боковой панели навигации. */

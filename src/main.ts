@@ -1,44 +1,25 @@
-import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
-import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
-import { ROUTES } from '@/constants/Routes.js';
-import { showPage } from '@/helpers/ShowPage.js';
-import { Page } from '@/pages/Page.js';
-import { eventBus } from './helpers/EventBus';
+import { AuthApi } from '@/api/auth/AuthApi.ts';
+import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.ts';
+import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
+import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.ts';
+import { router } from '@/helpers/Router.ts';
+import { ROUTES } from '@/constants/Routes.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
 
-type PageConstructor = typeof Page;
+router.setAuthCheck(async () => {
+  const response = await AuthApi.getCurrentUser();
+  return response.success;
+});
 
-const pages: Record<string, PageConstructor> = {
-  [ROUTES.HOME]: ChatsPage,
-  [ROUTES.LOGIN]: LoginPage,
-  [ROUTES.REGISTER]: RegisterPage,
-};
-
-function pageForPath(pathname: string): PageConstructor {
-  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
-
-  return pages[normalizedPath] ?? ChatsPage;
-}
-
-async function mountPageForCurrentPath(): Promise<boolean> {
-  const PageClass = pageForPath(window.location.pathname);
-  const page = new PageClass();
-
-  return await page.mount();
-}
+router
+  .use(ROUTES.HOME, ChatsPage, { requiresAuth: true })
+  .use(ROUTES.LOGIN, LoginPage, { guestOnly: true })
+  .use(ROUTES.REGISTER, RegisterPage, { guestOnly: true });
 
 eventBus.on('auth:unauthorized', () => {
-  if (window.location.pathname === ROUTES.LOGIN) return;
-
-  void showPage(LoginPage);
+  if (window.location.pathname === ROUTES.LOGIN || window.location.pathname === ROUTES.REGISTER)
+    return;
+  void router.go(ROUTES.LOGIN, { replace: true });
 });
 
-window.addEventListener('popstate', () => {
-  void mountPageForCurrentPath();
-});
-
-if (window.location.pathname === '/') {
-  void showPage(ChatsPage);
-} else {
-  void mountPageForCurrentPath();
-}
+router.start();

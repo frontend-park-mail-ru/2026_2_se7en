@@ -185,6 +185,6 @@ export class LoginPage extends Page {
       return;
     }
 
-    await showPage(ChatsPage);
+    await showPage(ChatsPage, { replace: true });
   }
 }

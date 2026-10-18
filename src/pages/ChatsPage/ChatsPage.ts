@@ -133,7 +133,7 @@ export class ChatsPage extends Page {
     const result = await AuthApi.logout();
 
     if (result.success || result.status === STATUSES.UNAUTHORIZED) {
-      await showPage(LoginPage);
+      await showPage(LoginPage, { replace: true });
       return;
     }
 
