@@ -6,20 +6,23 @@ import { router } from '@/helpers/Router.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 
-router.setAuthCheck(async () => {
-  const response = await AuthApi.getCurrentUser();
-  return response.success;
-});
-
 router
   .use(ROUTES.HOME, ChatsPage, { requiresAuth: true })
   .use(ROUTES.LOGIN, LoginPage, { guestOnly: true })
   .use(ROUTES.REGISTER, RegisterPage, { guestOnly: true });
 
 eventBus.on('auth:unauthorized', () => {
-  if (window.location.pathname === ROUTES.LOGIN || window.location.pathname === ROUTES.REGISTER)
-    return;
+  const currentPath = window.location.pathname;
+  if (currentPath === ROUTES.LOGIN || currentPath === ROUTES.REGISTER) return;
+
+  router.setAuthState(false);
   void router.go(ROUTES.LOGIN, { replace: true });
 });
 
-router.start();
+async function initApp() {
+  const response = await AuthApi.getCurrentUser();
+  router.setAuthState(response.success);
+  router.start();
+}
+
+void initApp();

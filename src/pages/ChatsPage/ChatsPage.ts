@@ -15,6 +15,7 @@ import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import type { CurrentUser } from '@/api/auth/auth.types.ts';
 import { eventBus } from '@/helpers/EventBus';
+import { router } from '@/helpers/Router';
 
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
@@ -133,6 +134,8 @@ export class ChatsPage extends Page {
     const result = await AuthApi.logout();
 
     if (result.success || result.status === STATUSES.UNAUTHORIZED) {
+      router.setAuthState(false);
+
       await showPage(LoginPage, { replace: true });
       return;
     }

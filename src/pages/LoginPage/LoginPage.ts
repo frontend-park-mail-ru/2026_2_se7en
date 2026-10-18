@@ -13,6 +13,7 @@ import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
 import { ApiError } from '@/api/ApiResponse';
 import type { LoginData, LoginFieldConfig, LoginFieldErrors } from '@/api/auth/auth.types';
+import { router } from '@/helpers/Router';
 
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;
@@ -95,13 +96,6 @@ export class LoginPage extends Page {
         this.togglePassword(button);
       });
     });
-
-    this.container
-      ?.querySelector('[data-page-route="register"]')
-      ?.addEventListener('click', (event: MouseEvent) => {
-        event.preventDefault();
-        void showPage(RegisterPage);
-      });
   }
 
   togglePassword(button: HTMLElement): void {
@@ -184,6 +178,8 @@ export class LoginPage extends Page {
       this.rerender();
       return;
     }
+
+    router.setAuthState(true);
 
     await showPage(ChatsPage, { replace: true });
   }
