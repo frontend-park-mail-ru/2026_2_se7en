@@ -51,6 +51,7 @@ export function validateMultiple(
 ): string | null {
   for (const validate of validators) {
     const error = validate(value);
+
     if (error) {
       return error;
     }
