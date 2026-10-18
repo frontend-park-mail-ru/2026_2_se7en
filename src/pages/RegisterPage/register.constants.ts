@@ -55,6 +55,8 @@ export const ERROR_MESSAGES = {
   email_max_length: 'Электронная почта должна содержать не более 255 символов',
   email_already_exists: 'Такая электронная почта уже используется',
   first_name_max_length: 'Имя должно содержать не более 32 символов',
+  contains_emoji: 'Поле не должно содержать смайлики или спецсимволы',
+  contains_invalid_chars: 'Поле содержит недопустимые скрытые символы',
   invalid_format: 'Неверный формат',
   max_length_exceeded: 'Превышена максимальная длина',
 };

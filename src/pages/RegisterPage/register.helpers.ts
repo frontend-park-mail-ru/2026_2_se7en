@@ -1,4 +1,6 @@
 import { VALIDATION_RULES } from '@/pages/RegisterPage/register.constants.ts';
+import { VALIDATION_MESSAGES } from '@/constants/Validation';
+import { validateForbiddenChars } from '@/helpers/Validation.ts';
 import type { RegisterFieldErrors, RegisterField } from '@/api/auth/auth.types';
 import type {
   ValidationReason,
@@ -75,6 +77,19 @@ export function validateForm(getFieldValue: (field: RegisterField) => string): V
     }
 
     if (value) {
+      const forbiddenReason = validateForbiddenChars(value);
+
+      if (forbiddenReason) {
+        const reason: ValidationReason =
+          forbiddenReason === VALIDATION_MESSAGES.CONTAINS_EMOJI
+            ? 'contains_emoji'
+            : 'contains_invalid_chars';
+
+        fieldErrors[field] = reason;
+        errors.push({ field, reason });
+        continue;
+      }
+
       if (rules.minLength && value.length < rules.minLength) {
         const reason: ValidationReason =
           field === 'nickname' ? 'nickname_length' : 'password_length';
