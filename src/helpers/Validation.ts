@@ -42,14 +42,34 @@ export function validatePassword(password: string): string | null {
 }
 
 /**
+ * Последовательно применяет валидаторы к значению
+ * и возвращает первую найденную ошибку (или null).
+ */
+export function validateMultiple(
+  validators: Array<(value: string) => string | null>,
+  value: string,
+): string | null {
+  for (const validate of validators) {
+    const error = validate(value);
+    if (error) {
+      return error;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Проверяет на запрещённые символы.
  */
 export function validateForbiddenChars(value: string): string | null {
   if (EMOJI_REGEX.test(value)) {
     return VALIDATION_MESSAGES.CONTAINS_EMOJI;
   }
+
   if (CONTROL_CHARS_REGEX.test(value)) {
     return VALIDATION_MESSAGES.CONTAINS_INVALID_CHARS;
   }
+
   return null;
 }

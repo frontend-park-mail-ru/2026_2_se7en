@@ -2,7 +2,12 @@ import { AuthLayout, loadAuthLayoutTemplate } from '@/components/Auth/AuthLayout
 import { AuthForm, loadAuthFormTemplate } from '@/components/Auth/AuthForm.js';
 import { loadFieldTemplate } from '@/components/Auth/Field.js';
 import { AuthApi } from '@/api/auth/AuthApi.js';
-import { validateEmail, validatePassword, validateForbiddenChars } from '@/helpers/Validation.ts';
+import {
+  validateEmail,
+  validatePassword,
+  validateForbiddenChars,
+  validateMultiple,
+} from '@/helpers/Validation.ts';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.js';
@@ -142,10 +147,11 @@ export class LoginPage extends Page {
     this.generalError = '';
     this.generalErrorHint = '';
 
-    const emailError =
-      validateEmail(this.values.email) ?? validateForbiddenChars(this.values.email);
-    const passwordError =
-      validatePassword(this.values.password) ?? validateForbiddenChars(this.values.password);
+    const emailError = validateMultiple([validateEmail, validateForbiddenChars], this.values.email);
+    const passwordError = validateMultiple(
+      [validatePassword, validateForbiddenChars],
+      this.values.password,
+    );
 
     if (emailError) {
       this.fieldErrors.email = emailError;
