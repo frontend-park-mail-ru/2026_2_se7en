@@ -115,11 +115,7 @@ export class Router {
       return this.goTo(ROUTES.LOGIN, { replace: true });
     }
 
-    if (route?.guestOnly && isAuth) {
-      return this.goTo(ROUTES.HOME, { replace: true });
-    }
-
-    if (!route) {
+    if (!route || (route?.guestOnly && isAuth)) {
       return this.goTo(ROUTES.HOME, { replace: true });
     }
 
