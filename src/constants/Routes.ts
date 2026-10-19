@@ -5,7 +5,3 @@ export const ROUTES: Record<Route, string> = {
   LOGIN: '/login',
   REGISTER: '/register',
 };
-
-export function isAuthPath(pathname: string): boolean {
-  return pathname === ROUTES.LOGIN || pathname === ROUTES.REGISTER;
-}

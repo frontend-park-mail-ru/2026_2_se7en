@@ -7,7 +7,7 @@ import { debugError } from '@/helpers/DebugError.js';
 import { toDisplayChat } from '@/helpers/chat.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { Page } from '@/pages/Page.js';
-import { DefaultLayout } from '@/components/layout/DefaultLayout';
+import { DefaultLayout } from '@/layouts/DefaultLayout';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import { STATUSES } from '@/constants/Statuses';
 

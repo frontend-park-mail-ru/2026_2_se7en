@@ -4,7 +4,7 @@ import { router } from '@/helpers/Router.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
 import type { CurrentUser, LoginData } from '@/api/auth/auth.types.ts';
-import { isAuthPath } from '@/constants/Routes.ts';
+import { isAuthPath } from '@/helpers/Navigation.ts';
 
 /**
  * Сервис управления состоянием текущего пользователя и авторизации.
@@ -14,16 +14,15 @@ class User {
   private _isAuth = false;
 
   /** Данные текущего пользователя. */
-  data: CurrentUser = { name: '' };
+  private _data: CurrentUser = { name: '' };
 
   constructor() {
     eventBus.on('auth:unauthorized', () => {
       this._isAuth = false;
-      this.data.name = '';
+      this._data.name = '';
 
       const currentPath = window.location.pathname;
-
-      if (!isAuthPath(window.location.pathname)) {
+      if (!isAuthPath(currentPath)) {
         void router.goTo(ROUTES.LOGIN, { replace: true });
       }
     });
@@ -31,6 +30,10 @@ class User {
 
   getIsAuth(): boolean {
     return this._isAuth;
+  }
+
+  getName(): string {
+    return this._data.name;
   }
 
   /**
@@ -43,7 +46,7 @@ class User {
 
     if (result.success) {
       this._isAuth = true;
-      this.data.name = result.data.profile?.nickname || '';
+      this._data.name = result.data.profile?.nickname || '';
     }
 
     return result;
@@ -57,7 +60,7 @@ class User {
 
     if (result.success || result.status === STATUSES.UNAUTHORIZED) {
       this._isAuth = false;
-      this.data.name = '';
+      this._data.name = '';
     }
 
     return result;
@@ -71,10 +74,10 @@ class User {
 
     if (response.success) {
       this._isAuth = true;
-      this.data.name = response.data?.profile?.nickname || '';
+      this._data.name = response.data?.profile?.nickname || '';
     } else {
       this._isAuth = false;
-      this.data.name = '';
+      this._data.name = '';
     }
 
     return response;
