@@ -1,18 +1,22 @@
-import { Page } from '@/pages/Page';
+import { Page } from '@/pages/Page.ts';
+import { router } from '@/helpers/Router.ts';
+
+interface ShowPageOptions {
+  replace?: boolean;
+}
 
 /**
- * Переключает страницу приложения без полной перезагрузки.
+ * Переключает страницу приложения через Router.
  */
-export async function showPage(PageClass: typeof Page): Promise<boolean> {
+export async function showPage(
+  PageClass: typeof Page,
+  options: ShowPageOptions = {},
+): Promise<void> {
   const route = PageClass.route;
 
   if (!route) {
     throw new Error(`${PageClass.name} не объявляет маршрут`);
   }
 
-  if (window.location.pathname !== route) {
-    window.history.pushState({}, '', route);
-  }
-
-  return new PageClass().mount();
+  await router.goTo(route, options);
 }
