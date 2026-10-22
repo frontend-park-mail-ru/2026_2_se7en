@@ -39,6 +39,13 @@ export default tseslint.config(
           memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
         },
       ],
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: 'variableLike',
+          format: ['camelCase'],
+        },
+      ],
     },
   },
   {

@@ -4,9 +4,7 @@ import { renderChatListLoading } from './ChatListLoading.js';
 import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 import { debugError } from '@/helpers/DebugError.js';
 import type { DisplayChat } from '@/api/chats/chats.types';
-
-const SEARCH_ICON =
-  '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>';
+import { SearchIcon } from '@/components/core/Icons.js';
 
 /**
  * Компонент списка чатов
@@ -53,7 +51,7 @@ export class ChatList {
   renderEmptyState(): string {
     const searchInput = Input({
       placeholder: 'Поиск по сообщениям',
-      icon: SEARCH_ICON,
+      icon: SearchIcon,
     });
 
     return `
@@ -86,7 +84,7 @@ export class ChatList {
   renderDefaultState(chats: DisplayChat[], activeChatId: string | null): string {
     const searchInput = Input({
       placeholder: 'Поиск по сообщениям',
-      icon: SEARCH_ICON,
+      icon: SearchIcon,
     });
 
     const filterButtonClass =

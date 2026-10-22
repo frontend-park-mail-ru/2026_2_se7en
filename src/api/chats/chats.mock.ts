@@ -1,7 +1,7 @@
 import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
-import type { Chat, ChatsResponse, GetChatsParams } from '@/api/chats/chats.types.ts';
+import type { Chat, ChatsResponse, GetChatsParams, Message } from '@/api/chats/chats.types.ts';
 
 /**
  * Формат мок-чата.
@@ -13,7 +13,7 @@ interface MockChat extends Omit<Chat, 'id'> {
   time: string;
   lastMessage: string;
   unreadCount: number;
-  messages: { id: number; text: string; isOutgoing: boolean; time: string }[];
+  messages: Message[];
 }
 
 export const MOCK_CHATS: MockChat[] = [

@@ -1,5 +1,13 @@
+type Listener = () => void;
+
+/**
+ * Реактивная ячейка состояния.
+ *
+ * Хранит одно значение и список подписчиков. При изменении значения через
+ * {@link Signal.set} все подписчики вызываются автоматически.
+ */
 export class Signal<T> {
-  private listeners: (() => void)[] = [];
+  private listeners: Listener[] = [];
   private value: T;
 
   constructor(init_value: T) {
