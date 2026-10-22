@@ -1,20 +1,28 @@
-import { loadTemplate } from '../../helpers/LoadTemplate.js';
-import { debugError } from '../../helpers/DebugError.js';
-import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '../core/Icons.js';
+import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
+import { debugError } from '@/helpers/DebugError.js';
+import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
 
-let templates = {};
+export interface FieldParams {
+  id: string;
+  name: string;
+  type?: string;
+  label: string;
+  placeholder?: string;
+  value?: string;
+  error?: string;
+}
+
+let templates: Templates = {};
 const authEyeClosedIcon = EyeClosedIcon.replace('class="w-5 h-5"', 'class="w-5 h-5 hidden"');
 const authEyeOpenIcon = EyeOpenIcon.replace('class="w-5 h-5 hidden"', 'class="w-5 h-5"');
 
 /** Загружает шаблон поля авторизации. */
-export async function loadFieldTemplate() {
+export async function loadFieldTemplate(): Promise<void> {
   templates = await loadTemplate(templates, 'field');
 }
 
 /**
  * Генерирует HTML-разметку поля ввода.
- * @param {Object} params Параметры поля.
- * @returns {string} HTML-разметка поля.
  */
 export function Field({
   id,
@@ -24,7 +32,7 @@ export function Field({
   placeholder = '',
   value = '',
   error = '',
-}) {
+}: FieldParams): string {
   if (!templates.field) {
     debugError('Шаблон поля авторизации ещё не загружен');
     return '';

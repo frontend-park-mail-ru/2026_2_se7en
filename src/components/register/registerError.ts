@@ -1,11 +1,10 @@
-import { escapeHtml } from '../../helpers/escapeHtml.js';
-import { BannerErrorIcon } from '../core/Icons.js';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { BannerErrorIcon } from '@/components/core/Icons.js';
 
 /**
  * Компонент блока общей ошибки
- * @param {string|null} generalError - текст ошибки (если ошибки нет - null)
  */
-export function renderRegisterError(generalError) {
+export function renderRegisterError(generalError: string | null): string {
   if (!generalError) return '';
 
   const safeMessage = escapeHtml(generalError);

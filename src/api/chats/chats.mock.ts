@@ -1,9 +1,22 @@
-import { ApiSuccess, ApiError, type ApiResult } from '@/api/ApiResponse.ts';
+import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
-import type { ChatsResponse, Chat, GetChatsParams } from '@/api/chats/chats.types.ts';
+import type { Chat, ChatsResponse, GetChatsParams } from '@/api/chats/chats.types.ts';
 
-export const MOCK_CHATS: Chat[] = [
+/**
+ * Формат мок-чата.
+ */
+interface MockChat extends Omit<Chat, 'id'> {
+  id: number;
+  initials: string;
+  isOnline: boolean;
+  time: string;
+  lastMessage: string;
+  unreadCount: number;
+  messages: { id: number; text: string; isOutgoing: boolean; time: string }[];
+}
+
+export const MOCK_CHATS: MockChat[] = [
   {
     id: 1,
     name: 'Алексей Смирнов',
@@ -77,11 +90,14 @@ export async function mockGetChats(params: GetChatsParams = {}): Promise<ApiResu
   await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
   try {
-    const paginatedChats = MOCK_CHATS.slice(params.offset, params.offset + params.limit);
+    const offset = params.offset ?? 0;
+    const paginatedChats = MOCK_CHATS.slice(
+      offset,
+      params.limit === undefined ? undefined : offset + params.limit,
+    );
 
     const data: ChatsResponse = {
-      items: paginatedChats,
-      total: MOCK_CHATS.length,
+      items: paginatedChats.map(({ id, ...rest }) => ({ ...rest, id: String(id) })),
     };
 
     return new ApiSuccess<ChatsResponse>(data, STATUSES.OK);

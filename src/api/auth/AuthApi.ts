@@ -1,8 +1,8 @@
 import {
-  REGISTER_URL,
+  GET_CURRENT_USER_URL,
   LOGIN_URL,
   LOGOUT_URL,
-  GET_CURRENT_USER_URL,
+  REGISTER_URL,
 } from '@/api/auth/auth.constants.ts';
 import { ServerApi } from '@/api/ServerApi.ts';
 import { mockLogin } from '@/api/auth/auth.mock.ts';

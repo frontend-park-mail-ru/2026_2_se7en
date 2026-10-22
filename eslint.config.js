@@ -1,8 +1,10 @@
 import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
 import globals from 'globals';
 
-export default [
+export default tseslint.config(
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
@@ -18,7 +20,7 @@ export default [
           ],
         },
       ],
-      'no-unused-vars': [
+      '@typescript-eslint/no-unused-vars': [
         'error',
         {
           argsIgnorePattern: '^_',
@@ -34,14 +36,15 @@ export default [
           ignoreDeclarationSort: false,
           ignoreMemberSort: false,
           allowSeparatedGroups: false,
+          memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
         },
       ],
     },
   },
   {
-    files: ['src/helpers/debugError.js'],
+    files: ['src/helpers/DebugError.ts'],
     rules: {
       'no-console': 'off',
     },
   },
-];
+);

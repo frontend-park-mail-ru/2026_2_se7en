@@ -15,21 +15,20 @@ import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import type { CurrentUser } from '@/api/auth/auth.types.ts';
 import { eventBus } from '@/helpers/EventBus';
+import { Signal } from '@/reactive/Signal';
 
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
 
-  private chats: DisplayChat[] = [];
-  private activeChat: DisplayChat | null = null;
+  private chats = new Signal<DisplayChat[]>([]);
+  private activeChat = new Signal<DisplayChat | null>(null);
 
-  private isLoading = true;
-  private hasNetworkError = false;
-  private logoutError = false;
-  private isLoggingOut = false;
+  private isLoading = new Signal<boolean>(true);
+  private hasNetworkError = new Signal<boolean>(false);
+  private logoutError = new Signal<boolean>(false);
+  private isLoggingOut = new Signal<boolean>(false);
 
-  currentUser: CurrentUser = {
-    name: '',
-  };
+  currentUser = new Signal<CurrentUser>({ name: '' });
 
   private readonly sidebar: Sidebar;
   private readonly chatList: ChatList;
@@ -43,6 +42,14 @@ export class ChatsPage extends Page {
     this.sidebar = new Sidebar(this.currentUser);
     this.chatList = new ChatList();
     this.chatArea = new ChatArea();
+
+    this.chats.subscribe(() => void this.update());
+    this.activeChat.subscribe(() => void this.update());
+    this.isLoading.subscribe(() => void this.update());
+    this.hasNetworkError.subscribe(() => void this.update());
+    this.logoutError.subscribe(() => void this.update());
+    this.isLoggingOut.subscribe(() => void this.update());
+    this.currentUser.subscribe(() => void this.update());
   }
 
   unmount(): void {
@@ -66,9 +73,7 @@ export class ChatsPage extends Page {
       return true;
     }
 
-    this.currentUser.name = response.data?.profile?.nickname || '';
-
-    await this.update();
+    this.currentUser.set({ name: response.data?.profile?.nickname || '' });
 
     return true;
   }
@@ -77,10 +82,8 @@ export class ChatsPage extends Page {
    * Загружает список чатов с сервера.
    */
   async loadChats(): Promise<void> {
-    this.isLoading = true;
-    this.hasNetworkError = false;
-
-    await this.update();
+    this.isLoading.set(true);
+    this.hasNetworkError.set(false);
 
     const response = await ChatsApi.getChats();
 
@@ -91,20 +94,18 @@ export class ChatsPage extends Page {
 
       switch (response.code) {
         case ERROR_CODES.NETWORK_ERROR:
-          this.hasNetworkError = true;
+          this.hasNetworkError.set(true);
           break;
         default:
           debugError(response.message);
       }
 
-      this.chats = [];
+      this.chats.set([]);
     } else {
-      this.chats = (response.data?.items ?? []).map(toDisplayChat);
+      this.chats.set((response.data?.items ?? []).map(toDisplayChat));
     }
 
-    this.isLoading = false;
-
-    await this.update();
+    this.isLoading.set(false);
   }
 
   async update(): Promise<void> {
@@ -125,10 +126,10 @@ export class ChatsPage extends Page {
   }
 
   async handleLogout(): Promise<void> {
-    if (this.isLoggingOut) return;
+    if (this.isLoggingOut.get()) return;
 
-    this.isLoggingOut = true;
-    this.logoutError = false;
+    this.isLoggingOut.set(true);
+    this.logoutError.set(false);
 
     const result = await AuthApi.logout();
 
@@ -137,24 +138,22 @@ export class ChatsPage extends Page {
       return;
     }
 
-    this.isLoggingOut = false;
-    this.logoutError = true;
-
-    await this.update();
+    this.isLoggingOut.set(false);
+    this.logoutError.set(true);
   }
 
   setActiveChat(chatId: string): void {
-    this.activeChat = this.chats.find((chat) => chat.id === chatId) ?? null;
+    this.activeChat.set(this.chats.get().find((chat) => chat.id === chatId) ?? null);
   }
 
   render(): string {
     return `
       <div class="min-h-screen bg-gray-50 flex">
         ${this.sidebar.render()}
-        ${this.chatList.render(this.chats, this.activeChat?.id, this.isLoading)}
-        ${this.chatArea.render(this.activeChat, this.chats, this.isLoading, this.hasNetworkError)}
+        ${this.chatList.render(this.chats.get(), this.activeChat.get(), this.isLoading.get())}
+        ${this.chatArea.render(this.activeChat.get(), this.chats.get(), this.isLoading.get(), this.hasNetworkError.get())}
         ${
-          this.logoutError
+          this.logoutError.get()
             ? `
               <div
                 role="alert"

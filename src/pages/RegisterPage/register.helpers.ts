@@ -1,11 +1,11 @@
 import { VALIDATION_RULES } from '@/pages/RegisterPage/register.constants.ts';
 import { VALIDATION_MESSAGES } from '@/constants/Validation';
 import { validateForbiddenChars } from '@/helpers/Validation.ts';
-import type { RegisterFieldErrors, RegisterField } from '@/api/auth/auth.types';
+import type { RegisterField, RegisterFieldErrors } from '@/api/auth/auth.types';
 import type {
+  FieldValidationError,
   ValidationReason,
   ValidationResult,
-  FieldValidationError,
 } from '@/pages/RegisterPage/register.types.ts';
 
 /**

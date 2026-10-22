@@ -4,33 +4,48 @@ import { loadFieldTemplate } from '@/components/Auth/Field.js';
 import { AuthApi } from '@/api/auth/AuthApi.js';
 import {
   validateEmail,
-  validatePassword,
   validateForbiddenChars,
   validateMultiple,
+  validatePassword,
 } from '@/helpers/Validation.ts';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.js';
 import { STATUSES } from '@/constants/Statuses.js';
-import { ERROR_CODES, ERROR_HINTS, ERROR_MESSAGES } from '@/api/error.constants.js';
+import {
+  ERROR_CODES,
+  ERROR_HINTS,
+  ERROR_MESSAGES,
+  type ErrorCodes,
+} from '@/api/error.constants.js';
 import { showPage } from '@/helpers/ShowPage.js';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
-import { ApiError } from '@/api/ApiResponse';
+import { ApiError } from '@/api/ApiResponse.js';
+import { Signal } from '@/reactive/Signal';
 import type { LoginData, LoginFieldConfig, LoginFieldErrors } from '@/api/auth/auth.types';
 
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;
 
-  private fieldErrors: LoginFieldErrors = {};
-  private generalError = '';
-  private generalErrorHint = '';
-  private loading = false;
+  private fieldErrors = new Signal<LoginFieldErrors>({});
+  private generalError = new Signal<string>('');
+  private generalErrorHint = new Signal<string>('');
+  private loading = new Signal<boolean>(false);
 
   private values: LoginData = {
     email: '',
     password: '',
   };
+
+  constructor() {
+    super();
+
+    this.fieldErrors.subscribe(() => this.rerender());
+    this.generalError.subscribe(() => this.rerender());
+    this.generalErrorHint.subscribe(() => this.rerender());
+    this.loading.subscribe(() => this.rerender());
+  }
 
   render(): string {
     const authForm = AuthForm({
@@ -58,6 +73,8 @@ export class LoginPage extends Page {
   }
 
   buildFields(): LoginFieldConfig[] {
+    const fieldErrors = this.fieldErrors.get();
+
     return [
       {
         id: 'email',
@@ -66,7 +83,7 @@ export class LoginPage extends Page {
         label: 'Электронная почта',
         placeholder: 'name@example.com',
         value: this.values.email,
-        error: this.fieldErrors.email ?? '',
+        error: fieldErrors.email ?? '',
       },
       {
         id: 'password',
@@ -75,7 +92,7 @@ export class LoginPage extends Page {
         label: 'Пароль',
         placeholder: 'password',
         value: this.values.password,
-        error: this.fieldErrors.password ?? '',
+        error: fieldErrors.password ?? '',
       },
     ];
   }
@@ -128,7 +145,7 @@ export class LoginPage extends Page {
   }
 
   async submit(): Promise<void> {
-    if (this.loading) return;
+    if (this.loading.get()) return;
 
     const emailElement = document.getElementById('email');
     const passwordElement = document.getElementById('password');
@@ -143,9 +160,9 @@ export class LoginPage extends Page {
     this.values.email = emailElement.value.trim().toLowerCase();
     this.values.password = passwordElement.value;
 
-    this.fieldErrors = {};
-    this.generalError = '';
-    this.generalErrorHint = '';
+    this.fieldErrors.set({});
+    this.generalError.set('');
+    this.generalErrorHint.set('');
 
     const emailError = validateMultiple([validateEmail, validateForbiddenChars], this.values.email);
     const passwordError = validateMultiple(
@@ -153,25 +170,19 @@ export class LoginPage extends Page {
       this.values.password,
     );
 
-    if (emailError) {
-      this.fieldErrors.email = emailError;
-    }
-
-    if (passwordError) {
-      this.fieldErrors.password = passwordError;
-    }
-
     if (emailError || passwordError) {
-      this.rerender();
+      this.fieldErrors.set({
+        ...(emailError ? { email: emailError } : {}),
+        ...(passwordError ? { password: passwordError } : {}),
+      });
       return;
     }
 
-    this.loading = true;
-    this.rerender();
+    this.loading.set(true);
 
     const result = await AuthApi.login(this.values);
 
-    this.loading = false;
+    this.loading.set(false);
 
     if (result instanceof ApiError) {
       const isCredentialsError =
@@ -181,15 +192,16 @@ export class LoginPage extends Page {
 
       const errorCode = isCredentialsError
         ? ERROR_CODES.INVALID_CREDENTIALS
-        : [ERROR_CODES.NETWORK_ERROR, ERROR_CODES.INTERNAL_ERROR].includes(result.code)
+        : ([ERROR_CODES.NETWORK_ERROR, ERROR_CODES.INTERNAL_ERROR] as ErrorCodes[]).includes(
+              result.code as ErrorCodes,
+            )
           ? result.code
           : ERROR_CODES.INTERNAL_ERROR;
 
-      this.generalError = ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR];
+      this.generalError.set(ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR]);
 
-      this.generalErrorHint = ERROR_HINTS[errorCode] ?? ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
+      this.generalErrorHint.set(ERROR_HINTS[errorCode] ?? ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR]);
 
-      this.rerender();
       return;
     }
 

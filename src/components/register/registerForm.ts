@@ -1,18 +1,26 @@
-import { ELEMENT_IDS, ERROR_MESSAGES } from '../../pages/RegisterPage/register.constants.js';
-import { ROUTES } from '../../constants/Routes.js';
-import { Button } from '../core/Button.js';
+import { ELEMENT_IDS, ERROR_MESSAGES } from '@/pages/RegisterPage/register.constants.js';
+import { ROUTES } from '@/constants/Routes.js';
+import { Button } from '@/components/core/Button.js';
 import { FormField } from './registerFormField.js';
 import { REGISTER_FIELDS } from './registerFormFields.constants.js';
+import type { RegisterFieldErrors, RegisterFormData } from '@/api/auth/auth.types';
+
+export interface RegisterFormParams {
+  formData: RegisterFormData;
+  fieldErrors: RegisterFieldErrors;
+  isSubmitting: boolean;
+}
 
 /**
  * Компонент формы регистрации
- * @param {Object} options - параметры формы
- * @param {Object} options.formData - данные формы
- * @param {Object} options.fieldErrors - ошибки полей
  */
-export function renderRegisterForm({ formData, fieldErrors }) {
-  const getError = (fieldId) => {
-    const err = fieldErrors[fieldId];
+export function renderRegisterForm({
+  formData,
+  fieldErrors,
+  isSubmitting,
+}: RegisterFormParams): string {
+  const getError = (fieldId: string): string => {
+    const err = fieldErrors[fieldId as keyof RegisterFieldErrors];
     return err ? ERROR_MESSAGES[err] || err : '';
   };
 
@@ -26,7 +34,7 @@ export function renderRegisterForm({ formData, fieldErrors }) {
                     ${REGISTER_FIELDS.map((field) =>
                       FormField({
                         ...field,
-                        value: formData[field.name] || '',
+                        value: formData[field.name as keyof RegisterFormData] || '',
                         error: getError(field.id),
                       }),
                     ).join('')}
@@ -35,11 +43,12 @@ export function renderRegisterForm({ formData, fieldErrors }) {
                 <div class="pt-2">
                     ${Button({
                       id: ELEMENT_IDS.SUBMIT_BUTTON,
-                      text: 'Создать аккаунт',
+                      text: isSubmitting ? 'Создание...' : 'Создать аккаунт',
                       mode: 'primary',
                       className:
                         'w-full py-3.5 px-4 disabled:bg-gray-300 disabled:cursor-not-allowed',
                       type: 'submit',
+                      disabled: isSubmitting,
                     })}
                 </div>
                 <div class="text-center">

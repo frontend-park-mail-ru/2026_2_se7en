@@ -1,16 +1,17 @@
 import { eventBus } from '@/helpers/EventBus.js';
-import { Button } from '@/core/Button.js';
+import { Button } from '@/components/core/Button.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import type { Signal } from '@/reactive/Signal';
+import type { CurrentUser } from '@/api/auth/auth.types';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
-  constructor(currentUser) {
-    this.currentUser = currentUser;
-  }
+  constructor(private readonly currentUser: Signal<CurrentUser>) {}
 
-  render() {
+  render(): string {
     const firstLetter =
-      Array.from(String(this.currentUser.name || '').trim())[0]?.toLocaleUpperCase('ru-RU') || '?';
+      Array.from(String(this.currentUser.get().name || '').trim())[0]?.toLocaleUpperCase('ru-RU') ||
+      '?';
     const safeFirstLetter = escapeHtml(firstLetter);
     const logoutIcon = `
       <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +34,7 @@ export class Sidebar {
             </svg>
             <span class="text-xs mt-1">Чаты</span>
           </button>
-          
+
           <button class="flex flex-col items-center justify-center p-3 rounded-xl text-gray-400 hover:bg-gray-50">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -65,10 +66,10 @@ export class Sidebar {
     `;
   }
 
-  bindEvents() {
+  bindEvents(): void {
     const logoutButton = document.getElementById('logout-button');
 
-    logoutButton?.addEventListener('click', (event) => {
+    logoutButton?.addEventListener('click', (event: MouseEvent) => {
       const button = event.currentTarget;
 
       if (button instanceof HTMLButtonElement) button.disabled = true;

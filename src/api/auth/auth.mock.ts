@@ -1,4 +1,4 @@
-import { ApiSuccess, ApiError, type ApiResult } from '@/api/ApiResponse.ts';
+import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { STATUSES } from '@/constants/Statuses.js';
 import type { LoginData, User } from '@/api/auth/auth.types.ts';
@@ -16,7 +16,7 @@ export const MOCK_USER: User = {
 };
 
 /**
- * Мок-ответ на запрос логина. Используется в AuthApi при USING_MOCK = true.
+ * Мок-ответ на запрос логина.
  * Работает без реального сервера: валидирует email и пароль по MOCK_CREDENTIALS.
  */
 export async function mockLogin(loginData: LoginData): Promise<ApiResult<User>> {

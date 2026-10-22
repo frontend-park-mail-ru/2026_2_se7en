@@ -1,4 +1,4 @@
-import type { RegisterFieldErrors, RegisterField } from '@/api/auth/auth.types';
+import type { RegisterField, RegisterFieldErrors } from '@/api/auth/auth.types';
 
 export type ValidationReason =
   | 'required'

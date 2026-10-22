@@ -1,17 +1,17 @@
+export interface InputParams {
+  placeholder?: string;
+  id?: string;
+  name?: string;
+  type?: string;
+  value?: string;
+  icon?: string;
+  iconPosition?: 'left' | 'right';
+  className?: string;
+  inputClassName?: string;
+}
+
 /**
  * Генерирует HTML-разметку для поля ввода.
- *
- * @param {Object} params - Параметры инпута.
- * @param {string} [params.placeholder=''] - Текст-подсказка.
- * @param {string} [params.id] - Уникальный идентификатор элемента.
- * @param {string} [params.name] - Имя элемента формы.
- * @param {string} [params.type='text'] - Тип инпута (text, password, email и т.д.).
- * @param {string} [params.value=''] - Начальное значение.
- * @param {string} [params.icon=''] - SVG-иконка (HTML-строка).
- * @param {'left' | 'right'} [params.iconPosition='left'] - Позиция иконки.
- * @param {string} [params.className=''] - Дополнительные CSS-классы.
- * @param {string} [params.inputClassName] - CSS-классы поля ввода вместо стандартных.
- * @returns {string} HTML-строка с разметкой инпута.
  */
 export function Input({
   placeholder = '',
@@ -23,11 +23,11 @@ export function Input({
   iconPosition = 'left',
   className = '',
   inputClassName = '',
-}) {
+}: InputParams): string {
   const baseStyle =
     'w-full py-2 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
 
-  const paddingClasses = {
+  const paddingClasses: Record<'left' | 'right', string> = {
     left: icon ? 'pl-10 pr-4' : 'px-4',
     right: icon ? 'pl-4 pr-10' : 'px-4',
   };
@@ -50,11 +50,11 @@ export function Input({
   return `
     <div class="relative ${className}">
       ${iconPosition === 'left' ? iconHtml : ''}
-      <input 
-        type="${type}" 
+      <input
+        type="${type}"
         ${idAttr}
         ${nameAttr}
-        placeholder="${placeholder}" 
+        placeholder="${placeholder}"
         ${valueAttr}
         class="${inputClasses}"
       >
