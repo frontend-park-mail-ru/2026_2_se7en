@@ -1,8 +1,8 @@
-import { eventBus } from '@/helpers/EventBus.js';
 import { Button } from '@/components/core/Button.js';
-import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import type { Signal } from '@/reactive/Signal';
 import type { CurrentUser } from '@/api/auth/auth.types';
+import type { Signal } from '@/reactive/Signal';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { eventBus } from '@/helpers/EventBus.js';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
@@ -10,7 +10,7 @@ export class Sidebar {
 
   render(): string {
     const firstLetter =
-      Array.from(String(this.currentUser.get().name || '').trim())[0]?.toLocaleUpperCase('ru-RU') ||
+      Array.from(String(this.currentUser.value.name || '').trim())[0]?.toLocaleUpperCase('ru-RU') ||
       '?';
     const safeFirstLetter = escapeHtml(firstLetter);
     const logoutIcon = `

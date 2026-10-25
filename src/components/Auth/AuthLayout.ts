@@ -1,5 +1,5 @@
-import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 import { debugError } from '@/helpers/DebugError.js';
+import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 export interface AuthLayoutParams {
   title: string;

@@ -1,8 +1,8 @@
-import { ELEMENT_IDS, ERROR_MESSAGES } from '@/pages/RegisterPage/register.constants.js';
-import { ROUTES } from '@/constants/Routes.js';
 import { Button } from '@/components/core/Button.js';
 import { FormField } from './registerFormField.js';
 import { REGISTER_FIELDS } from './registerFormFields.constants.js';
+import { ROUTES } from '@/constants/Routes.js';
+import { ELEMENT_IDS, ERROR_MESSAGES } from '@/pages/RegisterPage/register.constants.js';
 import type { RegisterFieldErrors, RegisterFormData } from '@/api/auth/auth.types';
 
 export interface RegisterFormParams {

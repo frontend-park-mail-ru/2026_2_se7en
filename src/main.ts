@@ -1,10 +1,10 @@
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
-import { ROUTES } from '@/constants/Routes.js';
-import { showPage } from '@/helpers/ShowPage.js';
 import { Page } from '@/pages/Page.js';
+import { ROUTES } from '@/constants/Routes.js';
+import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
 import { eventBus } from './helpers/EventBus';
+import { showPage } from '@/helpers/ShowPage.js';
 
 type PageConstructor = typeof Page;
 

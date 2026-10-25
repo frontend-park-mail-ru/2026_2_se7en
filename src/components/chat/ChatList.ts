@@ -1,10 +1,10 @@
 import { Button } from '@/components/core/Button.js';
+import type { DisplayChat } from '@/api/chats/chats.types';
 import { Input } from '@/components/core/Input.js';
+import { SearchIcon } from '@/components/core/Icons.js';
+import { debugError } from '@/helpers/DebugError.js';
 import { renderChatListLoading } from './ChatListLoading.js';
 import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
-import { debugError } from '@/helpers/DebugError.js';
-import type { DisplayChat } from '@/api/chats/chats.types';
-import { SearchIcon } from '@/components/core/Icons.js';
 
 /**
  * Компонент списка чатов

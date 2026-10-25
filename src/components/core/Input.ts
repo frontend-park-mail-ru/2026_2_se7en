@@ -1,3 +1,5 @@
+type IconPosition = 'left' | 'right';
+
 export interface InputParams {
   placeholder?: string;
   id?: string;
@@ -5,7 +7,7 @@ export interface InputParams {
   type?: string;
   value?: string;
   icon?: string;
-  iconPosition?: 'left' | 'right';
+  iconPosition?: IconPosition;
   className?: string;
   inputClassName?: string;
 }
@@ -27,7 +29,7 @@ export function Input({
   const baseStyle =
     'w-full py-2 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
 
-  const paddingClasses: Record<'left' | 'right', string> = {
+  const paddingClasses: Record<IconPosition, string> = {
     left: icon ? 'pl-10 pr-4' : 'px-4',
     right: icon ? 'pl-4 pr-10' : 'px-4',
   };

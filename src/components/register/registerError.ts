@@ -1,5 +1,5 @@
-import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { BannerErrorIcon } from '@/components/core/Icons.js';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 
 /**
  * Компонент блока общей ошибки

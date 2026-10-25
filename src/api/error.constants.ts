@@ -16,7 +16,7 @@ export const ERROR_CODES = {
   NETWORK_ERROR: 'NETWORK_ERROR',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-} as const satisfies Record<ErrorCodes, ErrorCodes>;
+} as const satisfies Record<ErrorCodes, string>;
 
 export const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ERROR_CODES.INVALID_CREDENTIALS]: 'Неверная почта или пароль',

@@ -1,6 +1,6 @@
-import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 import { debugError } from '@/helpers/DebugError.js';
 import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
+import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 export interface FieldParams {
   id: string;

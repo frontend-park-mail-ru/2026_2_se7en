@@ -1,7 +1,7 @@
-import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
-import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
+import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
 import type { Chat, ChatsResponse, GetChatsParams, Message } from '@/api/chats/chats.types.ts';
+import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 
 /**
  * Формат мок-чата.

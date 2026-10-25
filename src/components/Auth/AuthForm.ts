@@ -1,8 +1,8 @@
-import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
+import type { Signal } from '@/reactive/Signal';
 import { debugError } from '@/helpers/DebugError.js';
 import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.js';
 import { Field, type FieldParams } from './Field.js';
-import type { Signal } from '@/reactive/Signal';
+import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 export interface AuthFormParams {
   formId: string;
@@ -53,9 +53,9 @@ export function AuthForm({
     fieldsHtml,
     submitText,
     footer,
-    generalError: generalError.get(),
-    generalErrorHint: generalErrorHint.get(),
-    loading: loading.get(),
+    generalError: generalError.value,
+    generalErrorHint: generalErrorHint.value,
+    loading: loading.value,
     bannerErrorIcon: BannerErrorIcon,
     spinnerIcon: SpinnerIcon,
   });

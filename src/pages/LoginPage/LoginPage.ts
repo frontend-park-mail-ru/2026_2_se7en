@@ -1,30 +1,33 @@
-import { AuthLayout, loadAuthLayoutTemplate } from '@/components/Auth/AuthLayout.js';
-import { AuthForm, loadAuthFormTemplate } from '@/components/Auth/AuthForm.js';
-import { loadFieldTemplate } from '@/components/Auth/Field.js';
+import { ApiError } from '@/api/ApiResponse.js';
 import { AuthApi } from '@/api/auth/AuthApi.js';
-import {
-  validateEmail,
-  validateForbiddenChars,
-  validateMultiple,
-  validatePassword,
-} from '@/helpers/Validation.ts';
+import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
-import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.js';
+import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
 import { STATUSES } from '@/constants/Statuses.js';
+import { Signal } from '@/reactive/Signal';
+import { loadFieldTemplate } from '@/components/Auth/Field.js';
+import { showPage } from '@/helpers/ShowPage.js';
+import { AuthForm, loadAuthFormTemplate } from '@/components/Auth/AuthForm.js';
+import { AuthLayout, loadAuthLayoutTemplate } from '@/components/Auth/AuthLayout.js';
 import {
   ERROR_CODES,
   ERROR_HINTS,
   ERROR_MESSAGES,
   type ErrorCodes,
 } from '@/api/error.constants.js';
-import { showPage } from '@/helpers/ShowPage.js';
-import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
-import { ApiError } from '@/api/ApiResponse.js';
-import { Signal } from '@/reactive/Signal';
+import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.js';
 import type { LoginData, LoginFieldConfig, LoginFieldErrors } from '@/api/auth/auth.types';
+import {
+  validateEmail,
+  validateForbiddenChars,
+  validateMultiple,
+  validatePassword,
+} from '@/helpers/Validation.ts';
 
+/**
+ * Страница входа: форма авторизации с валидацией полей.
+ */
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;
 
@@ -73,7 +76,7 @@ export class LoginPage extends Page {
   }
 
   buildFields(): LoginFieldConfig[] {
-    const fieldErrors = this.fieldErrors.get();
+    const fieldErrors = this.fieldErrors.value;
 
     return [
       {
@@ -145,7 +148,7 @@ export class LoginPage extends Page {
   }
 
   async submit(): Promise<void> {
-    if (this.loading.get()) return;
+    if (this.loading.value) return;
 
     const emailElement = document.getElementById('email');
     const passwordElement = document.getElementById('password');
@@ -160,9 +163,9 @@ export class LoginPage extends Page {
     this.values.email = emailElement.value.trim().toLowerCase();
     this.values.password = passwordElement.value;
 
-    this.fieldErrors.set({});
-    this.generalError.set('');
-    this.generalErrorHint.set('');
+    this.fieldErrors.value = {};
+    this.generalError.value = '';
+    this.generalErrorHint.value = '';
 
     const emailError = validateMultiple([validateEmail, validateForbiddenChars], this.values.email);
     const passwordError = validateMultiple(
@@ -171,18 +174,18 @@ export class LoginPage extends Page {
     );
 
     if (emailError || passwordError) {
-      this.fieldErrors.set({
+      this.fieldErrors.value = {
         ...(emailError ? { email: emailError } : {}),
         ...(passwordError ? { password: passwordError } : {}),
-      });
+      };
       return;
     }
 
-    this.loading.set(true);
+    this.loading.value = true;
 
     const result = await AuthApi.login(this.values);
 
-    this.loading.set(false);
+    this.loading.value = false;
 
     if (result instanceof ApiError) {
       const isCredentialsError =
@@ -198,9 +201,11 @@ export class LoginPage extends Page {
           ? result.code
           : ERROR_CODES.INTERNAL_ERROR;
 
-      this.generalError.set(ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR]);
+      this.generalError.value =
+        ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR];
 
-      this.generalErrorHint.set(ERROR_HINTS[errorCode] ?? ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR]);
+      this.generalErrorHint.value =
+        ERROR_HINTS[errorCode] ?? ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
 
       return;
     }

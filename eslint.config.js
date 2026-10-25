@@ -1,8 +1,9 @@
+import globals from 'globals';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import globals from 'globals';
 
 export default tseslint.config(
+  { ignores: ['dist'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -44,6 +45,7 @@ export default tseslint.config(
         {
           selector: 'variableLike',
           format: ['camelCase'],
+          leadingUnderscore: 'allow',
         },
       ],
     },

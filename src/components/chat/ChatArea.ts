@@ -1,7 +1,7 @@
 import { Button } from '@/components/core/Button.js';
 import { ChatSkeleton } from './ChatSkeleton.js';
-import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 import type { DisplayChat } from '@/api/chats/chats.types';
+import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 /**
  * Компонент области чата

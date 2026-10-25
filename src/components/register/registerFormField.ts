@@ -1,6 +1,6 @@
 import { Input } from '@/components/core/Input.js';
-import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.js';
 
 const registerEyeIcons = `${EyeOpenIcon.replace('w-5 h-5 hidden', 'w-5 h-5')}${EyeClosedIcon.replace('w-5 h-5"', 'w-5 h-5 hidden"')}`;
 

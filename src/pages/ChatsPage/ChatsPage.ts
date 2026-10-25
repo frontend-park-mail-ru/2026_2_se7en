@@ -1,22 +1,25 @@
-import { ChatsApi } from '@/api/chats/ChatsApi.js';
-import { AuthApi } from '@/api/auth/AuthApi.js';
 import { ApiError } from '@/api/ApiResponse.js';
-import { ERROR_CODES } from '@/api/error.constants.js';
-import { Sidebar } from '@/components/chat/Sidebar.js';
-import { ChatList } from '@/components/chat/ChatList.js';
+import { AuthApi } from '@/api/auth/AuthApi.js';
 import { ChatArea } from '@/components/chat/ChatArea.js';
-import { debugError } from '@/helpers/DebugError.js';
-import { toDisplayChat } from '@/helpers/chat.js';
+import { ChatList } from '@/components/chat/ChatList.js';
+import { ChatsApi } from '@/api/chats/ChatsApi.js';
+import type { CurrentUser } from '@/api/auth/auth.types.ts';
+import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import { ERROR_CODES } from '@/api/error.constants.js';
+import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
+import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { STATUSES } from '@/constants/Statuses.js';
-import { Page } from '@/pages/Page.js';
-import { showPage } from '@/helpers/ShowPage.ts';
-import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
-import type { DisplayChat } from '@/api/chats/chats.types.ts';
-import type { CurrentUser } from '@/api/auth/auth.types.ts';
-import { eventBus } from '@/helpers/EventBus';
+import { Sidebar } from '@/components/chat/Sidebar.js';
 import { Signal } from '@/reactive/Signal';
+import { debugError } from '@/helpers/DebugError.js';
+import { eventBus } from '@/helpers/EventBus';
+import { showPage } from '@/helpers/ShowPage.ts';
+import { toDisplayChat } from '@/helpers/chat.js';
 
+/**
+ * Страница чатов: боковая панель, список чатов и область переписки.
+ */
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
 
@@ -73,7 +76,7 @@ export class ChatsPage extends Page {
       return true;
     }
 
-    this.currentUser.set({ name: response.data?.profile?.nickname || '' });
+    this.currentUser.value = { name: response.data?.profile?.nickname || '' };
 
     return true;
   }
@@ -82,8 +85,8 @@ export class ChatsPage extends Page {
    * Загружает список чатов с сервера.
    */
   async loadChats(): Promise<void> {
-    this.isLoading.set(true);
-    this.hasNetworkError.set(false);
+    this.isLoading.value = true;
+    this.hasNetworkError.value = false;
 
     const response = await ChatsApi.getChats();
 
@@ -94,18 +97,18 @@ export class ChatsPage extends Page {
 
       switch (response.code) {
         case ERROR_CODES.NETWORK_ERROR:
-          this.hasNetworkError.set(true);
+          this.hasNetworkError.value = true;
           break;
         default:
           debugError(response.message);
       }
 
-      this.chats.set([]);
+      this.chats.value = [];
     } else {
-      this.chats.set((response.data?.items ?? []).map(toDisplayChat));
+      this.chats.value = (response.data?.items ?? []).map(toDisplayChat);
     }
 
-    this.isLoading.set(false);
+    this.isLoading.value = false;
   }
 
   async update(): Promise<void> {
@@ -126,10 +129,10 @@ export class ChatsPage extends Page {
   }
 
   async handleLogout(): Promise<void> {
-    if (this.isLoggingOut.get()) return;
+    if (this.isLoggingOut.value) return;
 
-    this.isLoggingOut.set(true);
-    this.logoutError.set(false);
+    this.isLoggingOut.value = true;
+    this.logoutError.value = false;
 
     const result = await AuthApi.logout();
 
@@ -138,22 +141,22 @@ export class ChatsPage extends Page {
       return;
     }
 
-    this.isLoggingOut.set(false);
-    this.logoutError.set(true);
+    this.isLoggingOut.value = false;
+    this.logoutError.value = true;
   }
 
   setActiveChat(chatId: string): void {
-    this.activeChat.set(this.chats.get().find((chat) => chat.id === chatId) ?? null);
+    this.activeChat.value = this.chats.value.find((chat) => chat.id === chatId) ?? null;
   }
 
   render(): string {
     return `
       <div class="min-h-screen bg-gray-50 flex">
         ${this.sidebar.render()}
-        ${this.chatList.render(this.chats.get(), this.activeChat.get(), this.isLoading.get())}
-        ${this.chatArea.render(this.activeChat.get(), this.chats.get(), this.isLoading.get(), this.hasNetworkError.get())}
+        ${this.chatList.render(this.chats.value, this.activeChat.value, this.isLoading.value)}
+        ${this.chatArea.render(this.activeChat.value, this.chats.value, this.isLoading.value, this.hasNetworkError.value)}
         ${
-          this.logoutError.get()
+          this.logoutError.value
             ? `
               <div
                 role="alert"
