@@ -27,6 +27,7 @@ export default tseslint.config(
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
         },
       ],
       'no-console': 'error',
@@ -44,16 +45,29 @@ export default tseslint.config(
         'error',
         {
           selector: 'variableLike',
-          format: ['camelCase'],
+          format: ['camelCase', 'PascalCase'],
+          leadingUnderscore: 'allow',
+        },
+        {
+          selector: 'variable',
+          modifiers: ['const'],
+          format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
           leadingUnderscore: 'allow',
         },
       ],
+      '@typescript-eslint/no-this-alias': 'off',
     },
   },
   {
     files: ['src/helpers/DebugError.ts'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['vite.config.js'],
+    rules: {
+      '@typescript-eslint/naming-convention': 'off',
     },
   },
 );

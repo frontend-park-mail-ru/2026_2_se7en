@@ -1,44 +1,20 @@
-import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
-import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
-import { Page } from '@/pages/Page.js';
-import { ROUTES } from '@/constants/Routes.js';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
-import { eventBus } from './helpers/EventBus';
-import { showPage } from '@/helpers/ShowPage.js';
+import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.ts';
+import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
+import { ROUTES } from '@/constants/Routes.ts';
+import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.ts';
+import { router } from '@/helpers/Router.ts';
+import { user } from '@/store/User';
 
-type PageConstructor = typeof Page;
+router.setAuthCheck(() => user.getIsAuth());
 
-const pages: Record<string, PageConstructor> = {
-  [ROUTES.HOME]: ChatsPage,
-  [ROUTES.LOGIN]: LoginPage,
-  [ROUTES.REGISTER]: RegisterPage,
-};
+router
+  .use(ROUTES.HOME, ChatsPage, { requiresAuth: true })
+  .use(ROUTES.LOGIN, LoginPage, { guestOnly: true })
+  .use(ROUTES.REGISTER, RegisterPage, { guestOnly: true });
 
-function pageForPath(pathname: string): PageConstructor {
-  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
-
-  return pages[normalizedPath] ?? ChatsPage;
+async function initApp() {
+  await user.updateCurrentUser();
+  router.start();
 }
 
-async function mountPageForCurrentPath(): Promise<boolean> {
-  const PageClass = pageForPath(window.location.pathname);
-  const page = new PageClass();
-
-  return await page.mount();
-}
-
-eventBus.on('auth:unauthorized', () => {
-  if (window.location.pathname === ROUTES.LOGIN) return;
-
-  void showPage(LoginPage);
-});
-
-window.addEventListener('popstate', () => {
-  void mountPageForCurrentPath();
-});
-
-if (window.location.pathname === '/') {
-  void showPage(ChatsPage);
-} else {
-  void mountPageForCurrentPath();
-}
+void initApp();

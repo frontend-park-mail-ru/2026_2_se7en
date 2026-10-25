@@ -1,14 +1,13 @@
 import { ApiError } from '@/api/ApiResponse.js';
-import { AuthApi } from '@/api/auth/AuthApi.js';
-import { AuthForm } from '@/components/Auth/AuthForm.js';
-import { AuthLayout } from '@/components/Auth/AuthLayout.js';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { Page } from '@/pages/Page.js';
-import { ROUTES } from '@/constants/Routes.ts';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
-import { STATUSES } from '@/constants/Statuses.ts';
+import { ROUTES } from '@/constants/Routes.js';
+import { STATUSES } from '@/constants/Statuses.js';
 import { Signal } from '@/reactive/Signal';
 import { showPage } from '@/helpers/ShowPage.js';
+import { user } from '@/store/User';
+import { AuthForm } from '@/components/Auth/AuthForm.js';
+import { AuthLayout } from '@/components/Auth/AuthLayout.js';
 import {
   ERROR_CODES,
   ERROR_HINTS,
@@ -43,10 +42,10 @@ export class LoginPage extends Page {
   constructor() {
     super();
 
-    this.fieldErrors.subscribe(() => this.rerender());
-    this.generalError.subscribe(() => this.rerender());
-    this.generalErrorHint.subscribe(() => this.rerender());
-    this.loading.subscribe(() => this.rerender());
+    this.setSubscribers(
+      [this.fieldErrors, this.generalError, this.generalErrorHint, this.loading],
+      () => this.update(),
+    );
   }
 
   render(): string {
@@ -95,7 +94,7 @@ export class LoginPage extends Page {
     ];
   }
 
-  rerender(): void {
+  update(): void {
     if (!this.container) return;
 
     this.container.innerHTML = this.render();
@@ -115,13 +114,6 @@ export class LoginPage extends Page {
         this.togglePassword(button);
       });
     });
-
-    this.container
-      ?.querySelector('[data-page-route="register"]')
-      ?.addEventListener('click', (event: MouseEvent) => {
-        event.preventDefault();
-        void showPage(RegisterPage);
-      });
   }
 
   togglePassword(button: HTMLElement): void {
@@ -178,7 +170,7 @@ export class LoginPage extends Page {
 
     this.loading.value = true;
 
-    const result = await AuthApi.login(this.values);
+    const result = await user.login(this.values);
 
     this.loading.value = false;
 
@@ -205,6 +197,6 @@ export class LoginPage extends Page {
       return;
     }
 
-    await showPage(ChatsPage);
+    await showPage(ChatsPage, { replace: true });
   }
 }

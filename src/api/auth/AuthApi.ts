@@ -54,6 +54,8 @@ export class AuthApi extends ServerApi {
    * Получение текущего авторизованного пользователя.
    */
   static async getCurrentUser(): Promise<ApiResult<User>> {
-    return this._request<User>(GET_CURRENT_USER_URL);
+    return this._request<User>(GET_CURRENT_USER_URL, {
+      skipAuthRedirect: true,
+    });
   }
 }
