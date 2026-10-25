@@ -39,10 +39,16 @@ export class Signal<T> {
     });
   }
 
+  /**
+   * Подписывает функцию на изменения значения сигнала..
+   */
   subscribe(func: Listener): void {
     this.listeners.push(func);
   }
 
+  /**
+   * Убирает функцию из подписчиков сигнала.
+   */
   unsubscribe(func: Listener): void {
     this.listeners = this.listeners.filter((f) => f !== func);
   }

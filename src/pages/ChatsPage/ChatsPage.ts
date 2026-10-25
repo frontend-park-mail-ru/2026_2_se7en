@@ -46,13 +46,18 @@ export class ChatsPage extends Page {
     this.chatList = new ChatList();
     this.chatArea = new ChatArea();
 
-    this.chats.subscribe(() => void this.update());
-    this.activeChat.subscribe(() => void this.update());
-    this.isLoading.subscribe(() => void this.update());
-    this.hasNetworkError.subscribe(() => void this.update());
-    this.logoutError.subscribe(() => void this.update());
-    this.isLoggingOut.subscribe(() => void this.update());
-    this.currentUser.subscribe(() => void this.update());
+    this.setSubscribers(
+      [
+        this.chats,
+        this.activeChat,
+        this.isLoading,
+        this.hasNetworkError,
+        this.logoutError,
+        this.isLoggingOut,
+        this.currentUser,
+      ],
+      () => void this.update(),
+    );
   }
 
   unmount(): void {

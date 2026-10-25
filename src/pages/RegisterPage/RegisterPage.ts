@@ -37,9 +37,9 @@ export class RegisterPage extends Page {
   constructor() {
     super();
 
-    this.fieldErrors.subscribe(() => this.rerender());
-    this.generalError.subscribe(() => this.rerender());
-    this.isSubmitting.subscribe(() => this.rerender());
+    this.setSubscribers([this.fieldErrors, this.generalError, this.isSubmitting], () =>
+      this.update(),
+    );
   }
 
   render(): string {
@@ -62,7 +62,7 @@ export class RegisterPage extends Page {
     `;
   }
 
-  rerender(): void {
+  update(): void {
     if (!this.container) return;
 
     this.container.innerHTML = this.render();
@@ -89,9 +89,10 @@ export class RegisterPage extends Page {
 
         this.formData[fieldName] = input.value;
 
-        if (this.fieldErrors.value[fieldName]) {
-          const { [fieldName]: _removed, ...rest } = this.fieldErrors.value;
-          this.fieldErrors.value = rest;
+        if (fieldName in this.fieldErrors.value) {
+          this.fieldErrors.value = Object.fromEntries(
+            Object.entries(this.fieldErrors.value).filter(([key]) => key !== fieldName),
+          );
         }
 
         if (this.generalError.value !== null) {

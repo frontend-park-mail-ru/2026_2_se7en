@@ -44,10 +44,10 @@ export class LoginPage extends Page {
   constructor() {
     super();
 
-    this.fieldErrors.subscribe(() => this.rerender());
-    this.generalError.subscribe(() => this.rerender());
-    this.generalErrorHint.subscribe(() => this.rerender());
-    this.loading.subscribe(() => this.rerender());
+    this.setSubscribers(
+      [this.fieldErrors, this.generalError, this.generalErrorHint, this.loading],
+      () => this.update(),
+    );
   }
 
   render(): string {
@@ -100,7 +100,7 @@ export class LoginPage extends Page {
     ];
   }
 
-  rerender(): void {
+  update(): void {
     if (!this.container) return;
 
     this.container.innerHTML = this.render();

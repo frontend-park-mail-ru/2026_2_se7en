@@ -1,4 +1,5 @@
 import { APP_ID } from '@/constants/App.ts';
+import { Signal } from '@/reactive/Signal';
 import { debugError } from '@/helpers/DebugError.ts';
 
 let mountedPage: Page | null = null;
@@ -39,6 +40,16 @@ export class Page {
     await this.afterMount();
 
     return true;
+  }
+
+  /**
+   * Подписывает сигналы страницы на функцию-наблюдатель.
+   *
+   * @param signals Сигналы, при изменении которых вызывается наблюдатель.
+   * @param watcher Функция, вызываемая при изменении любого сигнала.
+   */
+  protected setSubscribers(signals: Signal<unknown>[], watcher: () => unknown): void {
+    signals.forEach((signal) => signal.subscribe(watcher));
   }
 
   render(): string | Promise<string> {
