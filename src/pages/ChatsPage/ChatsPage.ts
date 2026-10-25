@@ -62,10 +62,6 @@ export class ChatsPage extends Page {
     super.unmount();
   }
 
-  async loadTemplates(): Promise<void> {
-    await Promise.all([this.chatList.loadTemplates(), this.chatArea.loadTemplates()]);
-  }
-
   async loadCurrentUser(): Promise<boolean> {
     const response = await AuthApi.getCurrentUser();
 

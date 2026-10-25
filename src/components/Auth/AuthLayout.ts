@@ -1,6 +1,3 @@
-import { debugError } from '@/helpers/DebugError.js';
-import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
-
 export interface AuthLayoutParams {
   title: string;
   subtitle: string;
@@ -8,21 +5,35 @@ export interface AuthLayoutParams {
   children: string;
 }
 
-let templates: Templates = {};
-
-/** Загружает шаблон split-screen лейаута страниц авторизации. */
-export async function loadAuthLayoutTemplate(): Promise<void> {
-  templates = await loadTemplate(templates, 'auth-layout');
-}
-
 /**
  * Генерирует split-screen разметку для страниц авторизации.
  */
 export function AuthLayout({ title, subtitle, topBar = '', children }: AuthLayoutParams): string {
-  if (!templates['auth-layout']) {
-    debugError('Шаблон страницы авторизации ещё не загружен');
-    return '';
-  }
+  return `
+  <div class="min-h-screen flex bg-white">
+    <div class="hidden lg:flex lg:w-1/2 bg-[#f5f9ff] p-12 flex-col">
+      <div class="flex items-center gap-3">
+        <img src="/pictures/icon.png" alt="Логотип" class="w-12 h-12 rounded-xl object-cover" />
+        <span class="text-2xl font-semibold text-gray-900">Связь</span>
+      </div>
 
-  return templates['auth-layout']({ title, subtitle, topBar, children });
+      <div class="flex-1 flex items-center">
+        <div class="max-w-md">
+          <h1 class="text-[44px] font-bold leading-[108%] tracking-[-1.5px] text-gray-900 mb-4">${title}</h1>
+          <p class="text-gray-500 text-lg leading-relaxed">${subtitle}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col">
+      ${topBar}
+
+      <div class="flex-1 flex items-center justify-center">
+        <div class="w-full max-w-md relative">
+          ${children}
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
 }

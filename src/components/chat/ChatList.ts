@@ -2,40 +2,52 @@ import { Button } from '@/components/core/Button.js';
 import type { DisplayChat } from '@/api/chats/chats.types';
 import { Input } from '@/components/core/Input.js';
 import { SearchIcon } from '@/components/core/Icons.js';
-import { debugError } from '@/helpers/DebugError.js';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { renderChatListLoading } from './ChatListLoading.js';
-import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 /**
  * Компонент списка чатов
  */
 export class ChatList {
-  private templates: Templates = {};
-
-  async loadTemplates(): Promise<void> {
-    this.templates = await loadTemplate(this.templates, 'chat-item');
-  }
-
   /**
-   * Рендерит один элемент чата через шаблон
+   * Рендерит один элемент чата
    */
   renderChatItem(chat: DisplayChat, activeChatId: string | null): string {
-    const template = this.templates['chat-item'];
-    if (!template) {
-      debugError('Шаблон элемента чата ещё не загружен');
-      return '';
-    }
+    const isActive = activeChatId === chat.id;
+    const onlineIndicator = chat.isOnline
+      ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>'
+      : '';
+    const unreadBadge = chat.unreadCount
+      ? `
+        <span class="inline-flex items-center justify-center w-5 h-5 bg-black text-white text-xs font-medium rounded-full">
+          ${chat.unreadCount}
+        </span>
+      `
+      : '';
 
-    return template({
-      id: chat.id,
-      name: chat.name,
-      initials: chat.initials,
-      isOnline: chat.isOnline,
-      time: chat.time,
-      lastMessage: chat.lastMessage,
-      unreadCount: chat.unreadCount,
-      isActive: activeChatId === chat.id,
-    });
+    return `
+    <div class="p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors ${isActive ? 'bg-blue-50' : ''}">
+      <div class="flex gap-3">
+        <div class="relative flex-shrink-0">
+          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+            <span class="text-blue-600 font-semibold">${escapeHtml(chat.initials)}</span>
+          </div>
+          ${onlineIndicator}
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start mb-1">
+            <h3 class="font-semibold text-gray-900 truncate">${escapeHtml(chat.name)}</h3>
+            <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+              <span class="text-xs text-gray-400">${escapeHtml(chat.time)}</span>
+              ${unreadBadge}
+            </div>
+          </div>
+          <p class="text-sm text-gray-500 truncate">${escapeHtml(chat.lastMessage)}</p>
+        </div>
+      </div>
+    </div>
+    `;
   }
 
   /**

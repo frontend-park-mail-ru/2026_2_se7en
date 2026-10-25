@@ -1,18 +1,11 @@
 import { Button } from '@/components/core/Button.js';
 import { ChatSkeleton } from './ChatSkeleton.js';
 import type { DisplayChat } from '@/api/chats/chats.types';
-import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 /**
  * Компонент области чата
  */
 export class ChatArea {
-  private templates: Templates = {};
-
-  async loadTemplates(): Promise<void> {
-    this.templates = await loadTemplate(this.templates, 'skeleton-message');
-  }
-
   renderChatAreaLoading(): string {
     return ChatSkeleton.render();
   }
