@@ -1,9 +1,9 @@
-import { Image } from '../core/Image.js';
+import { Image } from '@/components/core/Image.js';
 
 /**
  * Компонент хедера
  */
-export function renderRegisterHeader() {
+export function renderRegisterHeader(): string {
   return `
         <div class="hidden lg:flex lg:w-1/2 bg-[#f5faff] p-12 flex-col">
             <div class="flex items-center gap-3">

@@ -5,7 +5,7 @@ export class ChatSkeleton {
   /**
    * Рендерит один скелетон сообщения
    */
-  static renderMessage() {
+  static renderMessage(): string {
     return `
       <div class="flex gap-3">
         <div class="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
@@ -19,7 +19,7 @@ export class ChatSkeleton {
   /**
    * Рендерит полный скелетон области чата
    */
-  static render() {
+  static render(): string {
     const skeletonItems = Array(4)
       .fill(null)
       .map(() => ChatSkeleton.renderMessage())

@@ -1,23 +1,31 @@
-import { STATUSES } from '@/constants/Statuses';
-import { ELEMENT_IDS, VALIDATION_RULES } from './register.constants';
-import { Page } from '@/pages/Page.js';
-import { renderRegisterHeader } from '@/components/register/registerHeader.js';
-import { renderRegisterForm } from '@/components/register/registerForm.js';
-import { renderRegisterError } from '@/components/register/registerError.js';
-import { validateForm } from '@/pages/RegisterPage/register.helpers.js';
+import { ApiError } from '@/api/ApiResponse.js';
 import { AuthApi } from '@/api/auth/AuthApi.js';
-import { ROUTES } from '@/constants/Routes.js';
-import { showPage } from '@/helpers/ShowPage.js';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
-import { ApiError } from '@/api/ApiResponse';
-import type { RegisterFormData, RegisterFieldErrors, RegisterField } from '@/api/auth/auth.types';
+import { Page } from '@/pages/Page.js';
+import { ROUTES } from '@/constants/Routes.js';
+import { STATUSES } from '@/constants/Statuses.js';
+import { Signal } from '@/reactive/Signal';
+import { renderRegisterError } from '@/components/register/registerError.js';
+import { renderRegisterForm } from '@/components/register/registerForm.js';
+import { renderRegisterHeader } from '@/components/register/registerHeader.js';
+import { showPage } from '@/helpers/ShowPage.js';
+import { validateForm } from '@/pages/RegisterPage/register.helpers.js';
+import { ELEMENT_IDS, VALIDATION_RULES } from '@/pages/RegisterPage/register.constants.js';
+import type {
+  RegisterField,
+  RegisterFieldErrors,
+  RegisterFormData,
+} from '@/api/auth/auth.types.js';
 
+/**
+ * Страница регистрации: форма создания аккаунта с клиентской валидацией.
+ */
 export class RegisterPage extends Page {
   static route = ROUTES.REGISTER;
 
-  private fieldErrors: RegisterFieldErrors = {};
-  private generalError: string | null = null;
-  private isSubmitting = false;
+  private fieldErrors = new Signal<RegisterFieldErrors>({});
+  private generalError = new Signal<string | null>(null);
+  private isSubmitting = new Signal<boolean>(false);
 
   private formData: RegisterFormData = {
     first_name: '',
@@ -26,6 +34,14 @@ export class RegisterPage extends Page {
     password: '',
   };
 
+  constructor() {
+    super();
+
+    this.setSubscribers([this.fieldErrors, this.generalError, this.isSubmitting], () =>
+      this.update(),
+    );
+  }
+
   render(): string {
     return `
       <div class="min-h-screen flex bg-white">
@@ -33,10 +49,11 @@ export class RegisterPage extends Page {
         <div class="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col">
           <div class="flex-1 flex items-center justify-center">
             <div class="w-full max-w-md relative">
-              ${renderRegisterError(this.generalError)}
+              ${renderRegisterError(this.generalError.value)}
               ${renderRegisterForm({
                 formData: this.formData,
-                fieldErrors: this.fieldErrors,
+                fieldErrors: this.fieldErrors.value,
+                isSubmitting: this.isSubmitting.value,
               })}
             </div>
           </div>
@@ -45,7 +62,7 @@ export class RegisterPage extends Page {
     `;
   }
 
-  rerender(): void {
+  update(): void {
     if (!this.container) return;
 
     this.container.innerHTML = this.render();
@@ -65,8 +82,15 @@ export class RegisterPage extends Page {
 
         this.formData[fieldName] = input.value;
 
-        delete this.fieldErrors[fieldName];
-        this.generalError = null;
+        if (fieldName in this.fieldErrors.value) {
+          this.fieldErrors.value = Object.fromEntries(
+            Object.entries(this.fieldErrors.value).filter(([key]) => key !== fieldName),
+          );
+        }
+
+        if (this.generalError.value !== null) {
+          this.generalError.value = null;
+        }
       });
     });
 
@@ -112,12 +136,12 @@ export class RegisterPage extends Page {
   async handleSubmit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
 
-    if (this.isSubmitting) return;
+    if (this.isSubmitting.value) return;
 
     this.readForm();
 
-    this.fieldErrors = {};
-    this.generalError = null;
+    this.fieldErrors.value = {};
+    this.generalError.value = null;
 
     const { isValid, fieldErrors } = validateForm((field) => {
       const fieldName = field as RegisterField;
@@ -127,19 +151,11 @@ export class RegisterPage extends Page {
     });
 
     if (!isValid) {
-      this.fieldErrors = fieldErrors;
-      this.rerender();
+      this.fieldErrors.value = fieldErrors;
       return;
     }
 
-    this.isSubmitting = true;
-
-    const submitButton = document.getElementById(ELEMENT_IDS.SUBMIT_BUTTON);
-
-    if (submitButton instanceof HTMLButtonElement) {
-      submitButton.disabled = true;
-      submitButton.textContent = 'Создание...';
-    }
+    this.isSubmitting.value = true;
 
     const result = await AuthApi.register({
       email: this.formData.email.trim().toLowerCase(),
@@ -148,27 +164,32 @@ export class RegisterPage extends Page {
       first_name: this.formData.first_name.trim(),
     });
 
-    this.isSubmitting = false;
+    this.isSubmitting.value = false;
 
     if (result.success) {
       await showPage(LoginPage);
       return;
     }
 
+    const nextErrors: RegisterFieldErrors = {};
+
     if (result.status === STATUSES.CONFLICT && result instanceof ApiError) {
       if (result.code === 'EMAIL_TAKEN') {
-        this.fieldErrors.email = 'email_already_exists';
+        nextErrors.email = 'email_already_exists';
       }
 
       if (result.code === 'NICKNAME_TAKEN') {
-        this.fieldErrors.nickname = 'nickname_already_exists';
+        nextErrors.nickname = 'nickname_already_exists';
       }
     }
 
-    if (Object.keys(this.fieldErrors).length === 0 && result instanceof ApiError) {
-      this.generalError = result.message || 'Произошла ошибка при регистрации';
+    if (Object.keys(nextErrors).length > 0) {
+      this.fieldErrors.value = nextErrors;
+      return;
     }
 
-    this.rerender();
+    if (result instanceof ApiError) {
+      this.generalError.value = result.message || 'Произошла ошибка при регистрации';
+    }
   }
 }

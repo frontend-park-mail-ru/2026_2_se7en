@@ -1,13 +1,13 @@
+import type { ApiResult } from '@/api/ApiResponse.ts';
+import { ServerApi } from '@/api/ServerApi.ts';
+import { USING_MOCK } from '@/api/api.constants.ts';
+import { mockLogin } from '@/api/auth/auth.mock.ts';
 import {
-  REGISTER_URL,
+  GET_CURRENT_USER_URL,
   LOGIN_URL,
   LOGOUT_URL,
-  GET_CURRENT_USER_URL,
+  REGISTER_URL,
 } from '@/api/auth/auth.constants.ts';
-import { ServerApi } from '@/api/ServerApi.ts';
-import { mockLogin } from '@/api/auth/auth.mock.ts';
-import { USING_MOCK } from '@/api/api.constants.ts';
-import type { ApiResult } from '@/api/ApiResponse.ts';
 import type { LoginData, RegisterData, User } from '@/api/auth/auth.types.ts';
 
 /**

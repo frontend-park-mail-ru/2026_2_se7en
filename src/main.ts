@@ -1,8 +1,8 @@
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.ts';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
+import { ROUTES } from '@/constants/Routes.ts';
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.ts';
 import { router } from '@/helpers/Router.ts';
-import { ROUTES } from '@/constants/Routes.ts';
 import { user } from '@/store/User';
 
 router.setAuthCheck(() => user.getIsAuth());

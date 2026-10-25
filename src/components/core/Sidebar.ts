@@ -1,12 +1,12 @@
 import { Button } from '@/components/core/Button.js';
+import { ROUTES } from '@/constants/Routes.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { router } from '@/helpers/Router.ts';
-import { ROUTES } from '@/constants/Routes.ts';
 import { user } from '@/store/User';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
-  render() {
+  render(): string {
     const firstLetter =
       Array.from(String(user.getName() || '').trim())[0]?.toLocaleUpperCase('ru-RU') || '?';
     const safeFirstLetter = escapeHtml(firstLetter);
@@ -31,7 +31,7 @@ export class Sidebar {
             </svg>
             <span class="text-xs mt-1">Чаты</span>
           </button>
-          
+
           <button class="flex flex-col items-center justify-center p-3 rounded-xl text-gray-400 hover:bg-gray-50">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -63,12 +63,12 @@ export class Sidebar {
     `;
   }
 
-  bindEvents() {
+  bindEvents(): void {
     document.getElementById('logout-button')?.addEventListener('click', this.handleLogout);
   }
 
-  handleLogout = async (event) => {
-    const btn = event?.currentTarget;
+  handleLogout = async (event: MouseEvent): Promise<void> => {
+    const btn = event.currentTarget;
 
     if (btn instanceof HTMLButtonElement) btn.disabled = true;
 
@@ -76,7 +76,7 @@ export class Sidebar {
     void router.goTo(ROUTES.LOGIN, { replace: true });
   };
 
-  unbindEvents() {
+  unbindEvents(): void {
     document.getElementById('logout-button')?.removeEventListener('click', this.handleLogout);
   }
 }

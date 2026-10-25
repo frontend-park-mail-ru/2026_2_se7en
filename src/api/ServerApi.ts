@@ -1,8 +1,8 @@
-import { ApiSuccess, ApiError, type ApiResult, type ErrorData } from '@/api/ApiResponse.ts';
 import { BASE_URL } from '@/api/api.constants.ts';
-import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
-import { eventBus } from '@/helpers/EventBus';
 import { STATUSES } from '@/constants/Statuses';
+import { eventBus } from '@/helpers/EventBus';
+import { ApiError, type ApiResult, ApiSuccess, type ErrorData } from '@/api/ApiResponse.ts';
+import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 
 interface ApiRequestOptions extends Omit<RequestInit, 'body' | 'headers' | 'credentials'> {
   body?: unknown;

@@ -1,27 +1,27 @@
-import { Button } from '../core/Button.js';
+import { Button } from '@/components/core/Button.js';
 import { ChatSkeleton } from './ChatSkeleton.js';
-import { loadTemplate } from '../../helpers/LoadTemplate.js';
+import type { DisplayChat } from '@/api/chats/chats.types';
+import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 /**
  * Компонент области чата
  */
 export class ChatArea {
-  constructor() {
-    this.templates = {};
-  }
+  private templates: Templates = {};
 
-  async loadTemplates() {
+  async loadTemplates(): Promise<void> {
     this.templates = await loadTemplate(this.templates, 'skeleton-message');
   }
 
-  renderChatAreaLoading() {
+  renderChatAreaLoading(): string {
     return ChatSkeleton.render();
   }
 
-  renderEmptyChatArea() {
+  renderEmptyChatArea(): string {
     const newChatButton = Button({
       text: 'Новый чат',
-      iconBefore: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>',
+      iconBefore:
+        '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>',
       mode: 'primary',
     });
 
@@ -41,7 +41,7 @@ export class ChatArea {
     `;
   }
 
-  renderSelectChatPrompt() {
+  renderSelectChatPrompt(): string {
     return `
       <div class="flex-1 bg-gray-50 flex items-center justify-center">
         <div class="text-center">
@@ -58,7 +58,7 @@ export class ChatArea {
     `;
   }
 
-  renderNoInternetState() {
+  renderNoInternetState(): string {
     const retryButton = Button({
       text: 'Попробовать ещё раз',
       id: 'retry-connection-btn',
@@ -85,7 +85,12 @@ export class ChatArea {
   /**
    * Основной метод рендеринга
    */
-  render(activeChat, chats, isLoading, hasNetworkError) {
+  render(
+    activeChat: DisplayChat | null,
+    chats: DisplayChat[],
+    isLoading: boolean,
+    hasNetworkError: boolean,
+  ): string {
     if (isLoading) {
       return this.renderChatAreaLoading();
     }

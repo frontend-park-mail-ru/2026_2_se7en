@@ -1,5 +1,5 @@
 import { debugError } from './DebugError';
-import type { EventMap, EventName, EventListener } from '@/types/events';
+import type { EventListener, EventMap, EventName } from '@/types/events';
 
 /**
  * События без payload — те, у которых `EventMap[K] = void`.

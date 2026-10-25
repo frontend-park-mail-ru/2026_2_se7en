@@ -1,5 +1,5 @@
-import type { ValidationRule } from '@/pages/RegisterPage/register.types.ts';
 import type { RegisterField } from '@/api/auth/auth.types';
+import type { ValidationRule } from '@/pages/RegisterPage/register.types.ts';
 
 type ElementIds =
   | 'FORM'

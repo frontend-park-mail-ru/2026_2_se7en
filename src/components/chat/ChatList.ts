@@ -1,25 +1,25 @@
-import { Button } from '../core/Button.js';
-import { Input } from '../core/Input.js';
+import { Button } from '@/components/core/Button.js';
+import type { DisplayChat } from '@/api/chats/chats.types';
+import { Input } from '@/components/core/Input.js';
+import { SearchIcon } from '@/components/core/Icons.js';
+import { debugError } from '@/helpers/DebugError.js';
 import { renderChatListLoading } from './ChatListLoading.js';
-import { loadTemplate } from '../../helpers/LoadTemplate.js';
-import { debugError } from '../../helpers/DebugError.ts';
+import { type Templates, loadTemplate } from '@/helpers/LoadTemplate.js';
 
 /**
  * Компонент списка чатов
  */
 export class ChatList {
-  constructor() {
-    this.templates = {};
-  }
+  private templates: Templates = {};
 
-  async loadTemplates() {
+  async loadTemplates(): Promise<void> {
     this.templates = await loadTemplate(this.templates, 'chat-item');
   }
 
   /**
    * Рендерит один элемент чата через шаблон
    */
-  renderChatItem(chat, activeChatId) {
+  renderChatItem(chat: DisplayChat, activeChatId: string | null): string {
     const template = this.templates['chat-item'];
     if (!template) {
       debugError('Шаблон элемента чата ещё не загружен');
@@ -41,17 +41,17 @@ export class ChatList {
   /**
    * Состояние загрузки
    */
-  renderLoadingState() {
+  renderLoadingState(): string {
     return renderChatListLoading();
   }
 
   /**
    * Пустое состояние
    */
-  renderEmptyState() {
+  renderEmptyState(): string {
     const searchInput = Input({
       placeholder: 'Поиск по сообщениям',
-      icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>',
+      icon: SearchIcon,
     });
 
     return `
@@ -60,7 +60,7 @@ export class ChatList {
           <h2 class="text-xl font-bold text-gray-900">Чаты</h2>
           <p class="text-sm text-green-600">В сети</p>
         </div>
-        
+
         <div class="p-3">
           ${searchInput}
         </div>
@@ -81,10 +81,10 @@ export class ChatList {
   /**
    * Стандартное состояние со списком чатов
    */
-  renderDefaultState(chats, activeChatId) {
+  renderDefaultState(chats: DisplayChat[], activeChatId: string | null): string {
     const searchInput = Input({
       placeholder: 'Поиск по сообщениям',
-      icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>',
+      icon: SearchIcon,
     });
 
     const filterButtonClass =
@@ -111,7 +111,7 @@ export class ChatList {
           <h2 class="text-xl font-bold text-gray-900">Чаты</h2>
           <p class="text-sm text-green-600">В сети</p>
         </div>
-        
+
         <div class="p-3">
           ${searchInput}
         </div>
@@ -141,7 +141,7 @@ export class ChatList {
   /**
    * Основной метод рендеринга
    */
-  render(chats, activeChatId, isLoading) {
+  render(chats: DisplayChat[], activeChat: DisplayChat | null, isLoading: boolean): string {
     if (isLoading) {
       return this.renderLoadingState();
     }
@@ -150,6 +150,6 @@ export class ChatList {
       return this.renderEmptyState();
     }
 
-    return this.renderDefaultState(chats, activeChatId);
+    return this.renderDefaultState(chats, activeChat?.id ?? null);
   }
 }

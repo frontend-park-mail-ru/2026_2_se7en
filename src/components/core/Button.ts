@@ -1,19 +1,18 @@
+export interface ButtonParams {
+  text: string;
+  id?: string;
+  mode?: 'primary' | 'secondary' | 'ghost';
+  className?: string;
+  iconBefore?: string;
+  iconAfter?: string;
+  type?: 'button' | 'submit' | 'reset';
+  ariaLabel?: string;
+  title?: string;
+  disabled?: boolean;
+}
+
 /**
  * Генерирует HTML-разметку для кнопки.
- *
- * @param {Object} params - Параметры кнопки.
- * @param {string} params.text - Текст, отображаемый на кнопке.
- * @param {string} [params.id] - Уникальный идентификатор элемента.
- * @param {'primary' | 'secondary' | 'ghost'} [params.mode='primary'] - Вариант стилизации.
- * @param {string} [params.className] - Дополнительные CSS-классы.
- * @param {string} [params.iconBefore] - SVG иконка перед текстом.
- * @param {string} [params.iconAfter] - SVG иконка после текста.
- * @param {'button' | 'submit' | 'reset'} [params.type='button'] - Тип кнопки.
- * @param {string} [params.ariaLabel] - Доступное имя кнопки.
- * @param {string} [params.title] - Всплывающая подсказка кнопки.
- * @param {boolean} [params.disabled=false] - Отключена ли кнопка.
- * @param {string} [params.onClick] - JS-обработчик клика в виде строки для атрибута onclick.
- * @returns {string} HTML-строка с разметкой кнопки.
  */
 export function Button({
   text,
@@ -26,12 +25,11 @@ export function Button({
   ariaLabel = '',
   title = '',
   disabled = false,
-  onClick = '',
-}) {
+}: ButtonParams): string {
   const baseClasses =
     'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-1';
 
-  const variants = {
+  const variants: Record<NonNullable<ButtonParams['mode']>, string> = {
     primary:
       'px-6 py-2 rounded-xl bg-black text-white hover:bg-gray-900 shadow-md hover:shadow-lg focus:ring-gray-500',
     secondary:
@@ -44,7 +42,6 @@ export function Button({
   const ariaLabelAttr = ariaLabel ? `aria-label="${ariaLabel}"` : '';
   const titleAttr = title ? `title="${title}"` : '';
   const disabledAttr = disabled ? 'disabled' : '';
-  const onClickAttr = onClick ? `onclick="${onClick}"` : '';
   const iconBeforeHtml = iconBefore
     ? `<span class="inline-flex items-center">${iconBefore}</span>`
     : '';
@@ -54,7 +51,7 @@ export function Button({
   const finalClasses = `${baseClasses} ${modeClasses} ${className}`.trim();
 
   return `
-        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${disabledAttr} ${onClickAttr} type="${type}" class="${finalClasses}">
+        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${disabledAttr} type="${type}" class="${finalClasses}">
                         ${iconBeforeHtml}${text}${iconAfterHtml}
         </button>
     `;

@@ -1,10 +1,10 @@
-import { ELEMENT_IDS } from '../../pages/RegisterPage/register.constants.js';
+import { ELEMENT_IDS } from '@/pages/RegisterPage/register.constants.js';
+import type { FormFieldParams } from './registerFormField.js';
 
 /**
  * Поля формы регистрации в порядке макета
- * @type {Array<{id: string, name: string, label: string, placeholder: string, type?: string}>}
  */
-export const REGISTER_FIELDS = [
+export const REGISTER_FIELDS: FormFieldParams[] = [
   {
     id: ELEMENT_IDS.FIRST_NAME,
     name: 'first_name',
@@ -30,6 +30,7 @@ export const REGISTER_FIELDS = [
     label: 'Пароль',
     placeholder: 'password',
     type: 'password',
-    description: 'От 8 до 16 символов. Можно использовать латинские буквы, цифры и нижнее подчёркивание.',
+    description:
+      'От 8 до 16 символов. Можно использовать латинские буквы, цифры и нижнее подчёркивание.',
   },
 ];

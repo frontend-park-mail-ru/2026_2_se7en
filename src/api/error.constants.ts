@@ -1,3 +1,12 @@
+export type ErrorCodes =
+  | 'INVALID_CREDENTIALS'
+  | 'EMAIL_TAKEN'
+  | 'NICKNAME_TAKEN'
+  | 'UNAUTHORIZED'
+  | 'VALIDATION_ERROR'
+  | 'NETWORK_ERROR'
+  | 'INTERNAL_ERROR'
+  | 'UNKNOWN_ERROR';
 export const ERROR_CODES = {
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   EMAIL_TAKEN: 'EMAIL_TAKEN',
@@ -7,9 +16,9 @@ export const ERROR_CODES = {
   NETWORK_ERROR: 'NETWORK_ERROR',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-};
+} as const satisfies Record<ErrorCodes, string>;
 
-export const ERROR_MESSAGES = {
+export const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ERROR_CODES.INVALID_CREDENTIALS]: 'Неверная почта или пароль',
   [ERROR_CODES.EMAIL_TAKEN]: 'Этот email уже используется',
   [ERROR_CODES.NICKNAME_TAKEN]: 'Этот никнейм уже занят',
@@ -20,7 +29,7 @@ export const ERROR_MESSAGES = {
   [ERROR_CODES.UNKNOWN_ERROR]: 'Неизвестная ошибка',
 };
 
-export const ERROR_HINTS = {
+export const ERROR_HINTS: Record<ErrorCodes, string> = {
   [ERROR_CODES.INVALID_CREDENTIALS]: 'Проверьте данные и попробуйте ещё раз.',
   [ERROR_CODES.EMAIL_TAKEN]: 'Попробуйте войти или восстановить пароль.',
   [ERROR_CODES.NICKNAME_TAKEN]: 'Попробуйте другой никнейм.',

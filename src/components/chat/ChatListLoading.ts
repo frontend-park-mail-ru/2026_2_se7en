@@ -1,15 +1,15 @@
-export function renderChatListLoading() {
+export function renderChatListLoading(): string {
   return `
     <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
       <div class="p-4 border-b border-gray-200">
         <div class="h-8 bg-gray-200 rounded w-24 mb-2 animate-pulse"></div>
         <div class="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
       </div>
-          
+
       <div class="p-3">
         <div class="h-10 bg-gray-100 rounded-lg animate-pulse"></div>
       </div>
-          
+
       <div class="flex flex-col gap-2 flex-1 overflow-y-auto p-2">
         ${Array(6)
           .fill(

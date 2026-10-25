@@ -1,23 +1,25 @@
-import { Input } from '../core/Input.js';
-import { EyeClosedIcon, EyeOpenIcon } from '../core/Icons.js';
-import { escapeHtml } from '../../helpers/escapeHtml.js';
+import { Input } from '@/components/core/Input.js';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.js';
 
 const registerEyeIcons = `${EyeOpenIcon.replace('w-5 h-5 hidden', 'w-5 h-5')}${EyeClosedIcon.replace('w-5 h-5"', 'w-5 h-5 hidden"')}`;
 
+export interface FormFieldParams {
+  id: string;
+  name: string;
+  label: string;
+  type?: string;
+  placeholder: string;
+  value?: string;
+  error?: string;
+  hint?: string;
+  description?: string;
+  className?: string;
+}
+
 /**
  * Универсальный компонент поля формы
- * @param {Object} params
- * @param {string} params.id - ID поля (используется для label и input)
- * @param {string} params.name - Атрибут name для input
- * @param {string} params.label - Текст лейбла
- * @param {string} params.type - Тип input (text, email, password, tel)
- * @param {string} params.placeholder - Placeholder
- * @param {string} params.value - Текущее значение
- * @param {string} [params.error] - Текст ошибки (если есть)
- * @param {string} [params.hint] - Подсказка после лейбла (например "необязательно")
- * @param {string} [params.description] - Подсказка под полем
- * @param {string} [params.className] - Дополнительные классы для input
- * @returns {string} HTML строка поля
+ * @returns HTML строка поля
  */
 export function FormField({
   id,
@@ -30,7 +32,7 @@ export function FormField({
   hint = '',
   description = '',
   className = '',
-}) {
+}: FormFieldParams): string {
   const hasError = !!error;
   const borderColor = hasError ? 'border-red-500' : 'border-transparent';
   const labelColor = hasError ? 'text-red-500' : 'text-gray-500';
@@ -44,14 +46,15 @@ export function FormField({
     inputClassName: `w-full px-4 py-3 ${type === 'password' ? 'pr-12' : ''} bg-[#f5faff] border ${borderColor} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${className}`,
   });
 
-  const inputWithToggle = type === 'password'
-    ? `<div class="relative">
+  const inputWithToggle =
+    type === 'password'
+      ? `<div class="relative">
         ${inputHtml}
         <button type="button" data-toggle-password="${id}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700" aria-label="Показать пароль" aria-pressed="false">
           ${registerEyeIcons}
         </button>
       </div>`
-    : inputHtml;
+      : inputHtml;
 
   const errorHtml = hasError
     ? `

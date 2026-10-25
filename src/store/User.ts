@@ -1,10 +1,10 @@
 import { AuthApi } from '@/api/auth/AuthApi.ts';
-import { eventBus } from '@/helpers/EventBus.ts';
-import { router } from '@/helpers/Router.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
-import type { CurrentUser, LoginData } from '@/api/auth/auth.types.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
 import { isAuthPath } from '@/helpers/Navigation.ts';
+import { router } from '@/helpers/Router.ts';
+import type { CurrentUser, LoginData } from '@/api/auth/auth.types.ts';
 
 /**
  * Сервис управления состоянием текущего пользователя и авторизации.

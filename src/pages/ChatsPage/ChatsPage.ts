@@ -1,23 +1,28 @@
-import { ChatsApi } from '@/api/chats/ChatsApi.js';
 import { ApiError } from '@/api/ApiResponse.js';
-import { ERROR_CODES } from '@/api/error.constants.js';
-import { ChatList } from '@/components/chat/ChatList.js';
 import { ChatArea } from '@/components/chat/ChatArea.js';
+import { ChatList } from '@/components/chat/ChatList.js';
+import { ChatsApi } from '@/api/chats/ChatsApi.js';
+import { DefaultLayout } from '@/layouts/DefaultLayout.js';
+import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import { ERROR_CODES } from '@/api/error.constants.js';
+import { Page } from '@/pages/Page.js';
+import { ROUTES } from '@/constants/Routes.js';
+import { STATUSES } from '@/constants/Statuses.js';
+import { Signal } from '@/reactive/Signal';
 import { debugError } from '@/helpers/DebugError.js';
 import { toDisplayChat } from '@/helpers/chat.js';
-import { ROUTES } from '@/constants/Routes.js';
-import { Page } from '@/pages/Page.js';
-import { DefaultLayout } from '@/layouts/DefaultLayout';
-import type { DisplayChat } from '@/api/chats/chats.types.ts';
-import { STATUSES } from '@/constants/Statuses';
 
+/**
+ * Страница чатов: лейаут с боковой панелью, список чатов и область переписки.
+ */
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
 
-  private chats: DisplayChat[] = [];
-  private activeChat: DisplayChat | null = null;
-  private isLoading = true;
-  private hasNetworkError = false;
+  private chats = new Signal<DisplayChat[]>([]);
+  private activeChat = new Signal<DisplayChat | null>(null);
+
+  private isLoading = new Signal<boolean>(true);
+  private hasNetworkError = new Signal<boolean>(false);
 
   private readonly layout: DefaultLayout;
   private readonly chatList: ChatList;
@@ -29,6 +34,11 @@ export class ChatsPage extends Page {
     this.layout = new DefaultLayout();
     this.chatList = new ChatList();
     this.chatArea = new ChatArea();
+
+    this.setSubscribers(
+      [this.chats, this.activeChat, this.isLoading, this.hasNetworkError],
+      () => void this.update(),
+    );
   }
 
   unmount(): void {
@@ -44,10 +54,8 @@ export class ChatsPage extends Page {
    * Загружает список чатов с сервера.
    */
   async loadChats(): Promise<void> {
-    this.isLoading = true;
-    this.hasNetworkError = false;
-
-    await this.update();
+    this.isLoading.value = true;
+    this.hasNetworkError.value = false;
 
     const response = await ChatsApi.getChats();
 
@@ -58,20 +66,18 @@ export class ChatsPage extends Page {
 
       switch (response.code) {
         case ERROR_CODES.NETWORK_ERROR:
-          this.hasNetworkError = true;
+          this.hasNetworkError.value = true;
           break;
         default:
           debugError(response.message);
       }
 
-      this.chats = [];
+      this.chats.value = [];
     } else {
-      this.chats = (response.data?.items ?? []).map(toDisplayChat);
+      this.chats.value = (response.data?.items ?? []).map(toDisplayChat);
     }
 
-    this.isLoading = false;
-
-    await this.update();
+    this.isLoading.value = false;
   }
 
   async update(): Promise<void> {
@@ -92,16 +98,14 @@ export class ChatsPage extends Page {
   }
 
   setActiveChat(chatId: string): void {
-    this.activeChat = this.chats.find((chat) => chat.id === chatId) ?? null;
+    this.activeChat.value = this.chats.value.find((chat) => chat.id === chatId) ?? null;
   }
 
   render(): string {
-    const content = `
-      ${this.chatList.render(this.chats, this.activeChat?.id, this.isLoading)}
-      ${this.chatArea.render(this.activeChat, this.chats, this.isLoading, this.hasNetworkError)}
-    `;
-
-    return this.layout.render(content);
+    return this.layout.render(`
+      ${this.chatList.render(this.chats.value, this.activeChat.value, this.isLoading.value)}
+      ${this.chatArea.render(this.activeChat.value, this.chats.value, this.isLoading.value, this.hasNetworkError.value)}
+    `);
   }
 
   async afterMount(): Promise<void> {

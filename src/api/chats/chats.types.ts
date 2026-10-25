@@ -51,3 +51,13 @@ export interface DisplayChat extends Chat {
   lastMessage: string;
   unreadCount: number;
 }
+
+/**
+ * Параметры одного сообщения.
+ */
+export interface Message {
+  id: number;
+  text: string;
+  isOutgoing: boolean;
+  time: string;
+}
