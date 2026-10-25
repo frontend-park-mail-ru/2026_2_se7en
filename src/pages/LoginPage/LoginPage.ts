@@ -1,13 +1,12 @@
 import { ApiError } from '@/api/ApiResponse.js';
-import { AuthApi } from '@/api/auth/AuthApi.js';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
-import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.js';
 import { STATUSES } from '@/constants/Statuses.js';
 import { Signal } from '@/reactive/Signal';
 import { loadFieldTemplate } from '@/components/Auth/Field.js';
 import { showPage } from '@/helpers/ShowPage.js';
+import { user } from '@/store/User';
 import { AuthForm, loadAuthFormTemplate } from '@/components/Auth/AuthForm.js';
 import { AuthLayout, loadAuthLayoutTemplate } from '@/components/Auth/AuthLayout.js';
 import {
@@ -120,13 +119,6 @@ export class LoginPage extends Page {
         this.togglePassword(button);
       });
     });
-
-    this.container
-      ?.querySelector('[data-page-route="register"]')
-      ?.addEventListener('click', (event: MouseEvent) => {
-        event.preventDefault();
-        void showPage(RegisterPage);
-      });
   }
 
   togglePassword(button: HTMLElement): void {
@@ -183,7 +175,7 @@ export class LoginPage extends Page {
 
     this.loading.value = true;
 
-    const result = await AuthApi.login(this.values);
+    const result = await user.login(this.values);
 
     this.loading.value = false;
 
@@ -210,6 +202,6 @@ export class LoginPage extends Page {
       return;
     }
 
-    await showPage(ChatsPage);
+    await showPage(ChatsPage, { replace: true });
   }
 }

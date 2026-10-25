@@ -74,13 +74,6 @@ export class RegisterPage extends Page {
       void this.handleSubmit(event);
     });
 
-    this.container
-      ?.querySelector('[data-page-route="login"]')
-      ?.addEventListener('click', (event: MouseEvent) => {
-        event.preventDefault();
-        void showPage(LoginPage);
-      });
-
     (Object.keys(VALIDATION_RULES) as RegisterField[]).forEach((fieldName) => {
       const input = document.getElementById(fieldName);
 
