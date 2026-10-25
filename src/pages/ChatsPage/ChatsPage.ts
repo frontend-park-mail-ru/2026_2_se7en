@@ -46,21 +46,6 @@ export class ChatsPage extends Page {
     super.unmount();
   }
 
-  async loadCurrentUser(): Promise<boolean> {
-    const response = await AuthApi.getCurrentUser();
-
-    if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED) return false;
-
-      debugError(response.message);
-      return true;
-    }
-
-    this.currentUser.value = { name: response.data?.profile?.nickname || '' };
-
-    return true;
-  }
-
   /**
    * Загружает список чатов с сервера.
    */
