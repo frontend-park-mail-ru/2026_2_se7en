@@ -1,3 +1,4 @@
+import { Button } from '@/components/core/Button.js';
 import type { Signal } from '@/reactive/Signal';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.js';
@@ -57,14 +58,16 @@ export function AuthForm({
         ${fieldsHtml}
 
         <div class="pt-2">
-          <button
-            type="submit"
-            id="${submitId}"
-            ${isLoading ? 'disabled' : ''}
-            class="w-full bg-black text-white py-3.5 px-4 rounded-xl font-medium hover:bg-gray-800 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            ${isLoading ? `${SpinnerIcon} Проверяем данные...` : submitText}
-          </button>
+          ${Button({
+            id: submitId,
+            text: isLoading ? 'Проверяем данные...' : submitText,
+            iconBefore: isLoading ? SpinnerIcon : '',
+            mode: 'primary',
+            type: 'submit',
+            disabled: isLoading,
+            className:
+              'w-full py-3.5 px-4 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed',
+          })}
         </div>
 
         <div class="text-center">

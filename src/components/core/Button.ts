@@ -1,3 +1,5 @@
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+
 export interface ButtonParams {
   text: string;
   id?: string;
@@ -9,6 +11,7 @@ export interface ButtonParams {
   ariaLabel?: string;
   title?: string;
   disabled?: boolean;
+  attrs?: Record<string, string>;
 }
 
 /**
@@ -25,6 +28,7 @@ export function Button({
   ariaLabel = '',
   title = '',
   disabled = false,
+  attrs = {},
 }: ButtonParams): string {
   const baseClasses =
     'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-1';
@@ -42,6 +46,9 @@ export function Button({
   const ariaLabelAttr = ariaLabel ? `aria-label="${ariaLabel}"` : '';
   const titleAttr = title ? `title="${title}"` : '';
   const disabledAttr = disabled ? 'disabled' : '';
+  const attrsHtml = Object.entries(attrs)
+    .map(([name, value]) => `${name}="${escapeHtml(value)}"`)
+    .join(' ');
   const iconBeforeHtml = iconBefore
     ? `<span class="inline-flex items-center">${iconBefore}</span>`
     : '';
@@ -51,7 +58,7 @@ export function Button({
   const finalClasses = `${baseClasses} ${modeClasses} ${className}`.trim();
 
   return `
-        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${disabledAttr} type="${type}" class="${finalClasses}">
+        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${attrsHtml} ${disabledAttr} type="${type}" class="${finalClasses}">
                         ${iconBeforeHtml}${text}${iconAfterHtml}
         </button>
     `;

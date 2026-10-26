@@ -1,3 +1,4 @@
+import { Button } from '@/components/core/Button.js';
 import { Input } from '@/components/core/Input.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.js';
@@ -50,9 +51,15 @@ export function FormField({
     type === 'password'
       ? `<div class="relative">
         ${inputHtml}
-        <button type="button" data-toggle-password="${id}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700" aria-label="Показать пароль" aria-pressed="false">
-          ${registerEyeIcons}
-        </button>
+        ${Button({
+          text: '',
+          type: 'button',
+          mode: 'ghost',
+          ariaLabel: 'Показать пароль',
+          iconBefore: registerEyeIcons,
+          attrs: { 'data-toggle-password': id, 'aria-pressed': 'false' },
+          className: 'absolute right-3 top-1/2 -translate-y-1/2',
+        })}
       </div>`
       : inputHtml;
 

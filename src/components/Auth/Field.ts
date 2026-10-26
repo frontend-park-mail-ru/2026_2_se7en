@@ -1,3 +1,5 @@
+import { Button } from '@/components/core/Button.js';
+import { Input } from '@/components/core/Input.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
 
@@ -29,19 +31,28 @@ export function Field({
   const isPassword = type === 'password';
   const labelClass = error ? 'text-red-500' : 'text-gray-500';
   const borderClass = error ? 'border-red-500' : 'border-transparent';
+
+  const inputHtml = Input({
+    id,
+    name,
+    type,
+    placeholder: escapeHtml(placeholder),
+    value: escapeHtml(value),
+    inputClassName: `w-full px-4 py-3 ${isPassword ? 'pr-12' : ''} bg-[#f5f9ff] border ${borderClass} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all`,
+  });
+
   const passwordToggle = isPassword
-    ? `
-    <button
-      type="button"
-      data-toggle-password="${id}"
-      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
-      aria-label="Показать пароль"
-    >
-      ${authEyeClosedIcon}
-      ${authEyeOpenIcon}
-    </button>
-  `
+    ? Button({
+        text: '',
+        type: 'button',
+        mode: 'ghost',
+        ariaLabel: 'Показать пароль',
+        iconBefore: `${authEyeClosedIcon}${authEyeOpenIcon}`,
+        attrs: { 'data-toggle-password': id },
+        className: 'absolute right-3 top-1/2 -translate-y-1/2',
+      })
     : '';
+
   const errorHtml = error
     ? `
     <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
@@ -57,14 +68,7 @@ export function Field({
       ${escapeHtml(label)}
     </label>
     <div class="relative">
-      <input
-        type="${type}"
-        id="${id}"
-        name="${name}"
-        placeholder="${escapeHtml(placeholder)}"
-        value="${escapeHtml(value)}"
-        class="w-full px-4 py-3 ${isPassword ? 'pr-12' : ''} bg-[#f5f9ff] border ${borderClass} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
-      />
+      ${inputHtml}
       ${passwordToggle}
     </div>
     ${errorHtml}
