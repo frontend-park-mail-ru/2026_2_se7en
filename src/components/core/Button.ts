@@ -1,4 +1,4 @@
-import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { renderAttrs } from '@/helpers/RenderAttrs.ts';
 
 export interface ButtonParams {
   text: string;
@@ -46,9 +46,7 @@ export function Button({
   const ariaLabelAttr = ariaLabel ? `aria-label="${ariaLabel}"` : '';
   const titleAttr = title ? `title="${title}"` : '';
   const disabledAttr = disabled ? 'disabled' : '';
-  const attrsHtml = Object.entries(attrs)
-    .map(([name, value]) => `${name}="${escapeHtml(value)}"`)
-    .join(' ');
+  const attrsHtml = renderAttrs(attrs);
   const iconBeforeHtml = iconBefore
     ? `<span class="inline-flex items-center">${iconBefore}</span>`
     : '';
