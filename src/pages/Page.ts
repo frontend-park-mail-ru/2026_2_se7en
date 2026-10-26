@@ -33,7 +33,6 @@ export class Page {
 
     mountedPage = this;
 
-    await this.loadTemplates();
     this.container.innerHTML = await this.render();
 
     this.bindEvents();
@@ -55,8 +54,6 @@ export class Page {
   render(): string | Promise<string> {
     return '';
   }
-
-  async loadTemplates(): Promise<void> {}
 
   bindEvents(): void {}
 

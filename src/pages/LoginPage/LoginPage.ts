@@ -4,11 +4,10 @@ import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { STATUSES } from '@/constants/Statuses.js';
 import { Signal } from '@/reactive/Signal';
-import { loadFieldTemplate } from '@/components/Auth/Field.js';
 import { showPage } from '@/helpers/ShowPage.js';
 import { user } from '@/store/User';
-import { AuthForm, loadAuthFormTemplate } from '@/components/Auth/AuthForm.js';
-import { AuthLayout, loadAuthLayoutTemplate } from '@/components/Auth/AuthLayout.js';
+import { AuthForm } from '@/components/Auth/AuthForm.js';
+import { AuthLayout } from '@/components/Auth/AuthLayout.js';
 import {
   ERROR_CODES,
   ERROR_HINTS,
@@ -68,10 +67,6 @@ export class LoginPage extends Page {
       subtitle: 'Продолжайте разговоры на большом экране',
       children: authForm,
     });
-  }
-
-  async loadTemplates(): Promise<void> {
-    await Promise.all([loadAuthFormTemplate(), loadAuthLayoutTemplate(), loadFieldTemplate()]);
   }
 
   buildFields(): LoginFieldConfig[] {

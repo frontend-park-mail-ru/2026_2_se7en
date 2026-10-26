@@ -46,10 +46,6 @@ export class ChatsPage extends Page {
     super.unmount();
   }
 
-  async loadTemplates(): Promise<void> {
-    await Promise.all([this.chatList.loadTemplates(), this.chatArea.loadTemplates()]);
-  }
-
   /**
    * Загружает список чатов с сервера.
    */
