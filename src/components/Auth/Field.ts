@@ -1,3 +1,4 @@
+import './Field.scss';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
 
@@ -11,8 +12,14 @@ export interface FieldParams {
   error?: string;
 }
 
-const authEyeClosedIcon = EyeClosedIcon.replace('class="w-5 h-5"', 'class="w-5 h-5 hidden"');
-const authEyeOpenIcon = EyeOpenIcon.replace('class="w-5 h-5 hidden"', 'class="w-5 h-5"');
+const authEyeClosedIcon = EyeClosedIcon.replace(
+  'class="icon icon--md"',
+  'class="icon icon--md is-hidden"',
+);
+const authEyeOpenIcon = EyeOpenIcon.replace(
+  'class="icon icon--md is-hidden"',
+  'class="icon icon--md"',
+);
 
 /**
  * Генерирует HTML-разметку поля ввода.
@@ -27,14 +34,15 @@ export function Field({
   error = '',
 }: FieldParams): string {
   const isPassword = type === 'password';
-  const labelClass = error ? 'text-red-500' : 'text-gray-500';
-  const borderClass = error ? 'border-red-500' : 'border-transparent';
+  const labelClass = error ? 'field__label field__label--error' : 'field__label';
+  const inputClass = error ? 'field__input field__input--error' : 'field__input';
+  const passwordModifier = isPassword ? 'field__input--password' : '';
   const passwordToggle = isPassword
     ? `
     <button
       type="button"
       data-toggle-password="${id}"
-      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+      class="field__toggle"
       aria-label="Показать пароль"
     >
       ${authEyeClosedIcon}
@@ -44,7 +52,7 @@ export function Field({
     : '';
   const errorHtml = error
     ? `
-    <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+    <p class="field__error">
       ${FieldErrorIcon}
       ${escapeHtml(error)}
     </p>
@@ -53,17 +61,17 @@ export function Field({
 
   return `
   <div>
-    <label for="${id}" class="block text-xs font-medium ${labelClass} mb-1.5">
+    <label for="${id}" class="${labelClass}">
       ${escapeHtml(label)}
     </label>
-    <div class="relative">
+    <div class="field__control">
       <input
         type="${type}"
         id="${id}"
         name="${name}"
         placeholder="${escapeHtml(placeholder)}"
         value="${escapeHtml(value)}"
-        class="w-full px-4 py-3 ${isPassword ? 'pr-12' : ''} bg-[#f5f9ff] border ${borderClass} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
+        class="${inputClass} ${passwordModifier}"
       />
       ${passwordToggle}
     </div>

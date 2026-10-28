@@ -1,3 +1,5 @@
+import './AuthLayout.scss';
+
 export interface AuthLayoutParams {
   title: string;
   subtitle: string;
@@ -10,26 +12,26 @@ export interface AuthLayoutParams {
  */
 export function AuthLayout({ title, subtitle, topBar = '', children }: AuthLayoutParams): string {
   return `
-  <div class="min-h-screen flex bg-white">
-    <div class="hidden lg:flex lg:w-1/2 bg-[#f5f9ff] p-12 flex-col">
-      <div class="flex items-center gap-3">
-        <img src="/pictures/icon.png" alt="Логотип" class="w-12 h-12 rounded-xl object-cover" />
-        <span class="text-2xl font-semibold text-gray-900">Связь</span>
+  <div class="auth">
+    <div class="auth__aside">
+      <div class="auth__brand">
+        <img src="/pictures/icon.png" alt="Логотип" class="auth__brand-logo" />
+        <span class="auth__brand-name">Связь</span>
       </div>
 
-      <div class="flex-1 flex items-center">
-        <div class="max-w-md">
-          <h1 class="text-[44px] font-bold leading-[108%] tracking-[-1.5px] text-gray-900 mb-4">${title}</h1>
-          <p class="text-gray-500 text-lg leading-relaxed">${subtitle}</p>
+      <div class="auth__pitch">
+        <div class="auth__pitch-inner">
+          <h1 class="auth__title">${title}</h1>
+          <p class="auth__subtitle">${subtitle}</p>
         </div>
       </div>
     </div>
 
-    <div class="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col">
+    <div class="auth__main">
       ${topBar}
 
-      <div class="flex-1 flex items-center justify-center">
-        <div class="w-full max-w-md relative">
+      <div class="auth__content">
+        <div class="auth__form-box">
           ${children}
         </div>
       </div>

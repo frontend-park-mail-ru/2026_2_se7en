@@ -1,3 +1,4 @@
+import './registerForm.scss';
 import { Button } from '@/components/core/Button.js';
 import { FormField } from './registerFormField.js';
 import { REGISTER_FIELDS } from './registerFormFields.constants.js';
@@ -25,12 +26,12 @@ export function renderRegisterForm({
   };
 
   return `
-        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
-            <h2 class="text-gray-900 mb-1 font-bold text-[32px] leading-[120%] tracking-[-0.5px]">Создайте аккаунт</h2>
-            <p class="text-gray-500 text-sm mb-6">Заполните основные данные</p>
+        <div class="register-form__card">
+            <h2 class="register-form__title">Создайте аккаунт</h2>
+            <p class="register-form__subtitle">Заполните основные данные</p>
 
-            <form id="${ELEMENT_IDS.FORM}" class="flex flex-col gap-4" novalidate>
-                <div class="flex flex-col gap-4">
+            <form id="${ELEMENT_IDS.FORM}" class="register-form__form" novalidate>
+                <div class="register-form__fields">
                     ${REGISTER_FIELDS.map((field) =>
                       FormField({
                         ...field,
@@ -40,21 +41,20 @@ export function renderRegisterForm({
                     ).join('')}
                 </div>
 
-                <div class="pt-2">
+                <div class="register-form__submit-wrap">
                     ${Button({
                       id: ELEMENT_IDS.SUBMIT_BUTTON,
                       text: isSubmitting ? 'Создание...' : 'Создать аккаунт',
                       mode: 'primary',
-                      className:
-                        'w-full py-3.5 px-4 disabled:bg-gray-300 disabled:cursor-not-allowed',
+                      className: 'button--block button--submit',
                       type: 'submit',
                       disabled: isSubmitting,
                     })}
                 </div>
-                <div class="text-center">
-                    <p class="text-gray-500 text-sm">
+                <div class="register-form__footer">
+                    <p class="register-form__footer-text">
                         Уже есть аккаунт?
-                        <a href="${ROUTES.LOGIN}" data-page-route="login" class="font-semibold text-gray-900 hover:underline">Войти</a>
+                        <a href="${ROUTES.LOGIN}" data-page-route="login" class="register-form__footer-link">Войти</a>
                     </p>
                 </div>
             </form>

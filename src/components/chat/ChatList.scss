@@ -1,0 +1,245 @@
+// Блок "панель списка чатов": шапка, поиск, фильтры, список, подвал,
+// а также элемент списка чат и пустое состояние.
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  width: 20rem;
+  background-color: $white;
+  border-right: 1px solid $gray-200;
+
+  &__header {
+    padding: 1rem;
+    border-bottom: 1px solid $gray-200;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    color: $gray-900;
+  }
+
+  &__status {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: $green-600;
+  }
+
+  &__search {
+    padding: 0.75rem;
+  }
+
+  &__filters {
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  &__filter-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    overflow-y: auto;
+  }
+
+  &__footer {
+    padding: 0.75rem;
+    border-top: 1px solid $gray-200;
+  }
+
+  &__footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: $gray-400;
+  }
+
+  &__empty {
+    @include flex-center;
+    flex: 1;
+    padding: 1.5rem;
+  }
+
+  &__empty-inner {
+    text-align: center;
+  }
+
+  &__empty-icon {
+    margin: 0 auto 0.75rem;
+    color: $gray-300;
+  }
+
+  &__empty-title {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: $gray-900;
+  }
+
+  &__empty-hint {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: $gray-400;
+  }
+
+  // Скелетон панели (состояние загрузки)
+  &__skel-title {
+    width: 6rem;
+    height: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__skel-subtitle {
+    width: 8rem;
+    height: 1rem;
+  }
+
+  &__skel-search {
+    height: 2.5rem;
+  }
+
+  &__skel-item {
+    padding: 0.75rem;
+    border-radius: $radius-md;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  &__skel-item-inner {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  &__skel-avatar {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  &__skel-lines {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__skel-line {
+    width: 75%;
+    height: 1rem;
+  }
+
+  &__skel-line--short {
+    width: 50%;
+    height: 0.75rem;
+  }
+}
+
+// Элемент списка чатов
+.chat-item {
+  padding: 0.75rem;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include transition-colors;
+
+  &:hover {
+    background-color: $gray-50;
+  }
+
+  &--active {
+    background-color: $blue-50;
+  }
+
+  &__inner {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  &__avatar-box {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  &__avatar {
+    @include flex-center;
+    width: 3rem;
+    height: 3rem;
+    background-color: $blue-100;
+    border-radius: $radius-full;
+  }
+
+  &__avatar-initials {
+    color: $blue-600;
+    font-weight: 600;
+  }
+
+  &__online {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: $green-500;
+    border: 2px solid $white;
+    border-radius: $radius-full;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+
+  &__name {
+    @include truncate;
+    font-weight: 600;
+    color: $gray-900;
+  }
+
+  &__meta {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+  }
+
+  &__time {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: $gray-400;
+  }
+
+  &__unread {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: $black;
+    color: $white;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    border-radius: $radius-full;
+  }
+
+  &__message {
+    @include truncate;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: $gray-500;
+  }
+}

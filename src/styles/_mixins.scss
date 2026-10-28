@@ -1,0 +1,52 @@
+// Примеси проекта: раскладка, типографика, фокус-кольца, медиа-условия.
+@use '@styles/variables' as *;
+
+// Центрирование по обеим осям во флекс-контейнере.
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Обрезка текста одной строкой с многоточием.
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Скрытие стандартного контура фокуса (заменяется кольцом box-shadow).
+@mixin focus-outline-none {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+// Кольцо фокуса через box-shadow: внешняя белая отбивка + цветное кольцо.
+@mixin focus-ring($color, $width: 2px, $offset: 0px) {
+  box-shadow:
+    0 0 0 $offset $white,
+    0 0 0 calc(#{$width} + #{$offset}) $color;
+}
+
+// Плавная смена цветов.
+@mixin transition-colors {
+  transition:
+    color $transition-fast $transition-easing,
+    background-color $transition-fast $transition-easing,
+    border-color $transition-fast $transition-easing,
+    text-decoration-color $transition-fast $transition-easing,
+    fill $transition-fast $transition-easing,
+    stroke $transition-fast $transition-easing;
+}
+
+@mixin media-sm {
+  @media (min-width: 640px) {
+    @content;
+  }
+}
+
+@mixin media-lg {
+  @media (min-width: 1024px) {
+    @content;
+  }
+}

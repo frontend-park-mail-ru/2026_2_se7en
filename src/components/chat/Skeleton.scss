@@ -1,0 +1,106 @@
+// Блок "скелетон": пульсирующий прямоугольник-заглушка.
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton {
+  background-color: $gray-200;
+  border-radius: $radius-xs;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  &--light {
+    background-color: $gray-100;
+  }
+
+  &--circle {
+    border-radius: $radius-full;
+  }
+
+  &--pill {
+    border-radius: $radius-sm;
+  }
+
+  &--rounded {
+    border-radius: $radius-md;
+  }
+
+  &--bubble {
+    border-radius: $radius-lg;
+  }
+}
+
+// Скелетон области переписки (загрузка чата)
+.chat-skeleton {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  background-color: $gray-50;
+
+  &__header {
+    height: 4rem;
+    padding: 1rem;
+    background-color: $white;
+    border-bottom: 1px solid $gray-200;
+  }
+
+  &__header-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__header-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  &__header-line {
+    width: 8rem;
+    height: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__header-sub {
+    width: 5rem;
+    height: 0.75rem;
+  }
+
+  &__messages {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  &__message {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  &__message-avatar {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  &__message-body {
+    flex: 1;
+  }
+
+  &__message-bubble {
+    height: 4rem;
+  }
+
+  &__footer {
+    padding: 1rem;
+    background-color: $white;
+    border-top: 1px solid $gray-200;
+  }
+
+  &__footer-bar {
+    height: 3rem;
+  }
+}

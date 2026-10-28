@@ -1,0 +1,7 @@
+// Блок "основной лейаут" приложения: сайдбар + контент.
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: $gray-50;
+}

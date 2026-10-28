@@ -1,0 +1,89 @@
+// Блок "страница входа": сплит-лейаут с брендовой панелью слева.
+
+.auth {
+  display: flex;
+  min-height: 100vh;
+  background-color: $white;
+
+  &__aside {
+    display: none;
+    flex-direction: column;
+    padding: 3rem;
+    background-color: $login-bg;
+
+    @include media-lg {
+      display: flex;
+      width: 50%;
+    }
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__brand-logo {
+    width: 3rem;
+    height: 3rem;
+    border-radius: $radius-md;
+    object-fit: cover;
+  }
+
+  &__brand-name {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    color: $gray-900;
+  }
+
+  &__pitch {
+    display: flex;
+    flex: 1;
+    align-items: center;
+  }
+
+  &__pitch-inner {
+    max-width: 28rem;
+  }
+
+  &__title {
+    margin-bottom: 1rem;
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 108%;
+    letter-spacing: -1.5px;
+    color: $gray-900;
+  }
+
+  &__subtitle {
+    font-size: 1.125rem;
+    line-height: 1.625;
+    color: $gray-500;
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 1.5rem;
+
+    @include media-lg {
+      width: 50%;
+      padding: 3rem;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__form-box {
+    position: relative;
+    width: 100%;
+    max-width: 28rem;
+  }
+}

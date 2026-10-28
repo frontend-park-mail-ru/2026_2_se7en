@@ -1,3 +1,4 @@
+import './RegisterPage.scss';
 import { ApiError } from '@/api/ApiResponse.js';
 import { AuthApi } from '@/api/auth/AuthApi.js';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
@@ -44,11 +45,11 @@ export class RegisterPage extends Page {
 
   render(): string {
     return `
-      <div class="min-h-screen flex bg-white">
+      <div class="register-page">
         ${renderRegisterHeader()}
-        <div class="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col">
-          <div class="flex-1 flex items-center justify-center">
-            <div class="w-full max-w-md relative">
+        <div class="register-page__main">
+          <div class="register-page__content">
+            <div class="register-page__form-box">
               ${renderRegisterError(this.generalError.value)}
               ${renderRegisterForm({
                 formData: this.formData,
@@ -117,9 +118,9 @@ export class RegisterPage extends Page {
 
         button.setAttribute('aria-pressed', String(show));
 
-        button.querySelector('[data-eye="open"]')?.classList.toggle('hidden', show);
+        button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
 
-        button.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', !show);
+        button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
       });
   }
 

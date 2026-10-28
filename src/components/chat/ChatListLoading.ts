@@ -1,25 +1,28 @@
+import './ChatList.scss';
+import './Skeleton.scss';
+
 export function renderChatListLoading(): string {
   return `
-    <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
-      <div class="p-4 border-b border-gray-200">
-        <div class="h-8 bg-gray-200 rounded w-24 mb-2 animate-pulse"></div>
-        <div class="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+    <div class="chat-panel">
+      <div class="chat-panel__header">
+        <div class="skeleton chat-panel__skel-title"></div>
+        <div class="skeleton chat-panel__skel-subtitle"></div>
       </div>
 
-      <div class="p-3">
-        <div class="h-10 bg-gray-100 rounded-lg animate-pulse"></div>
+      <div class="chat-panel__search">
+        <div class="skeleton skeleton--light skeleton--pill chat-panel__skel-search"></div>
       </div>
 
-      <div class="flex flex-col gap-2 flex-1 overflow-y-auto p-2">
+      <div class="chat-panel__list">
         ${Array(6)
           .fill(
             `
-              <div class="p-3 rounded-xl animate-pulse">
-                <div class="flex gap-3">
-                  <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
-                  <div class="flex flex-col gap-2 flex-1">
-                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div class="chat-panel__skel-item">
+                <div class="chat-panel__skel-item-inner">
+                  <div class="skeleton skeleton--circle chat-panel__skel-avatar"></div>
+                  <div class="chat-panel__skel-lines">
+                    <div class="skeleton chat-panel__skel-line"></div>
+                    <div class="skeleton chat-panel__skel-line--short"></div>
                   </div>
                 </div>
               </div>

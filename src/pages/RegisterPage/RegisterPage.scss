@@ -1,0 +1,32 @@
+// Блок "страница регистрации": сплит-лейаут с формой справа.
+
+.register-page {
+  display: flex;
+  min-height: 100vh;
+  background-color: $white;
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 1.5rem;
+
+    @include media-lg {
+      width: 50%;
+      padding: 3rem;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__form-box {
+    position: relative;
+    width: 100%;
+    max-width: 28rem;
+  }
+}

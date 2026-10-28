@@ -1,0 +1,16 @@
+// Блок "шапка страницы".
+
+.app-header {
+  width: 100%;
+  padding: 1rem;
+  background-color: $white;
+  box-shadow: $shadow-sm;
+
+  &__title {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    color: $blue-600;
+    text-align: center;
+  }
+}

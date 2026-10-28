@@ -1,3 +1,5 @@
+import './Skeleton.scss';
+
 /**
  * Компонент скелетона загрузки чата
  */
@@ -7,10 +9,10 @@ export class ChatSkeleton {
    */
   static renderMessage(): string {
     return `
-      <div class="flex gap-3">
-        <div class="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-        <div class="flex-1">
-          <div class="h-16 bg-gray-200 rounded-2xl animate-pulse"></div>
+      <div class="chat-skeleton__message">
+        <div class="skeleton skeleton--circle chat-skeleton__message-avatar"></div>
+        <div class="chat-skeleton__message-body">
+          <div class="skeleton skeleton--bubble chat-skeleton__message-bubble"></div>
         </div>
       </div>
     `;
@@ -26,21 +28,21 @@ export class ChatSkeleton {
       .join('');
 
     return `
-      <div class="flex-1 bg-gray-50 flex flex-col">
-        <div class="h-16 bg-white border-b border-gray-200 p-4">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
-            <div class="flex-1">
-              <div class="h-4 bg-gray-200 rounded w-32 animate-pulse mb-2"></div>
-              <div class="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
+      <div class="chat-skeleton">
+        <div class="chat-skeleton__header">
+          <div class="chat-skeleton__header-row">
+            <div class="skeleton skeleton--circle chat-skeleton__header-avatar"></div>
+            <div class="chat-skeleton__message-body">
+              <div class="skeleton chat-skeleton__header-line"></div>
+              <div class="skeleton chat-skeleton__header-sub"></div>
             </div>
           </div>
         </div>
-        <div class="flex flex-col gap-4 flex-1 p-4">
+        <div class="chat-skeleton__messages">
           ${skeletonItems}
         </div>
-        <div class="p-4 bg-white border-t border-gray-200">
-          <div class="h-12 bg-gray-100 rounded-xl animate-pulse"></div>
+        <div class="chat-skeleton__footer">
+          <div class="skeleton skeleton--light skeleton--rounded chat-skeleton__footer-bar"></div>
         </div>
       </div>
     `;

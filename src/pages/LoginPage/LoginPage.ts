@@ -56,7 +56,7 @@ export class LoginPage extends Page {
       subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
       fields: this.buildFields(),
       submitText: 'Войти',
-      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
+      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="auth-form__footer-link">Создать аккаунт</a>`,
       generalError: this.generalError,
       generalErrorHint: this.generalErrorHint,
       loading: this.loading,
@@ -129,9 +129,9 @@ export class LoginPage extends Page {
 
     input.type = show ? 'text' : 'password';
 
-    button.querySelector('[data-eye="open"]')?.classList.toggle('hidden', show);
+    button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
 
-    button.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', !show);
+    button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
   }
 
   async submit(): Promise<void> {
