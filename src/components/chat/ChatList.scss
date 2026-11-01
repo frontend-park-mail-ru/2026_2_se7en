@@ -51,8 +51,7 @@
     border-top: 1px solid $gray-200;
 
     &-row {
-      display: flex;
-      align-items: center;
+      @include flex-align-center;
       justify-content: space-between;
       font-size: 0.75rem;
       line-height: 1rem;
@@ -118,8 +117,7 @@
     }
 
     &-avatar {
-      width: 3rem;
-      height: 3rem;
+      @include size(3rem);
     }
 
     &-lines {
@@ -163,8 +161,7 @@
 
   &__avatar {
     @include flex-center;
-    width: 3rem;
-    height: 3rem;
+    @include size(3rem);
     background-color: $blue-100;
     border-radius: $radius-full;
 
@@ -183,8 +180,7 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    width: 0.75rem;
-    height: 0.75rem;
+    @include size(0.75rem);
     background-color: $green-500;
     border: 2px solid $white;
     border-radius: $radius-full;
@@ -225,8 +221,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
+    @include size(1.25rem);
     background-color: $black;
     color: $white;
     font-size: 0.75rem;

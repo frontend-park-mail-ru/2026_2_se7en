@@ -81,8 +81,7 @@
 
   // Кнопка-иконка (квадратная, например выход в сайдбаре)
   &_icon {
-    width: 2.25rem;
-    height: 2.25rem;
+    @include size(2.25rem);
     padding: 0;
     border-radius: $radius-sm;
     color: $gray-900;

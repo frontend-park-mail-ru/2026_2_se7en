@@ -2,26 +2,35 @@
 @use '@styles/variables' as *;
 
 // Флекс-раскладка: гранулярные примеси.
-// Каждая задаёт display: flex + одно направление выравнивания,
-// flex-center — их объединение.
-@mixin flex-column {
+@mixin flex {
   display: flex;
+}
+
+// Квадратный элемент: ширина и высота равны.
+@mixin size($size) {
+  width: $size;
+  height: $size;
+}
+
+@mixin flex-column {
+  @include flex;
   flex-direction: column;
 }
 
 @mixin flex-align-center {
-  display: flex;
+  @include flex;
   align-items: center;
 }
 
 @mixin flex-justify-center {
-  display: flex;
+  @include flex;
   justify-content: center;
 }
 
 // Центрирование по обеим осям во флекс-контейнере.
 @mixin flex-center {
-  @include flex-align-center;
+  @include flex;
+  align-items: center;
   justify-content: center;
 }
 

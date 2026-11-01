@@ -18,15 +18,13 @@
 
   &__icon-wrap {
     @include flex-center;
-    width: 4rem;
-    height: 4rem;
+    @include size(4rem);
     margin: 0 auto 1rem;
     background-color: $blue-100;
     border-radius: $radius-full;
 
     &_lg {
-      width: 5rem;
-      height: 5rem;
+      @include size(5rem);
       margin-bottom: 1.5rem;
     }
   }

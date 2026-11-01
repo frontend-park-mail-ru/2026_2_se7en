@@ -100,17 +100,19 @@ export class ChatList {
       icon: SearchIcon,
     });
 
+    const filterButtonClass = 'button_chip';
+
     const allChatsButton = Button({
       text: 'Все',
-      className: 'button_chip',
+      className: filterButtonClass,
     });
     const notReadButton = Button({
       text: 'Непрочитанные',
-      className: 'button_chip',
+      className: filterButtonClass,
     });
     const privateChatsButton = Button({
       text: 'Личные',
-      className: 'button_chip',
+      className: filterButtonClass,
     });
 
     const chatItems = chats.map((chat) => this.renderChatItem(chat, activeChatId)).join('');

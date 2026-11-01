@@ -24,16 +24,14 @@
   }
 
   &__logo {
-    width: 3rem;
-    height: 3rem;
+    @include size(3rem);
     border-radius: $radius-md;
     object-fit: cover;
   }
 
   &__pitch {
-    display: flex;
+    @include flex-align-center;
     flex: 1;
-    align-items: center;
 
     &-inner {
       max-width: 28rem;
