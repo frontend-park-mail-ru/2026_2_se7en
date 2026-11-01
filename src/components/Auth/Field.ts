@@ -50,6 +50,7 @@ export function Field({
     </button>
   `
     : '';
+
   const errorHtml = error
     ? `
     <p class="field__error">

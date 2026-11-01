@@ -11,6 +11,7 @@ export interface ButtonParams {
   ariaLabel?: string;
   title?: string;
   disabled?: boolean;
+  attrs?: Record<string, string>;
 }
 
 /**
@@ -27,6 +28,7 @@ export function Button({
   ariaLabel = '',
   title = '',
   disabled = false,
+  attrs = {},
 }: ButtonParams): string {
   const modeClasses: Record<NonNullable<ButtonParams['mode']>, string> = {
     primary: 'button_primary',
@@ -44,7 +46,7 @@ export function Button({
   const finalClasses = `button ${modeClass} ${className}`.trim();
 
   return `
-        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${disabledAttr} type="${type}" class="${finalClasses}">
+        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${attrsHtml} ${disabledAttr} type="${type}" class="${finalClasses}">
                         ${iconBeforeHtml}${text}${iconAfterHtml}
         </button>
     `;
