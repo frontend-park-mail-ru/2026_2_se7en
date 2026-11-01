@@ -10,9 +10,9 @@ export class ChatSkeleton {
   static renderMessage(): string {
     return `
       <div class="chat-skeleton__message">
-        <div class="skeleton skeleton--circle chat-skeleton__message-avatar"></div>
+        <div class="skeleton skeleton_circle chat-skeleton__message-avatar"></div>
         <div class="chat-skeleton__message-body">
-          <div class="skeleton skeleton--bubble chat-skeleton__message-bubble"></div>
+          <div class="skeleton skeleton_bubble chat-skeleton__message-bubble"></div>
         </div>
       </div>
     `;
@@ -31,7 +31,7 @@ export class ChatSkeleton {
       <div class="chat-skeleton">
         <div class="chat-skeleton__header">
           <div class="chat-skeleton__header-row">
-            <div class="skeleton skeleton--circle chat-skeleton__header-avatar"></div>
+            <div class="skeleton skeleton_circle chat-skeleton__header-avatar"></div>
             <div class="chat-skeleton__message-body">
               <div class="skeleton chat-skeleton__header-line"></div>
               <div class="skeleton chat-skeleton__header-sub"></div>
@@ -42,7 +42,7 @@ export class ChatSkeleton {
           ${skeletonItems}
         </div>
         <div class="chat-skeleton__footer">
-          <div class="skeleton skeleton--light skeleton--rounded chat-skeleton__footer-bar"></div>
+          <div class="skeleton skeleton_light skeleton_rounded chat-skeleton__footer-bar"></div>
         </div>
       </div>
     `;

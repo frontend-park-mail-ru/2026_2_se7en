@@ -2,8 +2,7 @@
 // а также элемент списка чат и пустое состояние.
 
 .chat-panel {
-  display: flex;
-  flex-direction: column;
+  @include flex-column;
   width: 20rem;
   background-color: $white;
   border-right: 1px solid $gray-200;
@@ -40,9 +39,8 @@
   }
 
   &__list {
-    display: flex;
+    @include flex-column;
     flex: 1;
-    flex-direction: column;
     gap: 0.25rem;
     padding: 0.5rem;
     overflow-y: auto;
@@ -51,93 +49,95 @@
   &__footer {
     padding: 0.75rem;
     border-top: 1px solid $gray-200;
-  }
 
-  &__footer-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    color: $gray-400;
+    &-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      color: $gray-400;
+    }
   }
 
   &__empty {
     @include flex-center;
     flex: 1;
     padding: 1.5rem;
-  }
 
-  &__empty-inner {
-    text-align: center;
-  }
+    &-inner {
+      text-align: center;
+    }
 
-  &__empty-icon {
-    margin: 0 auto 0.75rem;
-    color: $gray-300;
-  }
+    &-icon {
+      margin: 0 auto 0.75rem;
+      color: $gray-300;
+    }
 
-  &__empty-title {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    font-weight: 500;
-    color: $gray-900;
-  }
+    &-title {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      font-weight: 500;
+      color: $gray-900;
+    }
 
-  &__empty-hint {
-    margin-top: 0.25rem;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    color: $gray-400;
+    &-hint {
+      margin-top: 0.25rem;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      color: $gray-400;
+    }
   }
 
   // Скелетон панели (состояние загрузки)
-  &__skel-title {
-    width: 6rem;
-    height: 2rem;
-    margin-bottom: 0.5rem;
-  }
+  &__skel {
+    &-title {
+      width: 6rem;
+      height: 2rem;
+      margin-bottom: 0.5rem;
+    }
 
-  &__skel-subtitle {
-    width: 8rem;
-    height: 1rem;
-  }
+    &-subtitle {
+      width: 8rem;
+      height: 1rem;
+    }
 
-  &__skel-search {
-    height: 2.5rem;
-  }
+    &-search {
+      height: 2.5rem;
+    }
 
-  &__skel-item {
-    padding: 0.75rem;
-    border-radius: $radius-md;
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
+    &-item {
+      padding: 0.75rem;
+      border-radius: $radius-md;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-  &__skel-item-inner {
-    display: flex;
-    gap: 0.75rem;
-  }
+      &-inner {
+        display: flex;
+        gap: 0.75rem;
+      }
+    }
 
-  &__skel-avatar {
-    width: 3rem;
-    height: 3rem;
-  }
+    &-avatar {
+      width: 3rem;
+      height: 3rem;
+    }
 
-  &__skel-lines {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+    &-lines {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
 
-  &__skel-line {
-    width: 75%;
-    height: 1rem;
-  }
+    &-line {
+      width: 75%;
+      height: 1rem;
 
-  &__skel-line--short {
-    width: 50%;
-    height: 0.75rem;
+      &_short {
+        width: 50%;
+        height: 0.75rem;
+      }
+    }
   }
 }
 
@@ -152,7 +152,7 @@
     background-color: $gray-50;
   }
 
-  &--active {
+  &_active {
     background-color: $blue-50;
   }
 
@@ -161,22 +161,22 @@
     gap: 0.75rem;
   }
 
-  &__avatar-box {
-    position: relative;
-    flex-shrink: 0;
-  }
-
   &__avatar {
     @include flex-center;
     width: 3rem;
     height: 3rem;
     background-color: $blue-100;
     border-radius: $radius-full;
-  }
 
-  &__avatar-initials {
-    color: $blue-600;
-    font-weight: 600;
+    &-box {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    &-initials {
+      color: $blue-600;
+      font-weight: 600;
+    }
   }
 
   &__online {
@@ -209,9 +209,8 @@
   }
 
   &__meta {
-    display: flex;
+    @include flex-align-center;
     flex-shrink: 0;
-    align-items: center;
     gap: 0.5rem;
     margin-left: 0.5rem;
   }

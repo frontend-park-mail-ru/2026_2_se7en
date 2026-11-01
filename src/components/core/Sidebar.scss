@@ -1,17 +1,10 @@
 // Блок "боковая панель" приложения.
 
 .sidebar {
-  display: flex;
-  flex-direction: column;
+  @include flex-column;
   width: 5rem;
   background-color: $white;
   border-right: 1px solid $gray-200;
-
-  &__logo-box {
-    display: flex;
-    justify-content: center;
-    padding: 0.75rem;
-  }
 
   &__logo {
     @include flex-center;
@@ -20,66 +13,60 @@
     overflow: hidden;
     background-color: $black;
     border-radius: $radius-md;
-  }
 
-  &__logo-img {
-    width: 100%;
-    height: 100%;
-    border-radius: $radius-md;
-    object-fit: cover;
+    &-box {
+      @include flex-justify-center;
+      padding: 0.75rem;
+    }
+
+    &-img {
+      width: 100%;
+      height: 100%;
+      border-radius: $radius-md;
+      object-fit: cover;
+    }
   }
 
   &__nav {
-    display: flex;
+    @include flex-column;
     flex: 1;
-    flex-direction: column;
     gap: 0.5rem;
     padding: 0 0.5rem;
-  }
 
-  &__nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem;
-    border: none;
-    border-radius: $radius-md;
-    color: $gray-400;
+    &-item {
+      @include flex-center;
+      flex-direction: column;
+      padding: 0.75rem;
+      border: none;
+      border-radius: $radius-md;
+      color: $gray-400;
 
-    &:hover {
-      background-color: $gray-50;
+      &:hover {
+        background-color: $gray-50;
+      }
+
+      &_active {
+        background-color: $blue-50;
+        color: $blue-600;
+
+        &:hover {
+          background-color: $blue-50;
+        }
+      }
     }
-  }
 
-  &__nav-item--active {
-    background-color: $blue-50;
-    color: $blue-600;
-
-    &:hover {
-      background-color: $blue-50;
+    &-label {
+      margin-top: 0.25rem;
+      font-size: 0.75rem;
+      line-height: 1rem;
     }
-  }
-
-  &__nav-label {
-    margin-top: 0.25rem;
-    font-size: 0.75rem;
-    line-height: 1rem;
   }
 
   &__bottom {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem;
-  }
-
-  &__avatar-box {
-    position: relative;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin: 0 auto;
   }
 
   &__avatar {
@@ -88,13 +75,20 @@
     height: 2.5rem;
     background-color: $blue-100;
     border-radius: $radius-full;
-  }
 
-  &__avatar-letter {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    font-weight: 600;
-    color: $blue-600;
+    &-box {
+      position: relative;
+      width: 2.5rem;
+      height: 2.5rem;
+      margin: 0 auto;
+    }
+
+    &-letter {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      font-weight: 600;
+      color: $blue-600;
+    }
   }
 
   &__status {

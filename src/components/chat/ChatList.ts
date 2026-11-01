@@ -16,7 +16,7 @@ export class ChatList {
    */
   renderChatItem(chat: DisplayChat, activeChatId: string | null): string {
     const isActive = activeChatId === chat.id;
-    const itemClass = isActive ? 'chat-item chat-item--active' : 'chat-item';
+    const itemClass = isActive ? 'chat-item chat-item_active' : 'chat-item';
     const onlineIndicator = chat.isOnline ? '<div class="chat-item__online"></div>' : '';
     const unreadBadge = chat.unreadCount
       ? `
@@ -80,7 +80,7 @@ export class ChatList {
 
         <div class="chat-panel__empty">
           <div class="chat-panel__empty-inner">
-            <svg class="icon icon--4xl chat-panel__empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="icon icon_4xl chat-panel__empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
             </svg>
             <p class="chat-panel__empty-title">Список пока пуст</p>
@@ -102,15 +102,15 @@ export class ChatList {
 
     const allChatsButton = Button({
       text: 'Все',
-      className: 'button--chip',
+      className: 'button_chip',
     });
     const notReadButton = Button({
       text: 'Непрочитанные',
-      className: 'button--chip',
+      className: 'button_chip',
     });
     const privateChatsButton = Button({
       text: 'Личные',
-      className: 'button--chip',
+      className: 'button_chip',
     });
 
     const chatItems = chats.map((chat) => this.renderChatItem(chat, activeChatId)).join('');

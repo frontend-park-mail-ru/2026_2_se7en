@@ -30,16 +30,11 @@ export function Input({
   const nameAttr = name ? `name="${name}"` : '';
   const valueAttr = value ? `value="${value}"` : '';
 
-  const fieldModifier = icon
-    ? iconPosition === 'left'
-      ? 'input__field--icon-left'
-      : 'input__field--icon-right'
-    : '';
-  const fieldClasses = `input__field ${fieldModifier}`.trim();
+  const fieldClasses = `input__field${icon ? ` input__field_icon-${iconPosition}` : ''}`;
 
   const iconHtml = icon
     ? `
-    <svg class="icon icon--md input__icon input__icon--${iconPosition}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg class="icon icon_md input__icon input__icon_${iconPosition}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       ${icon}
     </svg>
   `

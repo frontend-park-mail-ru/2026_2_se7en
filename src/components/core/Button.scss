@@ -19,7 +19,7 @@
     align-items: center;
   }
 
-  &--primary {
+  &_primary {
     padding: 0.5rem 1.5rem;
     border-radius: $radius-md;
     background-color: $black;
@@ -36,7 +36,7 @@
     }
   }
 
-  &--secondary {
+  &_secondary {
     padding: 0.5rem 1.5rem;
     border-radius: $radius-sm;
     background-color: $slate-100;
@@ -51,7 +51,7 @@
     }
   }
 
-  &--ghost {
+  &_ghost {
     background-color: transparent;
     color: $gray-900;
     border-style: none;
@@ -66,7 +66,7 @@
   }
 
   // Чип-фильтр списка чатов
-  &--chip {
+  &_chip {
     padding: 0.5rem 1.5rem;
     font-size: 0.75rem;
     line-height: 1rem;
@@ -80,7 +80,7 @@
   }
 
   // Кнопка-иконка (квадратная, например выход в сайдбаре)
-  &--icon {
+  &_icon {
     width: 2.25rem;
     height: 2.25rem;
     padding: 0;
@@ -102,12 +102,12 @@
   }
 
   // Растянутая кнопка сабмита формы регистрации
-  &--block {
+  &_block {
     width: 100%;
     padding: 0.875rem 1.5rem;
   }
 
-  &--submit:disabled {
+  &_submit:disabled {
     background-color: $gray-300;
     cursor: not-allowed;
   }
@@ -115,9 +115,7 @@
 
 // Кнопка сабмита формы входа (собственная разметка, без кольца фокуса)
 .submit-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 0.5rem;
   width: 100%;
   padding: 0.875rem 1rem;

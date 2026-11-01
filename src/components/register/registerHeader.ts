@@ -6,22 +6,22 @@ import { Image } from '@/components/core/Image.js';
  */
 export function renderRegisterHeader(): string {
   return `
-        <div class="register-aside">
-            <div class="register-aside__brand">
+        <div class="register-header">
+            <div class="register-header__brand">
                 ${Image({
                   src: '/pictures/icon.png',
                   alt: 'Логотип',
-                  className: 'register-aside__logo',
+                  className: 'register-header__logo',
                 })}
-                <span class="register-aside__brand-name">Связь</span>
+                <span class="register-header__brand-name">Связь</span>
             </div>
 
-            <div class="register-aside__pitch">
-                <div class="register-aside__pitch-inner">
-                    <h1 class="register-aside__title">
+            <div class="register-header__pitch">
+                <div class="register-header__pitch-inner">
+                    <h1 class="register-header__title">
                         Соберите свой круг общения
                     </h1>
-                    <p class="register-aside__subtitle">
+                    <p class="register-header__subtitle">
                         Личный профиль помогает друзьям быстро узнать вас и начать разговор.
                     </p>
                 </div>

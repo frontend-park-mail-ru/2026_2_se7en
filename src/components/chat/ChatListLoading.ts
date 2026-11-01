@@ -10,7 +10,7 @@ export function renderChatListLoading(): string {
       </div>
 
       <div class="chat-panel__search">
-        <div class="skeleton skeleton--light skeleton--pill chat-panel__skel-search"></div>
+        <div class="skeleton skeleton_light skeleton_pill chat-panel__skel-search"></div>
       </div>
 
       <div class="chat-panel__list">
@@ -19,10 +19,10 @@ export function renderChatListLoading(): string {
             `
               <div class="chat-panel__skel-item">
                 <div class="chat-panel__skel-item-inner">
-                  <div class="skeleton skeleton--circle chat-panel__skel-avatar"></div>
+                  <div class="skeleton skeleton_circle chat-panel__skel-avatar"></div>
                   <div class="chat-panel__skel-lines">
                     <div class="skeleton chat-panel__skel-line"></div>
-                    <div class="skeleton chat-panel__skel-line--short"></div>
+                    <div class="skeleton chat-panel__skel-line_short"></div>
                   </div>
                 </div>
               </div>

@@ -2,12 +2,11 @@
 
 .register-page {
   display: flex;
-  min-height: 100vh;
+  min-height: 100%;
   background-color: $white;
 
   &__main {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     width: 100%;
     padding: 1.5rem;
 
@@ -18,10 +17,8 @@
   }
 
   &__content {
-    display: flex;
+    @include flex-center;
     flex: 1;
-    align-items: center;
-    justify-content: center;
   }
 
   &__form-box {

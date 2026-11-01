@@ -46,7 +46,7 @@ export function renderRegisterForm({
                       id: ELEMENT_IDS.SUBMIT_BUTTON,
                       text: isSubmitting ? 'Создание...' : 'Создать аккаунт',
                       mode: 'primary',
-                      className: 'button--block button--submit',
+                      className: 'button_block button_submit',
                       type: 'submit',
                       disabled: isSubmitting,
                     })}

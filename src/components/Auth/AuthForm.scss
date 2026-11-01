@@ -16,20 +16,20 @@
     background-color: $red-50;
     border: 1px solid $red-200;
     border-radius: $radius-lg;
-  }
 
-  &__alert-title {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    font-weight: 500;
-    color: $red-800;
-  }
+    &-title {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      font-weight: 500;
+      color: $red-800;
+    }
 
-  &__alert-hint {
-    margin-top: 0.125rem;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    color: $red-600;
+    &-hint {
+      margin-top: 0.125rem;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      color: $red-600;
+    }
   }
 
   &__card {
@@ -57,8 +57,7 @@
   }
 
   &__form {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: 1rem;
   }
 
@@ -68,20 +67,20 @@
 
   &__footer {
     text-align: center;
-  }
 
-  &__footer-text {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: $gray-500;
-  }
+    &-text {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      color: $gray-500;
+    }
 
-  &__footer-link {
-    color: $gray-900;
-    font-weight: 600;
+    &-link {
+      color: $gray-900;
+      font-weight: 600;
 
-    &:hover {
-      text-decoration: underline;
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 }

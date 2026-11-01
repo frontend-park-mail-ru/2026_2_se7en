@@ -1,4 +1,6 @@
 import { ApiError } from '@/api/ApiResponse.js';
+import { AuthForm } from '@/components/Auth/AuthForm.js';
+import { AuthLayout } from '@/components/Auth/AuthLayout.js';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
@@ -6,8 +8,6 @@ import { STATUSES } from '@/constants/Statuses.js';
 import { Signal } from '@/reactive/Signal';
 import { showPage } from '@/helpers/ShowPage.js';
 import { user } from '@/store/User';
-import { AuthForm } from '@/components/Auth/AuthForm.js';
-import { AuthLayout } from '@/components/Auth/AuthLayout.js';
 import {
   ERROR_CODES,
   ERROR_HINTS,

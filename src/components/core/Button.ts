@@ -29,9 +29,9 @@ export function Button({
   disabled = false,
 }: ButtonParams): string {
   const modeClasses: Record<NonNullable<ButtonParams['mode']>, string> = {
-    primary: 'button--primary',
-    secondary: 'button--secondary',
-    ghost: 'button--ghost',
+    primary: 'button_primary',
+    secondary: 'button_secondary',
+    ghost: 'button_ghost',
   };
 
   const modeClass = modeClasses[mode] || modeClasses.primary;

@@ -13,12 +13,12 @@ export interface FieldParams {
 }
 
 const authEyeClosedIcon = EyeClosedIcon.replace(
-  'class="icon icon--md"',
-  'class="icon icon--md is-hidden"',
+  'class="icon icon_md"',
+  'class="icon icon_md is-hidden"',
 );
 const authEyeOpenIcon = EyeOpenIcon.replace(
-  'class="icon icon--md is-hidden"',
-  'class="icon icon--md"',
+  'class="icon icon_md is-hidden"',
+  'class="icon icon_md"',
 );
 
 /**
@@ -34,9 +34,9 @@ export function Field({
   error = '',
 }: FieldParams): string {
   const isPassword = type === 'password';
-  const labelClass = error ? 'field__label field__label--error' : 'field__label';
-  const inputClass = error ? 'field__input field__input--error' : 'field__input';
-  const passwordModifier = isPassword ? 'field__input--password' : '';
+  const labelClass = `field__label${error ? ' field__label_error' : ''}`;
+  const inputClass = `field__input${error ? ' field__input_error' : ''}`;
+  const passwordModifier = isPassword ? 'field__input_password' : '';
   const passwordToggle = isPassword
     ? `
     <button

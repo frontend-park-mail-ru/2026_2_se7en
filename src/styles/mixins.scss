@@ -1,10 +1,27 @@
 // Примеси проекта: раскладка, типографика, фокус-кольца, медиа-условия.
 @use '@styles/variables' as *;
 
-// Центрирование по обеим осям во флекс-контейнере.
-@mixin flex-center {
+// Флекс-раскладка: гранулярные примеси.
+// Каждая задаёт display: flex + одно направление выравнивания,
+// flex-center — их объединение.
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-align-center {
   display: flex;
   align-items: center;
+}
+
+@mixin flex-justify-center {
+  display: flex;
+  justify-content: center;
+}
+
+// Центрирование по обеим осям во флекс-контейнере.
+@mixin flex-center {
+  @include flex-align-center;
   justify-content: center;
 }
 

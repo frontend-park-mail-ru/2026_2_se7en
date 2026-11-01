@@ -3,9 +3,9 @@ import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.js';
 
 const registerEyeIcons = `${EyeOpenIcon.replace(
-  'class="icon icon--md is-hidden"',
-  'class="icon icon--md"',
-)}${EyeClosedIcon.replace('class="icon icon--md"', 'class="icon icon--md is-hidden"')}`;
+  'class="icon icon_md is-hidden"',
+  'class="icon icon_md"',
+)}${EyeClosedIcon.replace('class="icon icon_md"', 'class="icon icon_md is-hidden"')}`;
 
 export interface FormFieldParams {
   id: string;
@@ -37,13 +37,9 @@ export function FormField({
   className = '',
 }: FormFieldParams): string {
   const hasError = !!error;
-  const labelClass = hasError
-    ? 'register-field__label register-field__label--error'
-    : 'register-field__label';
-  const inputClass = hasError
-    ? 'register-field__input register-field__input--error'
-    : 'register-field__input';
-  const passwordModifier = type === 'password' ? 'register-field__input--password' : '';
+  const labelClass = `register-field__label${hasError ? ' register-field__label_error' : ''}`;
+  const inputClass = `register-field__input${hasError ? ' register-field__input_error' : ''}`;
+  const passwordModifier = type === 'password' ? 'register-field__input_password' : '';
   const hintHtml = hint ? ` <span class="register-field__hint">(${hint})</span>` : '';
 
   const inputHtml = `
@@ -70,7 +66,7 @@ export function FormField({
   const errorHtml = hasError
     ? `
         <p class="register-field__error">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="icon icon--sm icon--no-shrink icon--danger">
+            <svg fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="icon icon_sm icon_no-shrink icon_danger">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
             ${escapeHtml(error)}

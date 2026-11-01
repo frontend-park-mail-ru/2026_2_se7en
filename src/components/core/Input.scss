@@ -16,14 +16,14 @@
       @include focus-outline-none;
       @include focus-ring($blue-500);
     }
-  }
 
-  &__field--icon-left {
-    padding-left: 2.5rem;
-  }
+    &_icon-left {
+      padding-left: 2.5rem;
+    }
 
-  &__field--icon-right {
-    padding-right: 2.5rem;
+    &_icon-right {
+      padding-right: 2.5rem;
+    }
   }
 
   &__icon {
@@ -31,11 +31,11 @@
     top: 0.625rem;
     color: $gray-400;
 
-    &--left {
+    &_left {
       left: 0.75rem;
     }
 
-    &--right {
+    &_right {
       right: 0.75rem;
     }
   }
