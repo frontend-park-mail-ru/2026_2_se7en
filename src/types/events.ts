@@ -1,7 +1,10 @@
-/** Тип уведомления для Snackbar */
+import type { RegisterField } from '@/api/auth/auth.types.ts';
+
+/** Тип уведомления для Snackbar. */
 export type SnackbarType = 'success' | 'error' | 'info';
 
-export type EventMap = {
+/** Базовые события (глобальные). */
+type BaseEvents = {
   /** Пользователь успешно вошёл в аккаунт. */
   'user:login': { id: string; name: string };
 
@@ -14,6 +17,42 @@ export type EventMap = {
   /** Показать всплывающее уведомление. */
   'snackbar:show': { text: string; type: SnackbarType };
 };
+
+/** События страницы регистрации. */
+type RegisterEvents = {
+  /** View: пользователь нажал «Создать аккаунт». */
+  'register:submit': void;
+
+  /** View: пользователь ввёл текст в поле. */
+  'register:field-change': { field: RegisterField; value: string };
+
+  /** Model: пользователь успешно зарегистрирован. */
+  'register:success': void;
+};
+
+/** События страницы входа. */
+type LoginEvents = {
+  /** View: пользователь нажал «Войти». */
+  'login:submit': void;
+
+  /** View: пользователь ввёл текст в поле. */
+  'login:field-change': { field: 'email' | 'password'; value: string };
+
+  /** Model: пользователь успешно вошёл. */
+  'login:success': void;
+};
+
+/** События страницы чатов. */
+type ChatsEvents = {
+  /** View: пользователь нажал «Попробовать ещё раз» (после ошибки сети). */
+  'chats:retry': void;
+
+  /** View: пользователь выбрал чат. */
+  'chats:select': { id: string };
+};
+
+/** Общая карта всех событий приложения. */
+export type EventMap = BaseEvents & RegisterEvents & LoginEvents & ChatsEvents;
 
 /** Имя любого события. */
 export type EventName = keyof EventMap;

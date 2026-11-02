@@ -1,8 +1,8 @@
-/**
- * Успешный ответ от сервера.
- *
- * T — тип данных, которые находятся в поле data.
- */
+export interface ErrorDetail {
+  field: string;
+  reason: string;
+}
+
 export class ApiSuccess<T = unknown> {
   readonly success = true;
 
@@ -12,9 +12,6 @@ export class ApiSuccess<T = unknown> {
   ) {}
 }
 
-/**
- * Ошибка сервера или сети.
- */
 export class ApiError {
   readonly success = false;
 
@@ -22,18 +19,14 @@ export class ApiError {
     readonly code: string,
     readonly message: string,
     readonly status: number,
+    readonly details?: ErrorDetail[],
   ) {}
 }
 
-/**
- * Общий тип результата API-запроса.
- */
 export type ApiResult<T = unknown> = ApiSuccess<T> | ApiError;
 
-/**
- * Структура данных ошибки, возвращаемой сервером.
- */
 export interface ErrorData {
   code?: string;
   message?: string;
+  details?: ErrorDetail[];
 }

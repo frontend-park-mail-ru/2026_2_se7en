@@ -1,8 +1,7 @@
-import { Button } from '@/components/core/Button.js';
-import type { Signal } from '@/reactive/Signal';
+import { Button } from '@/components/core/Button.ts';
+import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.js';
-import { Field, type FieldParams } from './Field.js';
+import { Field, type FieldParams } from './Field.ts';
 
 export interface AuthFormParams {
   formId: string;
@@ -12,9 +11,27 @@ export interface AuthFormParams {
   fields: FieldParams[];
   submitText: string;
   footer: string;
-  generalError: Signal<string>;
-  generalErrorHint: Signal<string>;
-  loading: Signal<boolean>;
+  generalError: string;
+  generalErrorHint: string;
+  loading: boolean;
+}
+
+/**
+ * Рендерит баннер общей ошибки над формой.
+ * Возвращает пустую строку, если ошибки нет.
+ */
+export function renderAuthError(error = '', hint = ''): string {
+  if (!error) return '';
+
+  return `
+    <div class="absolute bottom-full left-0 right-0 mb-4 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+      ${BannerErrorIcon}
+      <div>
+        <p class="text-red-800 text-sm font-medium">${escapeHtml(error)}</p>
+        ${hint ? `<p class="text-red-600 text-xs mt-0.5">${escapeHtml(hint)}</p>` : ''}
+      </div>
+    </div>
+  `;
 }
 
 /**
@@ -33,22 +50,10 @@ export function AuthForm({
   loading,
 }: AuthFormParams): string {
   const fieldsHtml = fields.map((field) => Field(field)).join('');
-  const isLoading = loading.value;
-  const errorBanner = generalError.value
-    ? `
-    <div class="absolute bottom-full left-0 right-0 mb-4 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
-      ${BannerErrorIcon}
-      <div>
-        <p class="text-red-800 text-sm font-medium">${escapeHtml(generalError.value)}</p>
-        ${generalErrorHint.value ? `<p class="text-red-600 text-xs mt-0.5">${escapeHtml(generalErrorHint.value)}</p>` : ''}
-      </div>
-    </div>
-  `
-    : '';
 
   return `
   <div class="relative">
-    ${errorBanner}
+    <div data-general-error-slot>${renderAuthError(generalError, generalErrorHint)}</div>
 
     <div class="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
       <h2 class="text-[32px] font-bold leading-[120%] tracking-[-0.5px] text-gray-900 mb-1">${title}</h2>
@@ -60,11 +65,11 @@ export function AuthForm({
         <div class="pt-2">
           ${Button({
             id: submitId,
-            text: isLoading ? 'Проверяем данные...' : submitText,
-            iconBefore: isLoading ? SpinnerIcon : '',
+            text: loading ? 'Проверяем данные...' : submitText,
+            iconBefore: loading ? SpinnerIcon : '',
             mode: 'primary',
             type: 'submit',
-            disabled: isLoading,
+            disabled: loading,
             className:
               'w-full py-3.5 px-4 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed',
           })}

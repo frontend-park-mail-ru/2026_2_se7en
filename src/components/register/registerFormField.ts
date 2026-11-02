@@ -1,7 +1,8 @@
 import { Button } from '@/components/core/Button.js';
 import { Input } from '@/components/core/Input.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.js';
+import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
+import { renderFieldError } from '@/helpers/FieldError.ts';
 
 const registerEyeIcons = `${EyeOpenIcon.replace('w-5 h-5 hidden', 'w-5 h-5')}${EyeClosedIcon.replace('w-5 h-5"', 'w-5 h-5 hidden"')}`;
 
@@ -63,24 +64,18 @@ export function FormField({
       </div>`
       : inputHtml;
 
-  const errorHtml = hasError
-    ? `
-        <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 flex-shrink-0 text-red-500">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-            </svg>
-            ${escapeHtml(error)}
-        </p>`
+  const descriptionHtml = description
+    ? `<p data-field-description class="mt-1.5 text-xs text-gray-400 ${hasError ? 'hidden' : ''}">${escapeHtml(description)}</p>`
     : '';
 
   return `
-        <div data-form-field>
+        <div data-form-field="${id}">
             <label for="${id}" class="block text-xs font-medium ${labelColor} mb-1.5">
                 ${label}${hintHtml}
             </label>
             ${inputWithToggle}
-            ${description && !hasError ? `<p class="mt-1.5 text-xs text-gray-400">${escapeHtml(description)}</p>` : ''}
-            ${errorHtml}
+            ${descriptionHtml}
+            <div data-field-error>${renderFieldError(error)}</div>
         </div>
     `;
 }

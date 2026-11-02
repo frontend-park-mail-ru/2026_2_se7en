@@ -40,7 +40,7 @@ export class Signal<T> {
   }
 
   /**
-   * Подписывает функцию на изменения значения сигнала..
+   * Подписывает функцию на изменения значения сигнала.
    */
   subscribe(func: Listener): void {
     this.listeners.push(func);
