@@ -1,110 +1,84 @@
-import { ApiError } from '@/api/ApiResponse.js';
-import { ChatArea } from '@/components/chat/ChatArea.js';
-import { ChatList } from '@/components/chat/ChatList.js';
-import { ChatsApi } from '@/api/chats/ChatsApi.js';
-import { DefaultLayout } from '@/layouts/DefaultLayout.js';
-import type { DisplayChat } from '@/api/chats/chats.types.ts';
-import { ERROR_CODES } from '@/api/error.constants.js';
-import { Page } from '@/pages/Page.js';
-import { ROUTES } from '@/constants/Routes.js';
-import { STATUSES } from '@/constants/Statuses.js';
-import { Signal } from '@/reactive/Signal';
-import { debugError } from '@/helpers/DebugError.js';
-import { toDisplayChat } from '@/helpers/chat.js';
+import { ChatArea } from '@/components/chat/ChatArea.ts';
+import { ChatList } from '@/components/chat/ChatList.ts';
+import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
+import { Page } from '@/pages/Page.ts';
+import { ROUTES } from '@/constants/Routes.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
+import { ChatsPageModel } from './ChatsPage.model.ts';
 
 /**
- * Страница чатов: лейаут с боковой панелью, список чатов и область переписки.
+ * View страницы чатов.
+ *
+ * Отвечает только за рендер и проброс действий юзера
+ * в модель через EventBus.
  */
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
 
-  private chats = new Signal<DisplayChat[]>([]);
-  private activeChat = new Signal<DisplayChat | null>(null);
-
-  private isLoading = new Signal<boolean>(true);
-  private hasNetworkError = new Signal<boolean>(false);
-
-  private readonly layout: DefaultLayout;
-  private readonly chatList: ChatList;
-  private readonly chatArea: ChatArea;
+  private readonly model = new ChatsPageModel();
+  private readonly layout = new DefaultLayout();
+  private readonly chatList = new ChatList();
+  private readonly chatArea = new ChatArea();
 
   constructor() {
     super();
 
-    this.layout = new DefaultLayout();
-    this.chatList = new ChatList();
-    this.chatArea = new ChatArea();
-
     this.setSubscribers(
-      [this.chats, this.activeChat, this.isLoading, this.hasNetworkError],
-      () => void this.update(),
+      [this.model.chats, this.model.activeChat, this.model.isLoading, this.model.hasNetworkError],
+      () => this.update(),
     );
   }
 
-  unmount(): void {
-    this.layout.unmount();
-    super.unmount();
+  render(): string {
+    const content = `
+      ${this.chatList.render(this.model.chats.value, this.model.activeChat.value, this.model.isLoading.value)}
+      ${this.chatArea.render(this.model.activeChat.value, this.model.chats.value, this.model.isLoading.value, this.model.hasNetworkError.value)}
+    `;
+
+    return this.layout.render(content);
   }
 
   /**
-   * Загружает список чатов с сервера.
+   * Полная перерисовка при изменении сигналов модели.
    */
-  async loadChats(): Promise<void> {
-    this.isLoading.value = true;
-    this.hasNetworkError.value = false;
-
-    const response = await ChatsApi.getChats();
-
-    if (response instanceof ApiError) {
-      if (response.status === STATUSES.UNAUTHORIZED) {
-        return;
-      }
-
-      switch (response.code) {
-        case ERROR_CODES.NETWORK_ERROR:
-          this.hasNetworkError.value = true;
-          break;
-        default:
-          debugError(response.message);
-      }
-
-      this.chats.value = [];
-    } else {
-      this.chats.value = (response.data?.items ?? []).map(toDisplayChat);
-    }
-
-    this.isLoading.value = false;
-  }
-
-  async update(): Promise<void> {
+  private update(): void {
     if (!this.container) return;
-
     this.container.innerHTML = this.render();
     this.bindEvents();
   }
 
   bindEvents(): void {
-    const retryButton = document.getElementById('retry-connection-btn');
-
-    retryButton?.addEventListener('click', () => {
-      void this.loadChats();
-    });
-
     this.layout.bindEvents();
   }
 
-  setActiveChat(chatId: string): void {
-    this.activeChat.value = this.chats.value.find((chat) => chat.id === chatId) ?? null;
-  }
+  /**
+   * Делегированный клик на контейнер: ловит и клики по чатам, и клик по retry.
+   */
+  private readonly handleContainerClick = (event: MouseEvent): void => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
 
-  render(): string {
-    return this.layout.render(`
-      ${this.chatList.render(this.chats.value, this.activeChat.value, this.isLoading.value)}
-      ${this.chatArea.render(this.activeChat.value, this.chats.value, this.isLoading.value, this.hasNetworkError.value)}
-    `);
-  }
+    const chatItem = target.closest<HTMLElement>('[data-chat-id]');
+    if (chatItem) {
+      const id = chatItem.dataset.chatId;
+      if (id) eventBus.emit('chats:select', { id });
+      return;
+    }
+
+    if (target.closest('#retry-connection-btn')) {
+      eventBus.emit('chats:load');
+    }
+  };
 
   async afterMount(): Promise<void> {
-    await this.loadChats();
+    this.container?.addEventListener('click', this.handleContainerClick);
+    eventBus.emit('chats:load');
+  }
+
+  unmount(): void {
+    this.container?.removeEventListener('click', this.handleContainerClick);
+    this.layout.unmount();
+    this.model.destroy();
+    super.unmount();
   }
 }

@@ -44,8 +44,8 @@ type LoginEvents = {
 
 /** События страницы чатов. */
 type ChatsEvents = {
-  /** View: пользователь нажал «Попробовать ещё раз» (после ошибки сети). */
-  'chats:retry': void;
+  /** View: загрузить или перезагрузить список чатов (initial load + retry). */
+  'chats:load': void;
 
   /** View: пользователь выбрал чат. */
   'chats:select': { id: string };

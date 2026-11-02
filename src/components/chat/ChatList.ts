@@ -14,19 +14,21 @@ export class ChatList {
    */
   renderChatItem(chat: DisplayChat, activeChatId: string | null): string {
     const isActive = activeChatId === chat.id;
+    const chatId = chat.id ?? '';
+
     const onlineIndicator = chat.isOnline
       ? '<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>'
       : '';
     const unreadBadge = chat.unreadCount
       ? `
-        <span class="inline-flex items-center justify-center w-5 h-5 bg-black text-white text-xs font-medium rounded-full">
-          ${chat.unreadCount}
-        </span>
-      `
+      <span class="inline-flex items-center justify-center w-5 h-5 bg-black text-white text-xs font-medium rounded-full">
+        ${chat.unreadCount}
+      </span>
+    `
       : '';
 
     return `
-    <div class="p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors ${isActive ? 'bg-blue-50' : ''}">
+    <div data-chat-id="${escapeHtml(chatId)}" class="p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors ${isActive ? 'bg-blue-50' : ''}">
       <div class="flex gap-3">
         <div class="relative flex-shrink-0">
           <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -47,7 +49,7 @@ export class ChatList {
         </div>
       </div>
     </div>
-    `;
+  `;
   }
 
   /**
