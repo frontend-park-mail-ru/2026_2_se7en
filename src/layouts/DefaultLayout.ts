@@ -1,3 +1,4 @@
+import './DefaultLayout.scss';
 import { Sidebar } from '@/components/core/Sidebar.js';
 
 /**
@@ -18,7 +19,7 @@ export class DefaultLayout {
    */
   render(contentHtml: string): string {
     return `
-      <div class="min-h-screen bg-gray-50 flex">
+      <div class="layout">
         ${this.sidebar.render()}
         ${contentHtml}
       </div>

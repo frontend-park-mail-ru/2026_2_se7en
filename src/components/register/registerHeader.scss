@@ -1,0 +1,55 @@
+// Блок "брендовая панель регистрации".
+
+.register-header {
+  display: none;
+  flex-direction: column;
+  padding: 3rem;
+  background-color: $register-bg;
+
+  @include media-lg {
+    display: flex;
+    width: 50%;
+  }
+
+  &__brand {
+    @include flex-align-center;
+    gap: 0.75rem;
+
+    &-name {
+      font-size: 1.5rem;
+      line-height: 2rem;
+      font-weight: 600;
+      color: $gray-900;
+    }
+  }
+
+  &__logo {
+    @include size(3rem);
+    border-radius: $radius-md;
+    object-fit: cover;
+  }
+
+  &__pitch {
+    @include flex-align-center;
+    flex: 1;
+
+    &-inner {
+      max-width: 28rem;
+    }
+  }
+
+  &__title {
+    margin-bottom: 1rem;
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 108%;
+    letter-spacing: -1.5px;
+    color: $gray-900;
+  }
+
+  &__subtitle {
+    font-size: 1.125rem;
+    line-height: 1.625;
+    color: $gray-500;
+  }
+}

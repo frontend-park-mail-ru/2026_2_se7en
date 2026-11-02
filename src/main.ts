@@ -1,3 +1,4 @@
+import './styles/base.scss';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.ts';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
 import { ROUTES } from '@/constants/Routes.ts';

@@ -1,5 +1,4 @@
-import { Button } from '@/components/core/Button.js';
-import { Input } from '@/components/core/Input.js';
+import './Field.scss';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
 
@@ -13,8 +12,14 @@ export interface FieldParams {
   error?: string;
 }
 
-const authEyeClosedIcon = EyeClosedIcon.replace('class="w-5 h-5"', 'class="w-5 h-5 hidden"');
-const authEyeOpenIcon = EyeOpenIcon.replace('class="w-5 h-5 hidden"', 'class="w-5 h-5"');
+const authEyeClosedIcon = EyeClosedIcon.replace(
+  'class="icon icon_md"',
+  'class="icon icon_md is-hidden"',
+);
+const authEyeOpenIcon = EyeOpenIcon.replace(
+  'class="icon icon_md is-hidden"',
+  'class="icon icon_md"',
+);
 
 /**
  * Генерирует HTML-разметку поля ввода.
@@ -29,33 +34,26 @@ export function Field({
   error = '',
 }: FieldParams): string {
   const isPassword = type === 'password';
-  const labelClass = error ? 'text-red-500' : 'text-gray-500';
-  const borderClass = error ? 'border-red-500' : 'border-transparent';
-
-  const inputHtml = Input({
-    id,
-    name,
-    type,
-    placeholder: escapeHtml(placeholder),
-    value: escapeHtml(value),
-    inputClassName: `w-full px-4 py-3 ${isPassword ? 'pr-12' : ''} bg-[#f5f9ff] border ${borderClass} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all`,
-  });
-
+  const labelClass = `field__label${error ? ' field__label_error' : ''}`;
+  const inputClass = `field__input${error ? ' field__input_error' : ''}`;
+  const passwordModifier = isPassword ? 'field__input_password' : '';
   const passwordToggle = isPassword
-    ? Button({
-        text: '',
-        type: 'button',
-        mode: 'ghost',
-        ariaLabel: 'Показать пароль',
-        iconBefore: `${authEyeClosedIcon}${authEyeOpenIcon}`,
-        attrs: { 'data-toggle-password': id },
-        className: 'absolute right-3 top-1/2 -translate-y-1/2',
-      })
+    ? `
+    <button
+      type="button"
+      data-toggle-password="${id}"
+      class="field__toggle"
+      aria-label="Показать пароль"
+    >
+      ${authEyeClosedIcon}
+      ${authEyeOpenIcon}
+    </button>
+  `
     : '';
 
   const errorHtml = error
     ? `
-    <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+    <p class="field__error">
       ${FieldErrorIcon}
       ${escapeHtml(error)}
     </p>
@@ -64,11 +62,18 @@ export function Field({
 
   return `
   <div>
-    <label for="${id}" class="block text-xs font-medium ${labelClass} mb-1.5">
+    <label for="${id}" class="${labelClass}">
       ${escapeHtml(label)}
     </label>
-    <div class="relative">
-      ${inputHtml}
+    <div class="field__control">
+      <input
+        type="${type}"
+        id="${id}"
+        name="${name}"
+        placeholder="${escapeHtml(placeholder)}"
+        value="${escapeHtml(value)}"
+        class="${inputClass} ${passwordModifier}"
+      />
       ${passwordToggle}
     </div>
     ${errorHtml}

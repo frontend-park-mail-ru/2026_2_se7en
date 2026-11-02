@@ -1,4 +1,6 @@
 import { ApiError } from '@/api/ApiResponse.js';
+import { AuthForm } from '@/components/Auth/AuthForm.js';
+import { AuthLayout } from '@/components/Auth/AuthLayout.js';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
@@ -6,8 +8,6 @@ import { STATUSES } from '@/constants/Statuses.js';
 import { Signal } from '@/reactive/Signal';
 import { showPage } from '@/helpers/ShowPage.js';
 import { user } from '@/store/User';
-import { AuthForm } from '@/components/Auth/AuthForm.js';
-import { AuthLayout } from '@/components/Auth/AuthLayout.js';
 import {
   ERROR_CODES,
   ERROR_HINTS,
@@ -56,7 +56,7 @@ export class LoginPage extends Page {
       subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
       fields: this.buildFields(),
       submitText: 'Войти',
-      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
+      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="auth-form__footer-link">Создать аккаунт</a>`,
       generalError: this.generalError,
       generalErrorHint: this.generalErrorHint,
       loading: this.loading,
@@ -129,9 +129,9 @@ export class LoginPage extends Page {
 
     input.type = show ? 'text' : 'password';
 
-    button.querySelector('[data-eye="open"]')?.classList.toggle('hidden', show);
+    button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
 
-    button.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', !show);
+    button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
   }
 
   async submit(): Promise<void> {

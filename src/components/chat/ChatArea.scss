@@ -1,0 +1,55 @@
+// Блок "область чата": заглушки (нет чатов, не выбран чат, нет сети).
+
+.chat-area {
+  @include flex-center;
+  flex: 1;
+  background-color: $gray-50;
+
+  &__placeholder {
+    max-width: 28rem;
+    padding: 0 1rem;
+    text-align: center;
+
+    &_plain {
+      max-width: none;
+      padding: 0;
+    }
+  }
+
+  &__icon-wrap {
+    @include flex-center;
+    @include size(4rem);
+    margin: 0 auto 1rem;
+    background-color: $blue-100;
+    border-radius: $radius-full;
+
+    &_lg {
+      @include size(5rem);
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  &__icon {
+    color: $gray-700;
+
+    &_accent {
+      color: $blue-600;
+    }
+  }
+
+  &__title {
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    color: $gray-900;
+  }
+
+  &__text {
+    color: $gray-500;
+
+    &_spaced {
+      margin-bottom: 1.5rem;
+    }
+  }
+}
