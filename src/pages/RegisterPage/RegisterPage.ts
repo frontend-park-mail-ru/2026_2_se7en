@@ -1,3 +1,4 @@
+import './RegisterPage.scss';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
 import { Page } from '@/pages/Page.ts';
 import { ROUTES } from '@/constants/Routes.ts';
@@ -19,7 +20,6 @@ export class RegisterPage extends Page {
 
   private readonly model = new RegisterPageModel();
 
-  /** Отписка от события успешной регистрации. */
   private offSuccess?: () => void;
 
   constructor() {
@@ -32,11 +32,11 @@ export class RegisterPage extends Page {
 
   render(): string {
     return `
-      <div class="min-h-screen flex bg-white">
+      <div class="register-page">
         ${renderRegisterHeader()}
-        <div class="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col">
-          <div class="flex-1 flex items-center justify-center">
-            <div class="w-full max-w-md relative">
+        <div class="register-page__main">
+          <div class="register-page__content">
+            <div class="register-page__form-box">
               <div data-general-error-slot>
                 ${renderRegisterError(this.model.generalError.value)}
               </div>
@@ -52,9 +52,6 @@ export class RegisterPage extends Page {
     `;
   }
 
-  /**
-   * Точечное обновление ошибок полей без пересоздания <input>.
-   */
   private updateFieldErrors(): void {
     if (!this.container) return;
 
@@ -73,23 +70,23 @@ export class RegisterPage extends Page {
       const description = wrapper.querySelector('[data-field-description]');
       const errorSlot = wrapper.querySelector('[data-field-error]');
 
-      label?.classList.toggle('text-red-500', hasError);
-      label?.classList.toggle('text-gray-500', !hasError);
+      const formControls: Array<[Element | null, string]> = [
+        [label, 'register-field__label_error'],
+        [input, 'register-field__input_error'],
+      ];
 
-      input?.classList.toggle('border-red-500', hasError);
-      input?.classList.toggle('border-transparent', !hasError);
+      formControls.forEach(([el, className]) => {
+        el?.classList.toggle(className, hasError);
+      });
 
-      description?.classList.toggle('hidden', hasError);
+      description?.classList.toggle('is-hidden', hasError);
 
       if (errorSlot) {
-        errorSlot.innerHTML = renderFieldError(errorMessage);
+        errorSlot.innerHTML = renderFieldError(errorMessage, 'register-field__error');
       }
     });
   }
 
-  /**
-   * Точечное обновление баннера общей ошибки над формой.
-   */
   private updateGeneralError(): void {
     if (!this.container) return;
 
@@ -99,9 +96,6 @@ export class RegisterPage extends Page {
     }
   }
 
-  /**
-   * Точечное обновление кнопки отправки формы.
-   */
   private updateSubmittingState(): void {
     const submitBtn = document.getElementById(ELEMENT_IDS.SUBMIT_BUTTON);
     if (!(submitBtn instanceof HTMLButtonElement)) return;
@@ -142,8 +136,8 @@ export class RegisterPage extends Page {
 
         button.setAttribute('aria-label', show ? 'Скрыть пароль' : 'Показать пароль');
         button.setAttribute('aria-pressed', String(show));
-        button.querySelector('[data-eye="open"]')?.classList.toggle('hidden', show);
-        button.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', !show);
+        button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
+        button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
       });
   }
 

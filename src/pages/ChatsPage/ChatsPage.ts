@@ -8,9 +8,6 @@ import { ChatsPageModel } from './ChatsPage.model.ts';
 
 /**
  * View страницы чатов.
- *
- * Отвечает только за рендер и проброс действий юзера
- * в модель через EventBus.
  */
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
@@ -38,11 +35,9 @@ export class ChatsPage extends Page {
     return this.layout.render(content);
   }
 
-  /**
-   * Полная перерисовка при изменении сигналов модели.
-   */
   private update(): void {
     if (!this.container) return;
+
     this.container.innerHTML = this.render();
     this.bindEvents();
   }
@@ -51,17 +46,18 @@ export class ChatsPage extends Page {
     this.layout.bindEvents();
   }
 
-  /**
-   * Делегированный клик на контейнер: ловит и клики по чатам, и клик по retry.
-   */
   private readonly handleContainerClick = (event: MouseEvent): void => {
     const target = event.target as HTMLElement | null;
+
     if (!target) return;
 
     const chatItem = target.closest<HTMLElement>('[data-chat-id]');
+
     if (chatItem) {
       const id = chatItem.dataset.chatId;
+
       if (id) eventBus.emit('chats:select', { id });
+
       return;
     }
 

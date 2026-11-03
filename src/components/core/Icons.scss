@@ -1,0 +1,59 @@
+// Блок "иконка": блочное поведение.
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icon {
+  display: block;
+
+  &_xs {
+    @include size(0.875rem);
+  }
+
+  &_sm {
+    @include size(1rem);
+  }
+
+  &_md {
+    @include size(1.25rem);
+  }
+
+  &_lg {
+    @include size(1.5rem);
+  }
+
+  &_2xl {
+    @include size(2rem);
+  }
+
+  &_3xl {
+    @include size(2.5rem);
+  }
+
+  &_4xl {
+    @include size(3rem);
+  }
+
+  &_5xl {
+    @include size(4rem);
+  }
+
+  &_no-shrink {
+    flex-shrink: 0;
+  }
+
+  &_danger {
+    color: $red-500;
+  }
+
+  &_alert {
+    margin-top: 0.125rem;
+  }
+
+  &_spinner {
+    animation: spin 1s linear infinite;
+  }
+}

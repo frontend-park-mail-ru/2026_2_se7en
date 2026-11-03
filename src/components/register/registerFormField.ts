@@ -1,10 +1,12 @@
-import { Button } from '@/components/core/Button.js';
-import { Input } from '@/components/core/Input.js';
+import './registerFormField.scss';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.ts';
 import { renderFieldError } from '@/helpers/FieldError.ts';
 
-const registerEyeIcons = `${EyeOpenIcon.replace('w-5 h-5 hidden', 'w-5 h-5')}${EyeClosedIcon.replace('w-5 h-5"', 'w-5 h-5 hidden"')}`;
+const registerEyeIcons = `${EyeOpenIcon.replace(
+  'class="icon icon_md is-hidden"',
+  'class="icon icon_md"',
+)}${EyeClosedIcon.replace('class="icon icon_md"', 'class="icon icon_md is-hidden"')}`;
 
 export interface FormFieldParams {
   id: string;
@@ -36,46 +38,44 @@ export function FormField({
   className = '',
 }: FormFieldParams): string {
   const hasError = !!error;
-  const borderColor = hasError ? 'border-red-500' : 'border-transparent';
-  const labelColor = hasError ? 'text-red-500' : 'text-gray-500';
-  const hintHtml = hint ? ` <span class="text-gray-400 font-normal">(${hint})</span>` : '';
-  const inputHtml = Input({
-    id,
-    name,
-    type,
-    placeholder,
-    value: escapeHtml(value),
-    inputClassName: `w-full px-4 py-3 ${type === 'password' ? 'pr-12' : ''} bg-[#f5faff] border ${borderColor} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all ${className}`,
-  });
+  const labelClass = `register-field__label${hasError ? ' register-field__label_error' : ''}`;
+  const inputClass = `register-field__input${hasError ? ' register-field__input_error' : ''}`;
+  const passwordModifier = type === 'password' ? 'register-field__input_password' : '';
+  const hintHtml = hint ? ` <span class="register-field__hint">(${hint})</span>` : '';
+
+  const inputHtml = `
+    <input
+      type="${type}"
+      id="${id}"
+      name="${name}"
+      placeholder="${escapeHtml(placeholder)}"
+      value="${escapeHtml(value)}"
+      class="${inputClass} ${passwordModifier} ${className}"
+    />
+  `;
 
   const inputWithToggle =
     type === 'password'
-      ? `<div class="relative">
+      ? `<div class="register-field__control">
         ${inputHtml}
-        ${Button({
-          text: '',
-          type: 'button',
-          mode: 'ghost',
-          ariaLabel: 'Показать пароль',
-          iconBefore: registerEyeIcons,
-          attrs: { 'data-toggle-password': id, 'aria-pressed': 'false' },
-          className: 'absolute right-3 top-1/2 -translate-y-1/2',
-        })}
+        <button type="button" data-toggle-password="${id}" class="register-field__toggle" aria-label="Показать пароль" aria-pressed="false">
+          ${registerEyeIcons}
+        </button>
       </div>`
       : inputHtml;
 
   const descriptionHtml = description
-    ? `<p data-field-description class="mt-1.5 text-xs text-gray-400 ${hasError ? 'hidden' : ''}">${escapeHtml(description)}</p>`
+    ? `<p data-field-description class="register-field__description${hasError ? ' is-hidden' : ''}">${escapeHtml(description)}</p>`
     : '';
 
   return `
         <div data-form-field="${id}">
-            <label for="${id}" class="block text-xs font-medium ${labelColor} mb-1.5">
+            <label for="${id}" class="${labelClass}">
                 ${label}${hintHtml}
             </label>
             ${inputWithToggle}
             ${descriptionHtml}
-            <div data-field-error>${renderFieldError(error)}</div>
+            <div data-field-error>${renderFieldError(error, 'register-field__error')}</div>
         </div>
     `;
 }

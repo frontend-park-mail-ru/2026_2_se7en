@@ -1,3 +1,4 @@
+import './registerError.scss';
 import { BannerErrorIcon } from '@/components/core/Icons.js';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 
@@ -10,12 +11,12 @@ export function renderRegisterError(generalError: string | null): string {
   const safeMessage = escapeHtml(generalError);
 
   return `
-        <div id="error-container" role="alert" aria-live="assertive" class="mb-4 bg-red-50 border border-red-200 rounded-xl p-4 shadow-lg">
-            <div class="flex items-start gap-3">
+        <div id="error-container" role="alert" aria-live="assertive" class="register-error">
+            <div class="register-error__content">
                 ${BannerErrorIcon}
                 <div>
-                    <p class="text-red-800 text-sm font-medium">Не удалось отправить данные</p>
-                    <p class="text-red-600 text-xs mt-0.5">${safeMessage}</p>
+                    <p class="register-error__title">Не удалось отправить данные</p>
+                    <p class="register-error__hint">${safeMessage}</p>
                 </div>
             </div>
         </div>

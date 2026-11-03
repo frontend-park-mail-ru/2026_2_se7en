@@ -22,18 +22,10 @@ import type {
  * - Model → кто угодно: EventBus (`register:success`).
  */
 export class RegisterPageModel {
-  /** Ошибки отдельных полей. */
   readonly fieldErrors = new Signal<RegisterFieldErrors>({});
-
-  /** Общая ошибка формы. */
   readonly generalError = new Signal<string | null>(null);
-
-  /** Идёт ли сейчас отправка. */
   readonly isSubmitting = new Signal<boolean>(false);
 
-  /**
-   * Данные формы — обычный объект, не Signal.
-   */
   formData: RegisterFormData = {
     first_name: '',
     nickname: '',
@@ -54,35 +46,23 @@ export class RegisterPageModel {
     });
   }
 
-  /**
-   * Отписаться от событий EventBus.
-   * Вызывается из View.unmount()
-   */
   destroy(): void {
     this.offSubmit();
     this.offFieldChange();
   }
 
-  /**
-   * Обновить одно поле формы и сбросить его ошибку, если была.
-   */
   private setField(field: RegisterField, value: string): void {
     this.formData[field] = value;
 
     if (field in this.fieldErrors.value) {
-      const next = { ...this.fieldErrors.value };
-      delete next[field];
-      this.fieldErrors.value = next;
+      this.fieldErrors.value = Object.fromEntries(
+        Object.entries(this.fieldErrors.value).filter(([key]) => key !== field),
+      );
     }
 
-    if (this.generalError.value !== null) {
-      this.generalError.value = null;
-    }
+    this.generalError.value = null;
   }
 
-  /**
-   * Отправить форму: провалидировать, обратиться к API, разобрать ответ.
-   */
   private async submit(): Promise<void> {
     if (this.isSubmitting.value) return;
 
@@ -121,6 +101,7 @@ export class RegisterPageModel {
       if (Array.isArray(result.details)) {
         for (const detail of result.details) {
           const field = detail.field as RegisterField;
+
           if (field in this.formData && !nextErrors[field]) {
             nextErrors[field] = normalizeValidationReason(field, detail.reason);
           }
@@ -128,11 +109,15 @@ export class RegisterPageModel {
       }
 
       if (result.status === STATUSES.CONFLICT) {
-        if (result.code === 'EMAIL_TAKEN') {
-          nextErrors.email = 'email_already_exists';
-        }
-        if (result.code === 'NICKNAME_TAKEN') {
-          nextErrors.nickname = 'nickname_already_exists';
+        switch (result.code) {
+          case 'EMAIL_TAKEN':
+            nextErrors.email = 'email_already_exists';
+            break;
+          case 'NICKNAME_TAKEN':
+            nextErrors.nickname = 'nickname_already_exists';
+            break;
+          default:
+            break;
         }
       }
     }

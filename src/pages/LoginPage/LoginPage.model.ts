@@ -17,6 +17,31 @@ import {
 } from '@/helpers/Validation.ts';
 import type { LoginData, LoginFieldErrors } from '@/api/auth/auth.types.ts';
 
+const NETWORK_OR_SERVER_ERRORS: ErrorCodes[] = [
+  ERROR_CODES.NETWORK_ERROR,
+  ERROR_CODES.INTERNAL_ERROR,
+];
+
+/**
+ * Определяет, какой код ошибки показать пользователю.
+ *
+ * 1. Если бэк вернул 401 или 400 — это неверные креды.
+ * 2. Если бэк вернул сетевую/серверную ошибку — показываем её как есть.
+ * 3. Всё остальное — INTERNAL_ERROR.
+ */
+function resolveErrorCode(result: ApiError): ErrorCodes {
+  const isCredentialsError =
+    result.code === ERROR_CODES.UNAUTHORIZED ||
+    result.code === ERROR_CODES.INVALID_CREDENTIALS ||
+    result.status === STATUSES.BAD_REQUEST;
+
+  if (isCredentialsError) return ERROR_CODES.INVALID_CREDENTIALS;
+
+  const knownError = NETWORK_OR_SERVER_ERRORS.find((code) => code === result.code);
+
+  return knownError ?? ERROR_CODES.INTERNAL_ERROR;
+}
+
 /**
  * Модель страницы входа.
  *
@@ -31,10 +56,6 @@ export class LoginPageModel {
   readonly generalErrorHint = new Signal<string>('');
   readonly loading = new Signal<boolean>(false);
 
-  /**
-   * Значения полей — обычный объект, не Signal.
-   * Обновляется через `setField` из обработчика ввода.
-   */
   values: LoginData = {
     email: '',
     password: '',
@@ -58,27 +79,19 @@ export class LoginPageModel {
     this.offFieldChange();
   }
 
-  /**
-   * Обновить одно поле формы и сбросить его ошибку, если была.
-   */
   private setField(field: keyof LoginData, value: string): void {
     this.values[field] = value;
 
     if (field in this.fieldErrors.value) {
-      const next = { ...this.fieldErrors.value };
-      delete next[field];
-      this.fieldErrors.value = next;
+      this.fieldErrors.value = Object.fromEntries(
+        Object.entries(this.fieldErrors.value).filter(([key]) => key !== field),
+      );
     }
 
-    if (this.generalError.value !== '') {
-      this.generalError.value = '';
-      this.generalErrorHint.value = '';
-    }
+    this.generalError.value = '';
+    this.generalErrorHint.value = '';
   }
 
-  /**
-   * Отправить форму: провалидировать, войти через API, разобрать ответ.
-   */
   private async submit(): Promise<void> {
     if (this.loading.value) return;
 
@@ -101,28 +114,14 @@ export class LoginPageModel {
     }
 
     this.loading.value = true;
-
     const result = await user.login(this.values);
-
     this.loading.value = false;
 
     if (result instanceof ApiError) {
-      const isCredentialsError =
-        result.code === ERROR_CODES.UNAUTHORIZED ||
-        result.code === ERROR_CODES.INVALID_CREDENTIALS ||
-        result.status === STATUSES.BAD_REQUEST;
-
-      const errorCode = isCredentialsError
-        ? ERROR_CODES.INVALID_CREDENTIALS
-        : ([ERROR_CODES.NETWORK_ERROR, ERROR_CODES.INTERNAL_ERROR] as ErrorCodes[]).includes(
-              result.code as ErrorCodes,
-            )
-          ? result.code
-          : ERROR_CODES.INTERNAL_ERROR;
+      const errorCode = resolveErrorCode(result);
 
       this.generalError.value =
         ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR];
-
       this.generalErrorHint.value =
         ERROR_HINTS[errorCode] ?? ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
 

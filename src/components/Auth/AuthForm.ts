@@ -1,4 +1,4 @@
-import { Button } from '@/components/core/Button.ts';
+import './AuthForm.scss';
 import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { Field, type FieldParams } from './Field.ts';
@@ -18,17 +18,16 @@ export interface AuthFormParams {
 
 /**
  * Рендерит баннер общей ошибки над формой.
- * Возвращает пустую строку, если ошибки нет.
  */
 export function renderAuthError(error = '', hint = ''): string {
   if (!error) return '';
 
   return `
-    <div class="absolute bottom-full left-0 right-0 mb-4 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+    <div class="auth-form__alert">
       ${BannerErrorIcon}
       <div>
-        <p class="text-red-800 text-sm font-medium">${escapeHtml(error)}</p>
-        ${hint ? `<p class="text-red-600 text-xs mt-0.5">${escapeHtml(hint)}</p>` : ''}
+        <p class="auth-form__alert-title">${escapeHtml(error)}</p>
+        ${hint ? `<p class="auth-form__alert-hint">${escapeHtml(hint)}</p>` : ''}
       </div>
     </div>
   `;
@@ -52,31 +51,29 @@ export function AuthForm({
   const fieldsHtml = fields.map((field) => Field(field)).join('');
 
   return `
-  <div class="relative">
+  <div class="auth-form">
     <div data-general-error-slot>${renderAuthError(generalError, generalErrorHint)}</div>
 
-    <div class="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
-      <h2 class="text-[32px] font-bold leading-[120%] tracking-[-0.5px] text-gray-900 mb-1">${title}</h2>
-      <p class="text-gray-500 text-sm mb-6">${subtitle}</p>
+    <div class="auth-form__card">
+      <h2 class="auth-form__title">${title}</h2>
+      <p class="auth-form__subtitle">${subtitle}</p>
 
-      <form id="${formId}" class="flex flex-col gap-4" novalidate>
+      <form id="${formId}" class="auth-form__form" novalidate>
         ${fieldsHtml}
 
-        <div class="pt-2">
-          ${Button({
-            id: submitId,
-            text: loading ? 'Проверяем данные...' : submitText,
-            iconBefore: loading ? SpinnerIcon : '',
-            mode: 'primary',
-            type: 'submit',
-            disabled: loading,
-            className:
-              'w-full py-3.5 px-4 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed',
-          })}
+        <div class="auth-form__submit-wrap">
+          <button
+            type="submit"
+            id="${submitId}"
+            ${loading ? 'disabled' : ''}
+            class="submit-button"
+          >
+            ${loading ? `${SpinnerIcon} Проверяем данные...` : submitText}
+          </button>
         </div>
 
-        <div class="text-center">
-          <p class="text-gray-500 text-sm">${footer}</p>
+        <div class="auth-form__footer">
+          <p class="auth-form__footer-text">${footer}</p>
         </div>
       </form>
     </div>

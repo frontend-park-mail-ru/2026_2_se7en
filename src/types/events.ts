@@ -1,4 +1,4 @@
-import type { RegisterField } from '@/api/auth/auth.types.ts';
+import type { LoginField, RegisterField } from '@/api/auth/auth.types.ts';
 
 /** Тип уведомления для Snackbar. */
 export type SnackbarType = 'success' | 'error' | 'info';
@@ -36,7 +36,7 @@ type LoginEvents = {
   'login:submit': void;
 
   /** View: пользователь ввёл текст в поле. */
-  'login:field-change': { field: 'email' | 'password'; value: string };
+  'login:field-change': { field: LoginField; value: string };
 
   /** Model: пользователь успешно вошёл. */
   'login:success': void;

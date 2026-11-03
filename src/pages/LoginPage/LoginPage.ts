@@ -13,15 +13,11 @@ import { SpinnerIcon } from '@/components/core/Icons.ts';
 
 /**
  * View страницы входа.
- *
- * Отвечает только за рендер, точечное обновление и проброс команд в модель.
  */
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;
 
   private readonly model = new LoginPageModel();
-
-  /** Отписка от события успешного входа. */
   private offSuccess?: () => void;
 
   constructor() {
@@ -42,7 +38,7 @@ export class LoginPage extends Page {
       subtitle: 'Введите адрес электронной почты, чтобы продолжить общение в Связь.',
       fields: this.buildFields(),
       submitText: 'Войти',
-      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="font-semibold text-gray-900 hover:underline">Создать аккаунт</a>`,
+      footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="auth-form__footer-link">Создать аккаунт</a>`,
       generalError: this.model.generalError.value,
       generalErrorHint: this.model.generalErrorHint.value,
       loading: this.model.loading.value,
@@ -80,10 +76,6 @@ export class LoginPage extends Page {
     ];
   }
 
-  /**
-   * Точечное обновление ошибок полей: меняем только классы на label/input
-   * и innerHTML слота ошибки. Сами <input> не пересоздаются — фокус не теряется.
-   */
   private updateFieldErrors(): void {
     if (!this.container) return;
 
@@ -100,21 +92,15 @@ export class LoginPage extends Page {
       const input = wrapper.querySelector('input');
       const errorSlot = wrapper.querySelector('[data-field-error]');
 
-      label?.classList.toggle('text-red-500', hasError);
-      label?.classList.toggle('text-gray-500', !hasError);
-
-      input?.classList.toggle('border-red-500', hasError);
-      input?.classList.toggle('border-transparent', !hasError);
+      label?.classList.toggle('field__label_error', hasError);
+      input?.classList.toggle('field__input_error', hasError);
 
       if (errorSlot) {
-        errorSlot.innerHTML = renderFieldError(errorMessage);
+        errorSlot.innerHTML = renderFieldError(errorMessage, 'field__error');
       }
     }
   }
 
-  /**
-   * Точечное обновление баннера общей ошибки над формой.
-   */
   private updateGeneralError(): void {
     if (!this.container) return;
 
@@ -127,9 +113,6 @@ export class LoginPage extends Page {
     }
   }
 
-  /**
-   * Точечное обновление кнопки отправки: disabled и текст со спиннером.
-   */
   private updateLoading(): void {
     const oldBtn = document.getElementById(LOGIN_SUBMIT_ID);
     if (!(oldBtn instanceof HTMLButtonElement)) return;
@@ -137,9 +120,7 @@ export class LoginPage extends Page {
     const loading = this.model.loading.value;
 
     oldBtn.disabled = loading;
-    oldBtn.innerHTML = loading
-      ? `<span class="inline-flex items-center">${SpinnerIcon}</span>Проверяем данные...`
-      : 'Войти';
+    oldBtn.innerHTML = loading ? `${SpinnerIcon} Проверяем данные...` : 'Войти';
   }
 
   bindEvents(): void {
@@ -159,9 +140,7 @@ export class LoginPage extends Page {
     }
 
     this.container?.querySelectorAll<HTMLElement>('[data-toggle-password]').forEach((button) => {
-      button.addEventListener('click', () => {
-        this.togglePassword(button);
-      });
+      button.addEventListener('click', () => this.togglePassword(button));
     });
   }
 
@@ -175,8 +154,8 @@ export class LoginPage extends Page {
     const show = input.type === 'password';
     input.type = show ? 'text' : 'password';
 
-    button.querySelector('[data-eye="open"]')?.classList.toggle('hidden', show);
-    button.querySelector('[data-eye="closed"]')?.classList.toggle('hidden', !show);
+    button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
+    button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
   }
 
   async afterMount(): Promise<void> {
