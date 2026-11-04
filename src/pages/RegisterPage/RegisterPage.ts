@@ -6,17 +6,23 @@ import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
 import { STATUSES } from '@/constants/Statuses.js';
 import { Signal } from '@/reactive/Signal';
+import type { ValidationReason } from '@/pages/RegisterPage/register.types.js';
+import { escapeHtml } from '@/helpers/EscapeHtml.js';
 import { renderRegisterError } from '@/components/register/registerError.js';
 import { renderRegisterForm } from '@/components/register/registerForm.js';
 import { renderRegisterHeader } from '@/components/register/registerHeader.js';
 import { showPage } from '@/helpers/ShowPage.js';
-import { validateForm } from '@/pages/RegisterPage/register.helpers.js';
-import { ELEMENT_IDS, VALIDATION_RULES } from '@/pages/RegisterPage/register.constants.js';
+import {
+  ELEMENT_IDS,
+  ERROR_MESSAGES,
+  VALIDATION_RULES,
+} from '@/pages/RegisterPage/register.constants.js';
 import type {
   RegisterField,
   RegisterFieldErrors,
   RegisterFormData,
 } from '@/api/auth/auth.types.js';
+import { validateForm, validateSingleField } from '@/pages/RegisterPage/register.helpers.js';
 
 /**
  * Страница регистрации: форма создания аккаунта с клиентской валидацией.
@@ -27,6 +33,9 @@ export class RegisterPage extends Page {
   private fieldErrors = new Signal<RegisterFieldErrors>({});
   private generalError = new Signal<string | null>(null);
   private isSubmitting = new Signal<boolean>(false);
+
+  private touchedFields = new Set<RegisterField>();
+  private submitAttempted = false;
 
   private formData: RegisterFormData = {
     first_name: '',
@@ -82,16 +91,19 @@ export class RegisterPage extends Page {
         if (!(input instanceof HTMLInputElement)) return;
 
         this.formData[fieldName] = input.value;
-
-        if (fieldName in this.fieldErrors.value) {
-          this.fieldErrors.value = Object.fromEntries(
-            Object.entries(this.fieldErrors.value).filter(([key]) => key !== fieldName),
-          );
-        }
+        this.validateFieldLive(fieldName);
 
         if (this.generalError.value !== null) {
           this.generalError.value = null;
         }
+      });
+
+      input?.addEventListener('blur', () => {
+        if (!(input instanceof HTMLInputElement)) return;
+
+        this.formData[fieldName] = input.value;
+        this.touchedFields.add(fieldName);
+        this.validateFieldLive(fieldName);
       });
     });
 
@@ -124,6 +136,57 @@ export class RegisterPage extends Page {
       });
   }
 
+  private getFieldValue(field: RegisterField): string {
+    const value = this.formData[field];
+    return field === 'password' ? value : value.trim();
+  }
+
+  private validateFieldLive(field: RegisterField): void {
+    if (!this.touchedFields.has(field) && !this.submitAttempted) return;
+
+    const reason: ValidationReason | null = validateSingleField(field, this.getFieldValue(field));
+    this.setFieldErrorDom(field, reason ? ERROR_MESSAGES[reason] || reason : '');
+  }
+
+  /**
+   * Обновляет/убирает сообщение об ошибке под конкретным полем
+   * без перерендера всей формы.
+   */
+  private setFieldErrorDom(field: RegisterField, message: string): void {
+    const input = document.getElementById(field);
+
+    if (!(input instanceof HTMLInputElement)) return;
+
+    const fieldBox = input.closest('[data-form-field]');
+
+    if (!fieldBox) return;
+
+    const label = fieldBox.querySelector('.register-field__label');
+    const inputClass = 'register-field__input_error';
+    const labelClass = 'register-field__label_error';
+
+    fieldBox.querySelector('.register-field__error')?.remove();
+
+    if (!message) {
+      input.classList.remove(inputClass);
+      label?.classList.remove(labelClass);
+      return;
+    }
+
+    input.classList.add(inputClass);
+    label?.classList.add(labelClass);
+
+    const errorHtml = `
+        <p class="register-field__error">
+            <svg fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="icon icon_sm icon_no-shrink icon_danger">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            ${escapeHtml(message)}
+        </p>`;
+
+    input.insertAdjacentHTML('afterend', errorHtml);
+  }
+
   readForm(): void {
     (Object.keys(this.formData) as RegisterField[]).forEach((fieldName) => {
       const input = document.getElementById(fieldName);
@@ -139,17 +202,13 @@ export class RegisterPage extends Page {
 
     if (this.isSubmitting.value) return;
 
+    this.submitAttempted = true;
     this.readForm();
 
     this.fieldErrors.value = {};
     this.generalError.value = null;
 
-    const { isValid, fieldErrors } = validateForm((field) => {
-      const fieldName = field as RegisterField;
-      const value = this.formData[fieldName];
-
-      return fieldName === 'password' ? value : value.trim();
-    });
+    const { isValid, fieldErrors } = validateForm((field) => this.getFieldValue(field));
 
     if (!isValid) {
       this.fieldErrors.value = fieldErrors;

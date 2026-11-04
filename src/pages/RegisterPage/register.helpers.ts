@@ -58,6 +58,48 @@ export function normalizeValidationReason(field: RegisterField, reason: string):
 }
 
 /**
+ * Валидирует одно поле формы регистрации по его правилам.
+ * @returns причина ошибки или null, если поле валидно
+ */
+export function validateSingleField(field: RegisterField, value: string): ValidationReason | null {
+  const rules = VALIDATION_RULES[field];
+
+  if (rules.required && !value) {
+    return 'required';
+  }
+
+  if (!value) {
+    return null;
+  }
+
+  const forbiddenReason = validateForbiddenChars(value);
+
+  if (forbiddenReason) {
+    return forbiddenReason === VALIDATION_MESSAGES.CONTAINS_EMOJI
+      ? 'contains_emoji'
+      : 'contains_invalid_chars';
+  }
+
+  if (rules.minLength && value.length < rules.minLength) {
+    return field === 'nickname' ? 'nickname_length' : 'password_length';
+  }
+
+  if (rules.maxLength && value.length > rules.maxLength) {
+    return (
+      field === 'nickname' || field === 'password' ? `${field}_length` : `${field}_max_length`
+    ) as ValidationReason;
+  }
+
+  if (rules.pattern && !rules.pattern.test(value)) {
+    return field === 'nickname'
+      ? 'nickname_invalid_format'
+      : (`${field}_invalid_format` as ValidationReason);
+  }
+
+  return null;
+}
+
+/**
  * Валидирует все поля формы регистрации на клиенте.
  */
 export function validateForm(getFieldValue: (field: RegisterField) => string): ValidationResult {
@@ -67,52 +109,12 @@ export function validateForm(getFieldValue: (field: RegisterField) => string): V
   const fieldsToValidate: RegisterField[] = ['first_name', 'nickname', 'email', 'password'];
 
   for (const field of fieldsToValidate) {
-    const rules = VALIDATION_RULES[field];
     const value = getFieldValue(field);
+    const reason = validateSingleField(field, value);
 
-    if (rules.required && !value) {
-      fieldErrors[field] = 'required';
-      errors.push({ field, reason: 'required' });
-      continue;
-    }
-
-    if (value) {
-      const forbiddenReason = validateForbiddenChars(value);
-
-      if (forbiddenReason) {
-        const reason: ValidationReason =
-          forbiddenReason === VALIDATION_MESSAGES.CONTAINS_EMOJI
-            ? 'contains_emoji'
-            : 'contains_invalid_chars';
-
-        fieldErrors[field] = reason;
-        errors.push({ field, reason });
-        continue;
-      }
-
-      if (rules.minLength && value.length < rules.minLength) {
-        const reason: ValidationReason =
-          field === 'nickname' ? 'nickname_length' : 'password_length';
-
-        fieldErrors[field] = reason;
-        errors.push({ field, reason });
-      } else if (rules.maxLength && value.length > rules.maxLength) {
-        const reason: ValidationReason =
-          field === 'nickname' || field === 'password'
-            ? (`${field}_length` as ValidationReason)
-            : (`${field}_max_length` as ValidationReason);
-
-        fieldErrors[field] = reason;
-        errors.push({ field, reason });
-      } else if (rules.pattern && !rules.pattern.test(value)) {
-        const reason: ValidationReason =
-          field === 'nickname'
-            ? 'nickname_invalid_format'
-            : (`${field}_invalid_format` as ValidationReason);
-
-        fieldErrors[field] = reason;
-        errors.push({ field, reason });
-      }
+    if (reason) {
+      fieldErrors[field] = reason;
+      errors.push({ field, reason });
     }
   }
 

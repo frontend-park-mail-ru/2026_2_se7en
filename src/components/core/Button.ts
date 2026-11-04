@@ -46,7 +46,7 @@ export function Button({
   const finalClasses = `button ${modeClass} ${className}`.trim();
 
   return `
-        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${attrsHtml} ${disabledAttr} type="${type}" class="${finalClasses}">
+        <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${disabledAttr} type="${type}" class="${finalClasses}">
                         ${iconBeforeHtml}${text}${iconAfterHtml}
         </button>
     `;
