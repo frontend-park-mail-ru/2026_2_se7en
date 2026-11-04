@@ -92,8 +92,14 @@ export class LoginPage extends Page {
       const input = wrapper.querySelector('input');
       const errorSlot = wrapper.querySelector('[data-field-error]');
 
-      label?.classList.toggle('field__label_error', hasError);
-      input?.classList.toggle('field__input_error', hasError);
+      const formControls: Array<[Element | null, string]> = [
+        [label, 'field__label_error'],
+        [input, 'field__input_error'],
+      ];
+
+      formControls.forEach(([el, className]) => {
+        el?.classList.toggle(className, hasError);
+      });
 
       if (errorSlot) {
         errorSlot.innerHTML = renderFieldError(errorMessage, 'field__error');

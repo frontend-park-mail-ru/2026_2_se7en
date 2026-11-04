@@ -2,6 +2,7 @@ import './AuthForm.scss';
 import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { Field, type FieldParams } from './Field.ts';
+import { Button } from '../core/Button.ts';
 
 export interface AuthFormParams {
   formId: string;
@@ -62,14 +63,14 @@ export function AuthForm({
         ${fieldsHtml}
 
         <div class="auth-form__submit-wrap">
-          <button
-            type="submit"
-            id="${submitId}"
-            ${loading ? 'disabled' : ''}
-            class="submit-button"
-          >
-            ${loading ? `${SpinnerIcon} Проверяем данные...` : submitText}
-          </button>
+          ${Button({
+            id: submitId,
+            text: loading ? 'Проверяем данные...' : submitText,
+            type: 'submit',
+            disabled: loading,
+            className: 'submit-button',
+            iconBefore: loading ? SpinnerIcon : '',
+          })}
         </div>
 
         <div class="auth-form__footer">

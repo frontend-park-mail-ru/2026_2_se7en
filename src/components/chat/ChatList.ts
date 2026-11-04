@@ -17,7 +17,6 @@ export class ChatList {
   renderChatItem(chat: DisplayChat, activeChatId: string | null): string {
     const isActive = activeChatId === chat.id;
     const chatId = chat.id ?? '';
-    const itemClass = isActive ? 'chat-item chat-item_active' : 'chat-item';
     const onlineIndicator = chat.isOnline ? '<div class="chat-item__online"></div>' : '';
     const unreadBadge = chat.unreadCount
       ? `
@@ -28,7 +27,7 @@ export class ChatList {
       : '';
 
     return `
-    <div data-chat-id="${escapeHtml(chatId)}" class="${itemClass}">
+    <div data-chat-id="${escapeHtml(chatId)}" class="chat-item${isActive ? ' chat-item_active' : ''}">
       <div class="chat-item__inner">
         <div class="chat-item__avatar-box">
           <div class="chat-item__avatar">
