@@ -1,6 +1,7 @@
 import './Field.scss';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { EyeClosedIcon, EyeOpenIcon, FieldErrorIcon } from '@/components/core/Icons.js';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.ts';
+import { renderFieldError } from '@/helpers/FieldError.ts';
 
 export interface FieldParams {
   id: string;
@@ -34,9 +35,11 @@ export function Field({
   error = '',
 }: FieldParams): string {
   const isPassword = type === 'password';
-  const labelClass = `field__label${error ? ' field__label_error' : ''}`;
-  const inputClass = `field__input${error ? ' field__input_error' : ''}`;
+  const hasError = Boolean(error);
+  const labelClass = `field__label${hasError ? ' field__label_error' : ''}`;
+  const inputClass = `field__input${hasError ? ' field__input_error' : ''}`;
   const passwordModifier = isPassword ? 'field__input_password' : '';
+
   const passwordToggle = isPassword
     ? `
     <button
@@ -51,17 +54,8 @@ export function Field({
   `
     : '';
 
-  const errorHtml = error
-    ? `
-    <p class="field__error">
-      ${FieldErrorIcon}
-      ${escapeHtml(error)}
-    </p>
-  `
-    : '';
-
   return `
-  <div>
+  <div data-form-field="${id}">
     <label for="${id}" class="${labelClass}">
       ${escapeHtml(label)}
     </label>
@@ -76,7 +70,7 @@ export function Field({
       />
       ${passwordToggle}
     </div>
-    ${errorHtml}
+    <div data-field-error>${renderFieldError(error, 'field__error')}</div>
   </div>
   `;
 }

@@ -1,51 +1,33 @@
-import { ApiError } from '@/api/ApiResponse.js';
-import { AuthForm } from '@/components/Auth/AuthForm.js';
-import { AuthLayout } from '@/components/Auth/AuthLayout.js';
-import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
-import { Page } from '@/pages/Page.js';
-import { ROUTES } from '@/constants/Routes.js';
-import { STATUSES } from '@/constants/Statuses.js';
-import { Signal } from '@/reactive/Signal';
-import { showPage } from '@/helpers/ShowPage.js';
-import { user } from '@/store/User';
-import {
-  ERROR_CODES,
-  ERROR_HINTS,
-  ERROR_MESSAGES,
-  type ErrorCodes,
-} from '@/api/error.constants.js';
-import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.js';
-import type { LoginData, LoginFieldConfig, LoginFieldErrors } from '@/api/auth/auth.types';
-import {
-  validateEmail,
-  validateForbiddenChars,
-  validateMultiple,
-  validatePassword,
-} from '@/helpers/Validation.ts';
+import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.ts';
+import { Page } from '@/pages/Page.ts';
+import { ROUTES } from '@/constants/Routes.ts';
+import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
+import { showPage } from '@/helpers/ShowPage.ts';
+import { renderFieldError } from '@/helpers/FieldError.ts';
+import { AuthForm, renderAuthError } from '@/components/Auth/AuthForm.ts';
+import { AuthLayout } from '@/components/Auth/AuthLayout.ts';
+import { LoginPageModel } from './LoginPage.model.ts';
+import type { LoginFieldConfig } from '@/api/auth/auth.types.ts';
+import { SpinnerIcon } from '@/components/core/Icons.ts';
 
 /**
- * Страница входа: форма авторизации с валидацией полей.
+ * View страницы входа.
  */
 export class LoginPage extends Page {
   static route = ROUTES.LOGIN;
 
-  private fieldErrors = new Signal<LoginFieldErrors>({});
-  private generalError = new Signal<string>('');
-  private generalErrorHint = new Signal<string>('');
-  private loading = new Signal<boolean>(false);
-
-  private values: LoginData = {
-    email: '',
-    password: '',
-  };
+  private readonly model = new LoginPageModel();
+  private offSuccess?: () => void;
 
   constructor() {
     super();
 
-    this.setSubscribers(
-      [this.fieldErrors, this.generalError, this.generalErrorHint, this.loading],
-      () => this.update(),
+    this.setSubscribers([this.model.fieldErrors], () => this.updateFieldErrors());
+    this.setSubscribers([this.model.generalError, this.model.generalErrorHint], () =>
+      this.updateGeneralError(),
     );
+    this.setSubscribers([this.model.loading], () => this.updateLoading());
   }
 
   render(): string {
@@ -57,9 +39,9 @@ export class LoginPage extends Page {
       fields: this.buildFields(),
       submitText: 'Войти',
       footer: `Впервые здесь? <a href="${ROUTES.REGISTER}" data-page-route="register" class="auth-form__footer-link">Создать аккаунт</a>`,
-      generalError: this.generalError,
-      generalErrorHint: this.generalErrorHint,
-      loading: this.loading,
+      generalError: this.model.generalError.value,
+      generalErrorHint: this.model.generalErrorHint.value,
+      loading: this.model.loading.value,
     });
 
     return AuthLayout({
@@ -69,8 +51,8 @@ export class LoginPage extends Page {
     });
   }
 
-  buildFields(): LoginFieldConfig[] {
-    const fieldErrors = this.fieldErrors.value;
+  private buildFields(): LoginFieldConfig[] {
+    const fieldErrors = this.model.fieldErrors.value;
 
     return [
       {
@@ -79,7 +61,7 @@ export class LoginPage extends Page {
         type: 'email',
         label: 'Электронная почта',
         placeholder: 'name@example.com',
-        value: this.values.email,
+        value: this.model.values.email,
         error: fieldErrors.email ?? '',
       },
       {
@@ -88,17 +70,56 @@ export class LoginPage extends Page {
         type: 'password',
         label: 'Пароль',
         placeholder: 'password',
-        value: this.values.password,
+        value: this.model.values.password,
         error: fieldErrors.password ?? '',
       },
     ];
   }
 
-  update(): void {
+  private updateFieldErrors(): void {
     if (!this.container) return;
 
-    this.container.innerHTML = this.render();
-    this.bindEvents();
+    const errors = this.model.fieldErrors.value;
+
+    for (const field of ['email', 'password'] as const) {
+      const wrapper = this.container.querySelector(`[data-form-field="${field}"]`);
+      if (!wrapper) continue;
+
+      const errorMessage = errors[field] ?? '';
+      const hasError = Boolean(errorMessage);
+
+      const errorSlot = wrapper.querySelector('[data-field-error]');
+
+      ['label', 'input'].forEach((name) => {
+        wrapper.querySelector(name)?.classList.toggle(`field__${name}_error`, hasError);
+      });
+
+      if (errorSlot) {
+        errorSlot.innerHTML = renderFieldError(errorMessage, 'field__error');
+      }
+    }
+  }
+
+  private updateGeneralError(): void {
+    if (!this.container) return;
+
+    const slot = this.container.querySelector('[data-general-error-slot]');
+    if (slot) {
+      slot.innerHTML = renderAuthError(
+        this.model.generalError.value,
+        this.model.generalErrorHint.value,
+      );
+    }
+  }
+
+  private updateLoading(): void {
+    const oldBtn = document.getElementById(LOGIN_SUBMIT_ID);
+    if (!(oldBtn instanceof HTMLButtonElement)) return;
+
+    const loading = this.model.loading.value;
+
+    oldBtn.disabled = loading;
+    oldBtn.innerHTML = loading ? `${SpinnerIcon} Проверяем данные...` : 'Войти';
   }
 
   bindEvents(): void {
@@ -106,97 +127,45 @@ export class LoginPage extends Page {
 
     form?.addEventListener('submit', (event: SubmitEvent) => {
       event.preventDefault();
-      void this.submit();
+      eventBus.emit('login:submit');
     });
 
-    this.container?.querySelectorAll<HTMLElement>('[data-toggle-password]').forEach((button) => {
-      button.addEventListener('click', () => {
-        this.togglePassword(button);
+    for (const field of ['email', 'password'] as const) {
+      const input = document.getElementById(field);
+      input?.addEventListener('input', () => {
+        if (!(input instanceof HTMLInputElement)) return;
+        eventBus.emit('login:field-change', { field, value: input.value });
       });
+    }
+
+    this.container?.querySelectorAll<HTMLElement>('[data-toggle-password]').forEach((button) => {
+      button.addEventListener('click', () => this.togglePassword(button));
     });
   }
 
-  togglePassword(button: HTMLElement): void {
+  private togglePassword(button: HTMLElement): void {
     const inputId = button.dataset.togglePassword;
-
     if (!inputId) return;
 
     const input = document.getElementById(inputId);
-
     if (!(input instanceof HTMLInputElement)) return;
 
     const show = input.type === 'password';
-
     input.type = show ? 'text' : 'password';
 
     button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
-
     button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
   }
 
-  async submit(): Promise<void> {
-    if (this.loading.value) return;
+  async afterMount(): Promise<void> {
+    this.offSuccess = eventBus.on('login:success', () => {
+      void showPage(ChatsPage, { replace: true });
+    });
+  }
 
-    const emailElement = document.getElementById('email');
-    const passwordElement = document.getElementById('password');
-
-    if (
-      !(emailElement instanceof HTMLInputElement) ||
-      !(passwordElement instanceof HTMLInputElement)
-    ) {
-      return;
-    }
-
-    this.values.email = emailElement.value.trim().toLowerCase();
-    this.values.password = passwordElement.value;
-
-    this.fieldErrors.value = {};
-    this.generalError.value = '';
-    this.generalErrorHint.value = '';
-
-    const emailError = validateMultiple([validateEmail, validateForbiddenChars], this.values.email);
-    const passwordError = validateMultiple(
-      [validatePassword, validateForbiddenChars],
-      this.values.password,
-    );
-
-    if (emailError || passwordError) {
-      this.fieldErrors.value = {
-        ...(emailError ? { email: emailError } : {}),
-        ...(passwordError ? { password: passwordError } : {}),
-      };
-      return;
-    }
-
-    this.loading.value = true;
-
-    const result = await user.login(this.values);
-
-    this.loading.value = false;
-
-    if (result instanceof ApiError) {
-      const isCredentialsError =
-        result.code === ERROR_CODES.UNAUTHORIZED ||
-        result.code === ERROR_CODES.INVALID_CREDENTIALS ||
-        result.status === STATUSES.BAD_REQUEST;
-
-      const errorCode = isCredentialsError
-        ? ERROR_CODES.INVALID_CREDENTIALS
-        : ([ERROR_CODES.NETWORK_ERROR, ERROR_CODES.INTERNAL_ERROR] as ErrorCodes[]).includes(
-              result.code as ErrorCodes,
-            )
-          ? result.code
-          : ERROR_CODES.INTERNAL_ERROR;
-
-      this.generalError.value =
-        ERROR_MESSAGES[errorCode] ?? ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR];
-
-      this.generalErrorHint.value =
-        ERROR_HINTS[errorCode] ?? ERROR_HINTS[ERROR_CODES.UNKNOWN_ERROR];
-
-      return;
-    }
-
-    await showPage(ChatsPage, { replace: true });
+  unmount(): void {
+    this.offSuccess?.();
+    this.model.destroy();
+    super.unmount();
   }
 }

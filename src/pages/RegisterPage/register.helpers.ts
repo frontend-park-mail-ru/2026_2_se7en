@@ -50,8 +50,18 @@ export function normalizeValidationReason(field: RegisterField, reason: string):
     }
   }
 
-  if (field === 'first_name' && normalized.includes('maximum length')) {
-    return 'first_name_max_length';
+  if (field === 'first_name') {
+    if (normalized.includes('digits')) {
+      return 'first_name_no_digits';
+    }
+
+    if (normalized.includes('minimum length')) {
+      return 'first_name_length';
+    }
+
+    if (normalized.includes('maximum length')) {
+      return 'first_name_max_length';
+    }
   }
 
   return 'invalid_format';
@@ -92,7 +102,11 @@ export function validateForm(getFieldValue: (field: RegisterField) => string): V
 
       if (rules.minLength && value.length < rules.minLength) {
         const reason: ValidationReason =
-          field === 'nickname' ? 'nickname_length' : 'password_length';
+          field === 'nickname'
+            ? 'nickname_length'
+            : field === 'first_name'
+              ? 'first_name_length'
+              : 'password_length';
 
         fieldErrors[field] = reason;
         errors.push({ field, reason });
@@ -105,10 +119,12 @@ export function validateForm(getFieldValue: (field: RegisterField) => string): V
         fieldErrors[field] = reason;
         errors.push({ field, reason });
       } else if (rules.pattern && !rules.pattern.test(value)) {
-        const reason: ValidationReason =
-          field === 'nickname'
-            ? 'nickname_invalid_format'
-            : (`${field}_invalid_format` as ValidationReason);
+        const patternErrors: Partial<Record<RegisterField, ValidationReason>> = {
+          nickname: 'nickname_invalid_format',
+          first_name: 'first_name_no_digits',
+          email: 'email_invalid_format',
+        };
+        const reason = patternErrors[field] ?? 'invalid_format';
 
         fieldErrors[field] = reason;
         errors.push({ field, reason });
