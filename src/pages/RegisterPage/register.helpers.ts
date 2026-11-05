@@ -81,7 +81,7 @@ export function validateSingleField(field: RegisterField, value: string): Valida
   }
 
   if (rules.minLength && value.length < rules.minLength) {
-    return field === 'nickname' ? 'nickname_length' : 'password_length';
+    return `${field}_length` as ValidationReason;
   }
 
   if (rules.maxLength && value.length > rules.maxLength) {
@@ -91,9 +91,7 @@ export function validateSingleField(field: RegisterField, value: string): Valida
   }
 
   if (rules.pattern && !rules.pattern.test(value)) {
-    return field === 'nickname'
-      ? 'nickname_invalid_format'
-      : (`${field}_invalid_format` as ValidationReason);
+    return `${field}_invalid_format` as ValidationReason;
   }
 
   return null;

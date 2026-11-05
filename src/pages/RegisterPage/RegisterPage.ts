@@ -1,6 +1,7 @@
 import './RegisterPage.scss';
 import { ApiError } from '@/api/ApiResponse.js';
 import { AuthApi } from '@/api/auth/AuthApi.js';
+import { FormFieldErrorIcon } from '@/components/core/Icons.js';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
@@ -178,9 +179,7 @@ export class RegisterPage extends Page {
 
     const errorHtml = `
         <p class="register-field__error">
-            <svg fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="icon icon_sm icon_no-shrink icon_danger">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-            </svg>
+            ${FormFieldErrorIcon}
             ${escapeHtml(message)}
         </p>`;
 
