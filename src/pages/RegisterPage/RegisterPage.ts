@@ -65,22 +65,14 @@ export class RegisterPage extends Page {
       const errorMessage = errKey ? ERROR_MESSAGES[errKey] || errKey : '';
       const hasError = Boolean(errorMessage);
 
-      const label = wrapper.querySelector('label');
-      const input = wrapper.querySelector('input');
-      const description = wrapper.querySelector('[data-field-description]');
-      const errorSlot = wrapper.querySelector('[data-field-error]');
-
-      const formControls: Array<[Element | null, string]> = [
-        [label, 'register-field__label_error'],
-        [input, 'register-field__input_error'],
-      ];
-
-      formControls.forEach(([el, className]) => {
-        el?.classList.toggle(className, hasError);
+      ['label', 'input'].forEach((name) => {
+        wrapper.querySelector(name)?.classList.toggle(`register-field__${name}_error`, hasError);
       });
 
+      const description = wrapper.querySelector('[data-field-description]');
       description?.classList.toggle('is-hidden', hasError);
 
+      const errorSlot = wrapper.querySelector('[data-field-error]');
       if (errorSlot) {
         errorSlot.innerHTML = renderFieldError(errorMessage, 'register-field__error');
       }
