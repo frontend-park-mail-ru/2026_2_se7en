@@ -69,6 +69,7 @@ export class ServerApi {
         errorData.code ?? ERROR_CODES.UNKNOWN_ERROR,
         errorData.message ?? ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR],
         response.status,
+        errorData.details,
       );
     } catch {
       return new ApiError(ERROR_CODES.NETWORK_ERROR, ERROR_MESSAGES[ERROR_CODES.NETWORK_ERROR], 0);

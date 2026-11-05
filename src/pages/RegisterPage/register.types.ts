@@ -9,7 +9,9 @@ export type ValidationReason =
   | 'email_already_exists'
   | 'email_max_length'
   | 'email_invalid_format'
+  | 'first_name_length'
   | 'first_name_max_length'
+  | 'first_name_no_digits'
   | 'contains_emoji'
   | 'contains_invalid_chars'
   | 'invalid_format';

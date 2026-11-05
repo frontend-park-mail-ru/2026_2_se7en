@@ -1,3 +1,4 @@
+import { escapeHtml } from '@/helpers/EscapeHtml';
 import './Input.scss';
 
 type IconPosition = 'left' | 'right';
@@ -28,7 +29,7 @@ export function Input({
 }: InputParams): string {
   const idAttr = id ? `id="${id}"` : '';
   const nameAttr = name ? `name="${name}"` : '';
-  const valueAttr = value ? `value="${value}"` : '';
+  const valueAttr = value ? `value="${escapeHtml(value)}"` : '';
 
   const fieldClasses = `input__field${icon ? ` input__field_icon-${iconPosition}` : ''}`;
 

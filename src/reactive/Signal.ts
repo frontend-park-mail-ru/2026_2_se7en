@@ -6,6 +6,8 @@ type Listener = () => void;
  * Хранит одно значение и список подписчиков. Доступ к значению идёт через
  * свойство `value`, перехватываемое Proxy: чтение возвращает текущее
  * значение, запись — обновляет его и вызывает всех подписчиков.
+ *
+ * По умолчанию запись того же значения (Object.is) не вызывает подписчиков.
  */
 export class Signal<T> {
   declare value: T;
@@ -29,8 +31,10 @@ export class Signal<T> {
 
       set(target, prop, newValue) {
         if (prop === 'value') {
-          target.storedValue = newValue;
-          target.listeners.forEach((func) => func());
+          if (target.setValue(newValue)) {
+            target.listeners.forEach((func) => func());
+          }
+
           return true;
         }
 
@@ -40,7 +44,22 @@ export class Signal<T> {
   }
 
   /**
-   * Подписывает функцию на изменения значения сигнала..
+   * Записывает новое значение во внутреннее хранилище.
+   *
+   * @returns `true`, если значение изменилось (и подписчиков нужно уведомить),
+   *          `false`, если значение совпадает с текущим (`Object.is`).
+   */
+  private setValue(value: T): boolean {
+    if (Object.is(this.storedValue, value)) {
+      return false;
+    }
+
+    this.storedValue = value;
+    return true;
+  }
+
+  /**
+   * Подписывает функцию на изменения значения сигнала.
    */
   subscribe(func: Listener): void {
     this.listeners.push(func);

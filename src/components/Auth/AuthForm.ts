@@ -1,8 +1,8 @@
 import './AuthForm.scss';
-import type { Signal } from '@/reactive/Signal';
+import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.js';
-import { Field, type FieldParams } from './Field.js';
+import { Field, type FieldParams } from './Field.ts';
+import { Button } from '@/components/core/Button.ts';
 
 export interface AuthFormParams {
   formId: string;
@@ -12,9 +12,26 @@ export interface AuthFormParams {
   fields: FieldParams[];
   submitText: string;
   footer: string;
-  generalError: Signal<string>;
-  generalErrorHint: Signal<string>;
-  loading: Signal<boolean>;
+  generalError: string;
+  generalErrorHint: string;
+  loading: boolean;
+}
+
+/**
+ * Рендерит баннер общей ошибки над формой.
+ */
+export function renderAuthError(error = '', hint = ''): string {
+  if (!error) return '';
+
+  return `
+    <div class="auth-form__alert">
+      ${BannerErrorIcon}
+      <div>
+        <p class="auth-form__alert-title">${escapeHtml(error)}</p>
+        ${hint ? `<p class="auth-form__alert-hint">${escapeHtml(hint)}</p>` : ''}
+      </div>
+    </div>
+  `;
 }
 
 /**
@@ -33,22 +50,10 @@ export function AuthForm({
   loading,
 }: AuthFormParams): string {
   const fieldsHtml = fields.map((field) => Field(field)).join('');
-  const isLoading = loading.value;
-  const errorBanner = generalError.value
-    ? `
-    <div class="auth-form__alert">
-      ${BannerErrorIcon}
-      <div>
-        <p class="auth-form__alert-title">${escapeHtml(generalError.value)}</p>
-        ${generalErrorHint.value ? `<p class="auth-form__alert-hint">${escapeHtml(generalErrorHint.value)}</p>` : ''}
-      </div>
-    </div>
-  `
-    : '';
 
   return `
   <div class="auth-form">
-    ${errorBanner}
+    <div data-general-error-slot>${renderAuthError(generalError, generalErrorHint)}</div>
 
     <div class="auth-form__card">
       <h2 class="auth-form__title">${title}</h2>
@@ -58,14 +63,14 @@ export function AuthForm({
         ${fieldsHtml}
 
         <div class="auth-form__submit-wrap">
-          <button
-            type="submit"
-            id="${submitId}"
-            ${isLoading ? 'disabled' : ''}
-            class="submit-button"
-          >
-            ${isLoading ? `${SpinnerIcon} Проверяем данные...` : submitText}
-          </button>
+          ${Button({
+            id: submitId,
+            text: loading ? 'Проверяем данные...' : submitText,
+            type: 'submit',
+            disabled: loading,
+            className: 'submit-button',
+            iconBefore: loading ? SpinnerIcon : '',
+          })}
         </div>
 
         <div class="auth-form__footer">

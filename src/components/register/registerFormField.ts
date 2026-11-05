@@ -1,6 +1,7 @@
 import './registerFormField.scss';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.js';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.ts';
+import { renderFieldError } from '@/helpers/FieldError.ts';
 
 const registerEyeIcons = `${EyeOpenIcon.replace(
   'class="icon icon_md is-hidden"',
@@ -63,24 +64,18 @@ export function FormField({
       </div>`
       : inputHtml;
 
-  const errorHtml = hasError
-    ? `
-        <p class="register-field__error">
-            <svg fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="icon icon_sm icon_no-shrink icon_danger">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-            </svg>
-            ${escapeHtml(error)}
-        </p>`
+  const descriptionHtml = description
+    ? `<p data-field-description class="register-field__description${hasError ? ' is-hidden' : ''}">${escapeHtml(description)}</p>`
     : '';
 
   return `
-        <div data-form-field>
+        <div data-form-field="${id}">
             <label for="${id}" class="${labelClass}">
                 ${label}${hintHtml}
             </label>
             ${inputWithToggle}
-            ${description && !hasError ? `<p class="register-field__description">${escapeHtml(description)}</p>` : ''}
-            ${errorHtml}
+            ${descriptionHtml}
+            <div data-field-error>${renderFieldError(error, 'register-field__error')}</div>
         </div>
     `;
 }

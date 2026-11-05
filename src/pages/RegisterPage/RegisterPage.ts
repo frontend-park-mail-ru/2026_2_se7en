@@ -26,14 +26,12 @@ import type {
 import { validateForm, validateSingleField } from '@/pages/RegisterPage/register.helpers.js';
 
 /**
- * Страница регистрации: форма создания аккаунта с клиентской валидацией.
+ * View страницы регистрации.
  */
 export class RegisterPage extends Page {
   static route = ROUTES.REGISTER;
 
-  private fieldErrors = new Signal<RegisterFieldErrors>({});
-  private generalError = new Signal<string | null>(null);
-  private isSubmitting = new Signal<boolean>(false);
+  private readonly model = new RegisterPageModel();
 
   private touchedFields = new Set<RegisterField>();
   private submitAttempted = false;
@@ -48,9 +46,9 @@ export class RegisterPage extends Page {
   constructor() {
     super();
 
-    this.setSubscribers([this.fieldErrors, this.generalError, this.isSubmitting], () =>
-      this.update(),
-    );
+    this.setSubscribers([this.model.fieldErrors], () => this.updateFieldErrors());
+    this.setSubscribers([this.model.generalError], () => this.updateGeneralError());
+    this.setSubscribers([this.model.isSubmitting], () => this.updateSubmittingState());
   }
 
   render(): string {
@@ -60,11 +58,13 @@ export class RegisterPage extends Page {
         <div class="register-page__main">
           <div class="register-page__content">
             <div class="register-page__form-box">
-              ${renderRegisterError(this.generalError.value)}
+              <div data-general-error-slot>
+                ${renderRegisterError(this.model.generalError.value)}
+              </div>
               ${renderRegisterForm({
-                formData: this.formData,
-                fieldErrors: this.fieldErrors.value,
-                isSubmitting: this.isSubmitting.value,
+                formData: this.model.formData,
+                fieldErrors: this.model.fieldErrors.value,
+                isSubmitting: this.model.isSubmitting.value,
               })}
             </div>
           </div>
@@ -73,21 +73,59 @@ export class RegisterPage extends Page {
     `;
   }
 
-  update(): void {
+  private updateFieldErrors(): void {
     if (!this.container) return;
 
-    this.container.innerHTML = this.render();
-    this.bindEvents();
+    const errors = this.model.fieldErrors.value;
+
+    (Object.keys(this.model.formData) as RegisterField[]).forEach((fieldId) => {
+      const wrapper = this.container?.querySelector(`[data-form-field="${fieldId}"]`);
+      if (!wrapper) return;
+
+      const errKey = errors[fieldId];
+      const errorMessage = errKey ? ERROR_MESSAGES[errKey] || errKey : '';
+      const hasError = Boolean(errorMessage);
+
+      ['label', 'input'].forEach((name) => {
+        wrapper.querySelector(name)?.classList.toggle(`register-field__${name}_error`, hasError);
+      });
+
+      const description = wrapper.querySelector('[data-field-description]');
+      description?.classList.toggle('is-hidden', hasError);
+
+      const errorSlot = wrapper.querySelector('[data-field-error]');
+      if (errorSlot) {
+        errorSlot.innerHTML = renderFieldError(errorMessage, 'register-field__error');
+      }
+    });
+  }
+
+  private updateGeneralError(): void {
+    if (!this.container) return;
+
+    const slot = this.container.querySelector('[data-general-error-slot]');
+    if (slot) {
+      slot.innerHTML = renderRegisterError(this.model.generalError.value);
+    }
+  }
+
+  private updateSubmittingState(): void {
+    const submitBtn = document.getElementById(ELEMENT_IDS.SUBMIT_BUTTON);
+    if (!(submitBtn instanceof HTMLButtonElement)) return;
+
+    const isSubmitting = this.model.isSubmitting.value;
+    submitBtn.disabled = isSubmitting;
+    submitBtn.textContent = isSubmitting ? 'Создание...' : 'Создать аккаунт';
   }
 
   bindEvents(): void {
     document.getElementById(ELEMENT_IDS.FORM)?.addEventListener('submit', (event: SubmitEvent) => {
-      void this.handleSubmit(event);
+      event.preventDefault();
+      eventBus.emit('register:submit');
     });
 
-    (Object.keys(VALIDATION_RULES) as RegisterField[]).forEach((fieldName) => {
+    (Object.keys(this.model.formData) as RegisterField[]).forEach((fieldName) => {
       const input = document.getElementById(fieldName);
-
       input?.addEventListener('input', () => {
         if (!(input instanceof HTMLInputElement)) return;
 
@@ -112,27 +150,20 @@ export class RegisterPage extends Page {
       ?.querySelector<HTMLElement>('[data-toggle-password]')
       ?.addEventListener('click', (event: MouseEvent) => {
         const button = event.currentTarget;
-
         if (!(button instanceof HTMLElement)) return;
 
         const inputId = button.dataset.togglePassword;
-
         if (!inputId) return;
 
         const input = document.getElementById(inputId);
-
         if (!(input instanceof HTMLInputElement)) return;
 
         const show = input.type === 'password';
-
         input.type = show ? 'text' : 'password';
 
         button.setAttribute('aria-label', show ? 'Скрыть пароль' : 'Показать пароль');
-
         button.setAttribute('aria-pressed', String(show));
-
         button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
-
         button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
       });
   }

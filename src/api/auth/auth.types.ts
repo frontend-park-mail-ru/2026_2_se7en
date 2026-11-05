@@ -49,3 +49,5 @@ export interface RegisterFormData {
 export type RegisterField = keyof RegisterFormData;
 
 export type RegisterFieldErrors = Partial<Record<RegisterField, string>>;
+
+export type LoginField = keyof LoginData;

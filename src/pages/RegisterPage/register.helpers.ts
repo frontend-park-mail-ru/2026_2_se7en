@@ -50,8 +50,18 @@ export function normalizeValidationReason(field: RegisterField, reason: string):
     }
   }
 
-  if (field === 'first_name' && normalized.includes('maximum length')) {
-    return 'first_name_max_length';
+  if (field === 'first_name') {
+    if (normalized.includes('digits')) {
+      return 'first_name_no_digits';
+    }
+
+    if (normalized.includes('minimum length')) {
+      return 'first_name_length';
+    }
+
+    if (normalized.includes('maximum length')) {
+      return 'first_name_max_length';
+    }
   }
 
   return 'invalid_format';

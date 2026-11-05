@@ -1,4 +1,5 @@
 import './Button.scss';
+import { renderAttrs } from '@/helpers/RenderAttrs.ts';
 
 export interface ButtonParams {
   text: string;
@@ -41,6 +42,7 @@ export function Button({
   const ariaLabelAttr = ariaLabel ? `aria-label="${ariaLabel}"` : '';
   const titleAttr = title ? `title="${title}"` : '';
   const disabledAttr = disabled ? 'disabled' : '';
+  const attrsHtml = renderAttrs(attrs);
   const iconBeforeHtml = iconBefore ? `<span class="button__icon">${iconBefore}</span>` : '';
   const iconAfterHtml = iconAfter ? `<span class="button__icon">${iconAfter}</span>` : '';
   const finalClasses = `button ${modeClass} ${className}`.trim();
