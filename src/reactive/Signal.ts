@@ -31,12 +31,9 @@ export class Signal<T> {
 
       set(target, prop, newValue) {
         if (prop === 'value') {
-          if (Object.is(target.storedValue, newValue)) {
-            return true;
+          if (target.setValue(newValue)) {
+            target.listeners.forEach((func) => func());
           }
-
-          target.setValue(newValue);
-          target.listeners.forEach((func) => func());
 
           return true;
         }
@@ -49,10 +46,16 @@ export class Signal<T> {
   /**
    * Записывает новое значение во внутреннее хранилище.
    *
-   * Отвечает только за установку значения;
+   * @returns `true`, если значение изменилось (и подписчиков нужно уведомить),
+   *          `false`, если значение совпадает с текущим (`Object.is`).
    */
-  private setValue(value: T): void {
+  private setValue(value: T): boolean {
+    if (Object.is(this.storedValue, value)) {
+      return false;
+    }
+
     this.storedValue = value;
+    return true;
   }
 
   /**
