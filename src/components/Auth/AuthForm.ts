@@ -2,7 +2,7 @@ import './AuthForm.scss';
 import { BannerErrorIcon, SpinnerIcon } from '@/components/core/Icons.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { Field, type FieldParams } from './Field.ts';
-import { Button } from '../core/Button.ts';
+import { Button } from '@/components/core/Button.ts';
 
 export interface AuthFormParams {
   formId: string;

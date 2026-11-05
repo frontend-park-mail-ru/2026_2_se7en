@@ -8,7 +8,6 @@ type Listener = () => void;
  * значение, запись — обновляет его и вызывает всех подписчиков.
  *
  * По умолчанию запись того же значения (Object.is) не вызывает подписчиков.
- * Чтобы уведомить их принудительно — используйте `setValue(value, true)`.
  */
 export class Signal<T> {
   declare value: T;
@@ -32,7 +31,13 @@ export class Signal<T> {
 
       set(target, prop, newValue) {
         if (prop === 'value') {
+          if (Object.is(target.storedValue, newValue)) {
+            return true;
+          }
+
           target.setValue(newValue);
+          target.listeners.forEach((func) => func());
+
           return true;
         }
 
@@ -42,19 +47,12 @@ export class Signal<T> {
   }
 
   /**
-   * Устанавливает значение сигнала.
+   * Записывает новое значение во внутреннее хранилище.
    *
-   * @param value Новое значение.
-   * @param force Если `true` — подписчики вызываются даже при совпадении
-   *              значений (`Object.is`).
+   * Отвечает только за установку значения;
    */
-  setValue(value: T, force = false): void {
-    if (!force && Object.is(this.storedValue, value)) {
-      return;
-    }
-
+  private setValue(value: T): void {
     this.storedValue = value;
-    this.listeners.forEach((func) => func());
   }
 
   /**
