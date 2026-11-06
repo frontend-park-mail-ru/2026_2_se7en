@@ -91,8 +91,10 @@ export class RegisterPage extends Page {
 
     const hasError = Boolean(message);
 
-    wrapper.querySelector('label')?.classList.toggle('register-field__label_error', hasError);
-    wrapper.querySelector('input')?.classList.toggle('register-field__input_error', hasError);
+    (['label', 'input'] as const).forEach((tag) => {
+      wrapper.querySelector(tag)?.classList.toggle(`register-field__${tag}_error`, hasError);
+    });
+
     wrapper.querySelector('[data-field-description]')?.classList.toggle('is-hidden', hasError);
 
     const errorSlot = wrapper.querySelector('[data-field-error]');
