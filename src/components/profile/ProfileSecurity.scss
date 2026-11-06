@@ -3,8 +3,7 @@
   gap: 1.5rem;
 
   &__row {
-    display: flex;
-    align-items: center;
+    @include flex-align-center;
     justify-content: space-between;
     padding-bottom: 1rem;
     border-bottom: 1px solid $gray-100;

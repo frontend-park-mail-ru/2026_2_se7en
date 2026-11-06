@@ -1,12 +1,11 @@
 import './ProfileCard.scss';
 import { UserIcon } from '@/components/core/Icons';
 import { escapeHtml } from '@/helpers/EscapeHtml';
+import type { ProfileCardParams } from './profile.types';
 
-export interface ProfileCardParams {
-  name: string;
-  subtitle: string;
-}
-
+/**
+ * Карточка с аватаром и именем пользователя.
+ */
 export function ProfileCard({ name, subtitle }: ProfileCardParams): string {
   return `
     <div class="profile-card">

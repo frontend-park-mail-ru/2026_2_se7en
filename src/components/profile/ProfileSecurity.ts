@@ -1,24 +1,17 @@
 import './ProfileSecurity.scss';
 import { Button } from '@/components/core/Button';
 import { escapeHtml } from '@/helpers/EscapeHtml';
+import { PROFILE_TEXTS } from '@/constants/Profile';
+import type { ProfileSecurityParams, SecurityRow } from './profile.types';
 
-export interface SecurityRow {
-  label: string;
-  value: string;
-  target: string;
-}
-
-export interface ProfileSecurityParams {
-  email: string;
-  phone: string;
-  passwordMask: string;
-}
-
+/**
+ * Компонент для отображения данных безопасности.
+ */
 export function ProfileSecurity({ email, phone, passwordMask }: ProfileSecurityParams): string {
   const rows: SecurityRow[] = [
-    { label: 'Почта', value: email, target: 'public' },
-    { label: 'Телефон', value: phone, target: 'phone' },
-    { label: 'Пароль', value: passwordMask, target: 'password' },
+    { label: PROFILE_TEXTS.LABEL_EMAIL, value: email, target: 'public' },
+    { label: PROFILE_TEXTS.LABEL_PHONE, value: phone, target: 'phone' },
+    { label: PROFILE_TEXTS.LABEL_PASSWORD, value: passwordMask, target: 'password' },
   ];
 
   return `
@@ -32,7 +25,7 @@ export function ProfileSecurity({ email, phone, passwordMask }: ProfileSecurityP
             <span class="profile-security__value">${escapeHtml(row.value)}</span>
           </div>
           ${Button({
-            text: 'Изменить',
+            text: PROFILE_TEXTS.BTN_CHANGE,
             mode: 'ghost',
             className: 'profile-security__btn',
             attrs: { 'data-edit-tab': row.target },

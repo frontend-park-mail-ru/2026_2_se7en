@@ -2,27 +2,13 @@
   position: relative;
   width: 100%;
 
-  &__alert {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    background-color: $red-50;
-    border: 1px solid $red-200;
-    border-radius: $radius-lg;
-
-    &-title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: $red-800;
-    }
-  }
-
   &__fields {
     @include flex-column;
     gap: 1.25rem;
   }
 
   &__actions {
-    display: flex;
+    @include flex;
     gap: 1rem;
     margin-top: 2rem;
   }
@@ -36,7 +22,7 @@
 
 .profile-field {
   &__label {
-    display: flex;
+    @include flex;
     justify-content: space-between;
     margin-bottom: 0.5rem;
     font-size: 0.875rem;

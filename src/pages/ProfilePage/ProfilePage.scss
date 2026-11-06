@@ -1,5 +1,5 @@
 .profile-page {
-  display: flex;
+  @include flex;
   flex: 1;
   padding: 1.5rem;
   gap: 1.5rem;

@@ -1,6 +1,5 @@
 .profile-card {
-  display: flex;
-  align-items: center;
+  @include flex-align-center;
   gap: 1rem;
   margin-bottom: 2rem;
 

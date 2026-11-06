@@ -12,6 +12,7 @@
     color: $gray-500;
     border-radius: $radius-md;
     transition: all $transition-fast $transition-easing;
+    justify-content: flex-start;
 
     &:hover {
       background-color: $gray-50;

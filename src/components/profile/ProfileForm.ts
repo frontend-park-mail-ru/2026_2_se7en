@@ -3,29 +3,22 @@ import { Button } from '@/components/core/Button';
 import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons';
 import { renderFieldError } from '@/helpers/FieldError';
 import { escapeHtml } from '@/helpers/EscapeHtml';
+import { PROFILE_TEXTS } from '@/constants/Profile';
+import type { ProfileFormParams } from './profile.types';
 
-export interface FormFieldParams {
-  id: string;
-  name: string;
-  label: string;
-  type?: string;
-  value?: string;
-  hint?: string;
-  error?: string;
-  isPassword?: boolean;
-}
+const authEyeClosedIcon = EyeClosedIcon.replace(
+  'class="icon icon_md"',
+  'class="icon icon_md is-hidden"',
+);
+const authEyeOpenIcon = EyeOpenIcon.replace(
+  'class="icon icon_md is-hidden"',
+  'class="icon icon_md"',
+);
 
-export interface ProfileFormParams {
-  fields: FormFieldParams[];
-  isSubmitting?: boolean;
-  globalError?: string | null;
-}
-
-export function ProfileForm({
-  fields,
-  isSubmitting = false,
-  globalError = null,
-}: ProfileFormParams): string {
+/**
+ * Универсальная форма профиля.
+ */
+export function ProfileForm({ fields }: ProfileFormParams): string {
   const fieldsHtml = fields
     .map((field) => {
       const hasError = Boolean(field.error);
@@ -35,15 +28,6 @@ export function ProfileForm({
       const hintHtml = field.hint
         ? `<span class="profile-field__hint">${escapeHtml(field.hint)}</span>`
         : '';
-
-      const authEyeClosedIcon = EyeClosedIcon.replace(
-        'class="icon icon_md"',
-        'class="icon icon_md is-hidden"',
-      );
-      const authEyeOpenIcon = EyeOpenIcon.replace(
-        'class="icon icon_md is-hidden"',
-        'class="icon icon_md"',
-      );
 
       const passwordToggle = field.isPassword
         ? `<button type="button" data-toggle-password="${field.id}" class="profile-field__toggle" aria-label="Показать пароль">
@@ -73,31 +57,25 @@ export function ProfileForm({
     })
     .join('');
 
-  const globalErrorHtml = globalError
-    ? `
-      <div class="profile-form__alert">
-        <div class="profile-form__alert-title">${escapeHtml(globalError)}</div>
-      </div>
-    `
-    : '';
-
   return `
     <div class="profile-form">
-      ${globalErrorHtml}
       <form id="profile-form" novalidate>
         <div class="profile-form__fields">
           ${fieldsHtml}
         </div>
 
         <div class="profile-form__actions">
-          <button type="button" id="profile-cancel-btn" class="button button_secondary profile-form__btn">
-            Отмена
-          </button>
           ${Button({
-            text: isSubmitting ? 'Сохранение...' : 'Сохранить',
+            id: 'profile-cancel-btn',
+            text: PROFILE_TEXTS.BTN_CANCEL,
+            type: 'button',
+            mode: 'secondary',
+            className: 'profile-form__btn',
+          })}
+          ${Button({
+            text: PROFILE_TEXTS.BTN_SAVE,
             type: 'submit',
             mode: 'primary',
-            disabled: isSubmitting,
             className: 'profile-form__btn',
           })}
         </div>
