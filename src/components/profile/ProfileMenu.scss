@@ -1,0 +1,29 @@
+.profile-menu {
+  @include flex-column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+
+  &__item {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $gray-500;
+    border-radius: $radius-md;
+    transition: all $transition-fast $transition-easing;
+
+    &:hover {
+      background-color: $gray-50;
+    }
+
+    &_active {
+      background-color: $blue-50;
+      color: $gray-900;
+
+      &:hover {
+        background-color: $blue-50;
+      }
+    }
+  }
+}

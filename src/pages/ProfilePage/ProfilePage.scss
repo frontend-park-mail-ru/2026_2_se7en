@@ -1,0 +1,42 @@
+.profile-page {
+  display: flex;
+  flex: 1;
+  padding: 1.5rem;
+  gap: 1.5rem;
+  background-color: $gray-50;
+  height: 100%;
+  overflow: hidden;
+
+  &__sidebar {
+    width: 15rem;
+    flex-shrink: 0;
+    background-color: $white;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-card;
+    height: fit-content;
+  }
+
+  &__main {
+    flex: 1;
+    @include flex-column;
+    overflow-y: auto;
+  }
+
+  &__header {
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $gray-900;
+  }
+
+  &__content {
+    background-color: $white;
+    border-radius: $radius-xl;
+    padding: 2rem;
+    box-shadow: $shadow-card;
+    max-width: 36rem;
+  }
+}
