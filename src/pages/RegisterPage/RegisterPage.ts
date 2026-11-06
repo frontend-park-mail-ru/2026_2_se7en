@@ -1,29 +1,16 @@
 import './RegisterPage.scss';
-import { ApiError } from '@/api/ApiResponse.js';
-import { AuthApi } from '@/api/auth/AuthApi.js';
-import { FormFieldErrorIcon } from '@/components/core/Icons.js';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
-import { STATUSES } from '@/constants/Statuses.js';
-import { Signal } from '@/reactive/Signal';
-import type { ValidationReason } from '@/pages/RegisterPage/register.types.js';
-import { escapeHtml } from '@/helpers/EscapeHtml.js';
+import type { RegisterField } from '@/api/auth/auth.types.js';
+import { RegisterPageModel } from '@/pages/RegisterPage/RegisterPage.model.js';
+import { eventBus } from '@/helpers/EventBus.js';
+import { renderFieldError } from '@/helpers/FieldError.js';
 import { renderRegisterError } from '@/components/register/registerError.js';
 import { renderRegisterForm } from '@/components/register/registerForm.js';
 import { renderRegisterHeader } from '@/components/register/registerHeader.js';
 import { showPage } from '@/helpers/ShowPage.js';
-import {
-  ELEMENT_IDS,
-  ERROR_MESSAGES,
-  VALIDATION_RULES,
-} from '@/pages/RegisterPage/register.constants.js';
-import type {
-  RegisterField,
-  RegisterFieldErrors,
-  RegisterFormData,
-} from '@/api/auth/auth.types.js';
-import { validateForm, validateSingleField } from '@/pages/RegisterPage/register.helpers.js';
+import { ELEMENT_IDS, ERROR_MESSAGES } from '@/pages/RegisterPage/register.constants.js';
 
 /**
  * View страницы регистрации.
@@ -33,15 +20,7 @@ export class RegisterPage extends Page {
 
   private readonly model = new RegisterPageModel();
 
-  private touchedFields = new Set<RegisterField>();
-  private submitAttempted = false;
-
-  private formData: RegisterFormData = {
-    first_name: '',
-    nickname: '',
-    email: '',
-    password: '',
-  };
+  private offSuccess?: () => void;
 
   constructor() {
     super();
@@ -79,24 +58,8 @@ export class RegisterPage extends Page {
     const errors = this.model.fieldErrors.value;
 
     (Object.keys(this.model.formData) as RegisterField[]).forEach((fieldId) => {
-      const wrapper = this.container?.querySelector(`[data-form-field="${fieldId}"]`);
-      if (!wrapper) return;
-
       const errKey = errors[fieldId];
-      const errorMessage = errKey ? ERROR_MESSAGES[errKey] || errKey : '';
-      const hasError = Boolean(errorMessage);
-
-      ['label', 'input'].forEach((name) => {
-        wrapper.querySelector(name)?.classList.toggle(`register-field__${name}_error`, hasError);
-      });
-
-      const description = wrapper.querySelector('[data-field-description]');
-      description?.classList.toggle('is-hidden', hasError);
-
-      const errorSlot = wrapper.querySelector('[data-field-error]');
-      if (errorSlot) {
-        errorSlot.innerHTML = renderFieldError(errorMessage, 'register-field__error');
-      }
+      this.setFieldErrorDom(fieldId, errKey ? ERROR_MESSAGES[errKey] || errKey : '');
     });
   }
 
@@ -118,6 +81,26 @@ export class RegisterPage extends Page {
     submitBtn.textContent = isSubmitting ? 'Создание...' : 'Создать аккаунт';
   }
 
+  /**
+   * Обновляет/убирает сообщение об ошибке под конкретным полем
+   * без перерендера всей формы.
+   */
+  private setFieldErrorDom(field: RegisterField, message: string): void {
+    const wrapper = this.container?.querySelector(`[data-form-field="${field}"]`);
+    if (!wrapper) return;
+
+    const hasError = Boolean(message);
+
+    wrapper.querySelector('label')?.classList.toggle('register-field__label_error', hasError);
+    wrapper.querySelector('input')?.classList.toggle('register-field__input_error', hasError);
+    wrapper.querySelector('[data-field-description]')?.classList.toggle('is-hidden', hasError);
+
+    const errorSlot = wrapper.querySelector('[data-field-error]');
+    if (errorSlot) {
+      errorSlot.innerHTML = renderFieldError(message, 'register-field__error');
+    }
+  }
+
   bindEvents(): void {
     document.getElementById(ELEMENT_IDS.FORM)?.addEventListener('submit', (event: SubmitEvent) => {
       event.preventDefault();
@@ -126,23 +109,14 @@ export class RegisterPage extends Page {
 
     (Object.keys(this.model.formData) as RegisterField[]).forEach((fieldName) => {
       const input = document.getElementById(fieldName);
+
       input?.addEventListener('input', () => {
         if (!(input instanceof HTMLInputElement)) return;
-
-        this.formData[fieldName] = input.value;
-        this.validateFieldLive(fieldName);
-
-        if (this.generalError.value !== null) {
-          this.generalError.value = null;
-        }
+        eventBus.emit('register:field-change', { field: fieldName, value: input.value });
       });
 
       input?.addEventListener('blur', () => {
-        if (!(input instanceof HTMLInputElement)) return;
-
-        this.formData[fieldName] = input.value;
-        this.touchedFields.add(fieldName);
-        this.validateFieldLive(fieldName);
+        eventBus.emit('register:field-blur', { field: fieldName });
       });
     });
 
@@ -168,118 +142,15 @@ export class RegisterPage extends Page {
       });
   }
 
-  private getFieldValue(field: RegisterField): string {
-    const value = this.formData[field];
-    return field === 'password' ? value : value.trim();
-  }
-
-  private validateFieldLive(field: RegisterField): void {
-    if (!this.touchedFields.has(field) && !this.submitAttempted) return;
-
-    const reason: ValidationReason | null = validateSingleField(field, this.getFieldValue(field));
-    this.setFieldErrorDom(field, reason ? ERROR_MESSAGES[reason] || reason : '');
-  }
-
-  /**
-   * Обновляет/убирает сообщение об ошибке под конкретным полем
-   * без перерендера всей формы.
-   */
-  private setFieldErrorDom(field: RegisterField, message: string): void {
-    const input = document.getElementById(field);
-
-    if (!(input instanceof HTMLInputElement)) return;
-
-    const fieldBox = input.closest('[data-form-field]');
-
-    if (!fieldBox) return;
-
-    const label = fieldBox.querySelector('.register-field__label');
-    const inputClass = 'register-field__input_error';
-    const labelClass = 'register-field__label_error';
-
-    fieldBox.querySelector('.register-field__error')?.remove();
-
-    if (!message) {
-      input.classList.remove(inputClass);
-      label?.classList.remove(labelClass);
-      return;
-    }
-
-    input.classList.add(inputClass);
-    label?.classList.add(labelClass);
-
-    const errorHtml = `
-        <p class="register-field__error">
-            ${FormFieldErrorIcon}
-            ${escapeHtml(message)}
-        </p>`;
-
-    input.insertAdjacentHTML('afterend', errorHtml);
-  }
-
-  readForm(): void {
-    (Object.keys(this.formData) as RegisterField[]).forEach((fieldName) => {
-      const input = document.getElementById(fieldName);
-
-      if (input instanceof HTMLInputElement) {
-        this.formData[fieldName] = input.value;
-      }
+  async afterMount(): Promise<void> {
+    this.offSuccess = eventBus.on('register:success', () => {
+      void showPage(LoginPage);
     });
   }
 
-  async handleSubmit(event: SubmitEvent): Promise<void> {
-    event.preventDefault();
-
-    if (this.isSubmitting.value) return;
-
-    this.submitAttempted = true;
-    this.readForm();
-
-    this.fieldErrors.value = {};
-    this.generalError.value = null;
-
-    const { isValid, fieldErrors } = validateForm((field) => this.getFieldValue(field));
-
-    if (!isValid) {
-      this.fieldErrors.value = fieldErrors;
-      return;
-    }
-
-    this.isSubmitting.value = true;
-
-    const result = await AuthApi.register({
-      email: this.formData.email.trim().toLowerCase(),
-      password: this.formData.password,
-      nickname: this.formData.nickname.trim(),
-      first_name: this.formData.first_name.trim(),
-    });
-
-    this.isSubmitting.value = false;
-
-    if (result.success) {
-      await showPage(LoginPage);
-      return;
-    }
-
-    const nextErrors: RegisterFieldErrors = {};
-
-    if (result.status === STATUSES.CONFLICT && result instanceof ApiError) {
-      if (result.code === 'EMAIL_TAKEN') {
-        nextErrors.email = 'email_already_exists';
-      }
-
-      if (result.code === 'NICKNAME_TAKEN') {
-        nextErrors.nickname = 'nickname_already_exists';
-      }
-    }
-
-    if (Object.keys(nextErrors).length > 0) {
-      this.fieldErrors.value = nextErrors;
-      return;
-    }
-
-    if (result instanceof ApiError) {
-      this.generalError.value = result.message || 'Произошла ошибка при регистрации';
-    }
+  unmount(): void {
+    this.offSuccess?.();
+    this.model.destroy();
+    super.unmount();
   }
 }

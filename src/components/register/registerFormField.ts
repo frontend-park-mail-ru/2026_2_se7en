@@ -1,7 +1,7 @@
 import './registerFormField.scss';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.ts';
 import { renderFieldError } from '@/helpers/FieldError.ts';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.ts';
 
 const registerEyeIcons = `${EyeOpenIcon.replace(
   'class="icon icon_md is-hidden"',

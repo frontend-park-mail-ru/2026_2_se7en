@@ -30,12 +30,6 @@ export const BannerErrorIcon = `
   </svg>
 `;
 
-export const FormFieldErrorIcon = `
-  <svg fill="none" viewBox="0 0 22 22" stroke-width="1.5" stroke="currentColor" class="icon icon_sm icon_no-shrink icon_danger">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-  </svg>
-`;
-
 export const SpinnerIcon = `
   <svg class="icon icon_md icon_spinner" viewBox="0 0 24 24" fill="none">
     <circle

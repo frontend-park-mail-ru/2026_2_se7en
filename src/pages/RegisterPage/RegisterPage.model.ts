@@ -3,12 +3,16 @@ import { AuthApi } from '@/api/auth/AuthApi.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
 import { Signal } from '@/reactive/Signal.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
-import { normalizeValidationReason, validateForm } from './register.helpers.ts';
 import type {
   RegisterField,
   RegisterFieldErrors,
   RegisterFormData,
 } from '@/api/auth/auth.types.ts';
+import {
+  normalizeValidationReason,
+  validateForm,
+  validateSingleField,
+} from './register.helpers.ts';
 
 /**
  * Модель страницы регистрации.
@@ -33,8 +37,11 @@ export class RegisterPageModel {
     password: '',
   };
 
+  private readonly touchedFields = new Set<RegisterField>();
+
   private readonly offSubmit: () => void;
   private readonly offFieldChange: () => void;
+  private readonly offFieldBlur: () => void;
 
   constructor() {
     this.offSubmit = eventBus.on('register:submit', () => {
@@ -44,11 +51,17 @@ export class RegisterPageModel {
     this.offFieldChange = eventBus.on('register:field-change', ({ field, value }) => {
       this.setField(field, value);
     });
+
+    this.offFieldBlur = eventBus.on('register:field-blur', ({ field }) => {
+      this.touchedFields.add(field);
+      this.updateFieldError(field);
+    });
   }
 
   destroy(): void {
     this.offSubmit();
     this.offFieldChange();
+    this.offFieldBlur();
   }
 
   private setField(field: RegisterField, value: string): void {
@@ -61,10 +74,33 @@ export class RegisterPageModel {
     }
 
     this.generalError.value = null;
+
+    if (this.touchedFields.has(field)) {
+      this.updateFieldError(field);
+    }
+  }
+
+  /**
+   * Live-валидация поля: кладёт ошибку в сигнал fieldErrors (или убирает её),
+   * если поле уже посещено. Пароль не триммится.
+   */
+  private updateFieldError(field: RegisterField): void {
+    const value = this.formData[field];
+    const reason = validateSingleField(field, field === 'password' ? value : value.trim());
+
+    const withoutField = Object.fromEntries(
+      Object.entries(this.fieldErrors.value).filter(([key]) => key !== field),
+    );
+
+    this.fieldErrors.value = reason ? { ...withoutField, [field]: reason } : withoutField;
   }
 
   private async submit(): Promise<void> {
     if (this.isSubmitting.value) return;
+
+    (Object.keys(this.formData) as RegisterField[]).forEach((field) => {
+      this.touchedFields.add(field);
+    });
 
     this.fieldErrors.value = {};
     this.generalError.value = null;
