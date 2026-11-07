@@ -1,0 +1,43 @@
+.profile-security {
+  @include flex-column;
+  gap: 1.5rem;
+
+  &__row {
+    @include flex-align-center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid $gray-100;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+
+  &__info {
+    @include flex-column;
+    gap: 0.25rem;
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    color: $gray-500;
+  }
+
+  &__value {
+    font-size: 1rem;
+    color: $gray-900;
+    font-weight: 500;
+  }
+
+  &__btn {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $gray-900;
+    padding: 0.5rem;
+
+    &:hover {
+      color: $gray-600;
+    }
+  }
+}

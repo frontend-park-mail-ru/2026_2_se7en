@@ -1,10 +1,10 @@
 import { ChatArea } from '@/components/chat/ChatArea.ts';
 import { ChatList } from '@/components/chat/ChatList.ts';
+import { ChatsPageModel } from './ChatsPage.model.ts';
 import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import { Page } from '@/pages/Page.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
-import { ChatsPageModel } from './ChatsPage.model.ts';
 
 /**
  * View страницы чатов.

@@ -1,0 +1,38 @@
+import './ProfileSecurity.scss';
+import { PROFILE_TEXTS } from '@/constants/Profile';
+import { escapeHtml } from '@/helpers/EscapeHtml';
+import type { ProfileSecurityParams, SecurityRow } from './Profile.types';
+
+/**
+ * Компонент для отображения данных безопасности.
+ */
+export function ProfileSecurity({ email, phone, passwordMask }: ProfileSecurityParams): string {
+  const rows: SecurityRow[] = [
+    { label: PROFILE_TEXTS.LABEL_EMAIL, value: email, target: 'email' },
+    { label: PROFILE_TEXTS.LABEL_PHONE, value: phone, target: 'phone' },
+    { label: PROFILE_TEXTS.LABEL_PASSWORD, value: passwordMask, target: 'password' },
+  ];
+
+  return `
+    <div class="profile-security">
+      ${rows
+        .map(
+          (row) => `
+        <div class="profile-security__row">
+          <div class="profile-security__info">
+            <span class="profile-security__label">${escapeHtml(row.label)}</span>
+            <span class="profile-security__value">${escapeHtml(row.value)}</span>
+          </div>
+          <a
+            href="/profile/${row.target}"
+            class="button button_ghost profile-security__btn"
+          >
+            ${PROFILE_TEXTS.BTN_CHANGE}
+          </a>
+        </div>
+      `,
+        )
+        .join('')}
+    </div>
+  `;
+}

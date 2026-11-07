@@ -1,12 +1,12 @@
-import { ChatsApi } from '@/api/chats/ChatsApi.ts';
 import { ApiError } from '@/api/ApiResponse.ts';
+import { ChatsApi } from '@/api/chats/ChatsApi.ts';
+import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import { ERROR_CODES } from '@/api/error.constants.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
-import { eventBus } from '@/helpers/EventBus.ts';
 import { Signal } from '@/reactive/Signal.ts';
 import { debugError } from '@/helpers/DebugError.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
 import { toDisplayChat } from '@/helpers/chat.ts';
-import type { DisplayChat } from '@/api/chats/chats.types.ts';
 
 /**
  * Модель страницы чатов.
