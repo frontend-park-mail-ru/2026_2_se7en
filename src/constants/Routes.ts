@@ -20,5 +20,5 @@ export const ROUTES = {
   PROFILE_EMAIL: '/profile/email',
   PROFILE_PHONE: '/profile/phone',
   PROFILE_PASSWORD: '/profile/password',
-  PROFILE_PATTERN: /^\/profile(\/(public|security|email|phone|password))?$/,
+  PROFILE_PATTERN: /^\/profile(\/[^/]+)?$/,
 } as const satisfies Record<Route, string | RegExp>;

@@ -2,11 +2,11 @@ import './ProfilePage.scss';
 import { DefaultLayout } from '@/layouts/DefaultLayout';
 import { Page } from '@/pages/Page';
 import { ProfileContent } from '@/components/profile/ProfileContent';
-import { ProfilePageModel, VALID_TABS } from './ProfilePage.model';
+import type { ProfileTab } from '@/components/profile/Profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { bindPasswordToggles } from '@/helpers/PasswordToggle';
 import { router } from '@/helpers/Router';
-import type { ProfileTab } from '@/components/profile/Profile.types';
+import { ProfilePageModel, VALID_TABS } from './ProfilePage.model';
 
 /**
  * Страница профиля.
@@ -39,7 +39,7 @@ export class ProfilePage extends Page {
     const segments = window.location.pathname.split('/').filter(Boolean);
     const tab = segments[1];
 
-    if (tab && !VALID_TABS.includes(tab as ProfileTab)) {
+    if (!tab || !VALID_TABS.includes(tab as ProfileTab)) {
       void router.goTo(ROUTES.PROFILE_SECURITY, { replace: true });
       return;
     }
