@@ -26,6 +26,9 @@ type RegisterEvents = {
   /** View: пользователь ввёл текст в поле. */
   'register:field-change': { field: RegisterField; value: string };
 
+  /** View: пользователь покинул поле (blur). */
+  'register:field-blur': { field: RegisterField };
+
   /** Model: пользователь успешно зарегистрирован. */
   'register:success': void;
 };
