@@ -1,7 +1,7 @@
 import './ProfileCard.scss';
+import type { ProfileCardParams } from './profile.types';
 import { UserIcon } from '@/components/core/Icons';
 import { escapeHtml } from '@/helpers/EscapeHtml';
-import type { ProfileCardParams } from './profile.types';
 
 /**
  * Карточка с аватаром и именем пользователя.

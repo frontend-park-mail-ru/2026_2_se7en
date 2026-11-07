@@ -1,5 +1,5 @@
-import { escapeHtml } from '@/helpers/EscapeHtml';
 import './Input.scss';
+import { escapeHtml } from '@/helpers/EscapeHtml';
 
 type IconPosition = 'left' | 'right';
 

@@ -1,26 +1,30 @@
 import './ProfileMenu.scss';
-import { Button } from '@/components/core/Button';
 import { PROFILE_TEXTS } from '@/constants/Profile';
 import type { ProfileTab } from './profile.types';
 
-export function ProfileMenu(activeTab: ProfileTab): string {
-  const isPublic = activeTab === 'public';
-  const isSecurity = activeTab !== 'public';
+const MENU_ITEMS: Array<{ tab: ProfileTab; label: string }> = [
+  { tab: 'public', label: PROFILE_TEXTS.MENU_PUBLIC },
+  { tab: 'security', label: PROFILE_TEXTS.MENU_SECURITY },
+];
 
+/**
+ * Меню навигации по разделам профиля.
+ */
+export function ProfileMenu(activeTab: ProfileTab): string {
   return `
     <nav class="profile-menu">
-      ${Button({
-        text: PROFILE_TEXTS.MENU_PUBLIC,
-        mode: 'ghost',
-        className: `profile-menu__item${isPublic ? ' profile-menu__item_active' : ''}`,
-        attrs: { 'data-tab': 'public' },
-      })}
-      ${Button({
-        text: PROFILE_TEXTS.MENU_SECURITY,
-        mode: 'ghost',
-        className: `profile-menu__item${isSecurity ? ' profile-menu__item_active' : ''}`,
-        attrs: { 'data-tab': 'security' },
-      })}
+      ${MENU_ITEMS.map(({ tab, label }) => {
+        const isActive = tab === 'public' ? activeTab === 'public' : activeTab !== 'public';
+
+        return `
+          <a
+            href="/profile/${tab}"
+            class="profile-menu__item${isActive ? ' profile-menu__item_active' : ''}"
+          >
+            ${label}
+          </a>
+        `;
+      }).join('')}
     </nav>
   `;
 }

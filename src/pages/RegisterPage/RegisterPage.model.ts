@@ -3,12 +3,12 @@ import { AuthApi } from '@/api/auth/AuthApi.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
 import { Signal } from '@/reactive/Signal.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
-import { normalizeValidationReason, validateForm } from './register.helpers.ts';
 import type {
   RegisterField,
   RegisterFieldErrors,
   RegisterFormData,
 } from '@/api/auth/auth.types.ts';
+import { normalizeValidationReason, validateForm } from './register.helpers.ts';
 
 /**
  * Модель страницы регистрации.

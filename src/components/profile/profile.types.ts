@@ -1,3 +1,5 @@
+import type { ProfileData } from '@/api/profile/profile.types';
+
 export type ProfileTab = 'public' | 'security' | 'phone' | 'password';
 
 export interface ProfileCardParams {
@@ -30,4 +32,9 @@ export interface FormFieldParams {
 
 export interface ProfileFormParams {
   fields: FormFieldParams[];
+}
+
+export interface ProfileContentParams {
+  profile: ProfileData | null;
+  activeTab: ProfileTab;
 }

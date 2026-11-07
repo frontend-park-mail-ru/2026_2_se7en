@@ -1,10 +1,11 @@
 import './ProfileForm.scss';
 import { Button } from '@/components/core/Button';
-import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons';
-import { renderFieldError } from '@/helpers/FieldError';
-import { escapeHtml } from '@/helpers/EscapeHtml';
+import { Input } from '@/components/core/Input';
 import { PROFILE_TEXTS } from '@/constants/Profile';
 import type { ProfileFormParams } from './profile.types';
+import { escapeHtml } from '@/helpers/EscapeHtml';
+import { renderFieldError } from '@/helpers/FieldError';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons';
 
 const authEyeClosedIcon = EyeClosedIcon.replace(
   'class="icon icon_md"',
@@ -23,17 +24,23 @@ export function ProfileForm({ fields }: ProfileFormParams): string {
     .map((field) => {
       const hasError = Boolean(field.error);
       const labelClass = `profile-field__label${hasError ? ' profile-field__label_error' : ''}`;
-      const inputClass = `profile-field__input${hasError ? ' profile-field__input_error' : ''}`;
+      const passwordModifier = field.isPassword ? ' profile-field__input_password' : '';
+      const inputClass = `profile-field__input${hasError ? ' profile-field__input_error' : ''}${passwordModifier}`;
 
       const hintHtml = field.hint
         ? `<span class="profile-field__hint">${escapeHtml(field.hint)}</span>`
         : '';
 
       const passwordToggle = field.isPassword
-        ? `<button type="button" data-toggle-password="${field.id}" class="profile-field__toggle" aria-label="Показать пароль">
-             ${authEyeClosedIcon}
-             ${authEyeOpenIcon}
-           </button>`
+        ? Button({
+            text: '',
+            type: 'button',
+            mode: 'ghost',
+            className: 'profile-field__toggle',
+            ariaLabel: 'Показать пароль',
+            iconBefore: `${authEyeClosedIcon}${authEyeOpenIcon}`,
+            attrs: { 'data-toggle-password': field.id },
+          })
         : '';
 
       return `
@@ -42,13 +49,13 @@ export function ProfileForm({ fields }: ProfileFormParams): string {
             ${escapeHtml(field.label)} ${hintHtml}
           </label>
           <div class="profile-field__control">
-            <input
-              type="${field.type || 'text'}"
-              id="${field.id}"
-              name="${field.name}"
-              value="${escapeHtml(field.value || '')}"
-              class="${inputClass}"
-            />
+            ${Input({
+              type: field.type || 'text',
+              id: field.id,
+              name: field.name,
+              value: field.value || '',
+              className: inputClass,
+            })}
             ${passwordToggle}
           </div>
           <div data-field-error>${renderFieldError(field.error || '', 'profile-field__error')}</div>
@@ -65,13 +72,12 @@ export function ProfileForm({ fields }: ProfileFormParams): string {
         </div>
 
         <div class="profile-form__actions">
-          ${Button({
-            id: 'profile-cancel-btn',
-            text: PROFILE_TEXTS.BTN_CANCEL,
-            type: 'button',
-            mode: 'secondary',
-            className: 'profile-form__btn',
-          })}
+          <a
+            href="/profile/security"
+            class="button button_secondary profile-form__btn"
+          >
+            ${PROFILE_TEXTS.BTN_CANCEL}
+          </a>
           ${Button({
             text: PROFILE_TEXTS.BTN_SAVE,
             type: 'submit',

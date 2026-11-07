@@ -1,7 +1,6 @@
 import './ProfileSecurity.scss';
-import { Button } from '@/components/core/Button';
-import { escapeHtml } from '@/helpers/EscapeHtml';
 import { PROFILE_TEXTS } from '@/constants/Profile';
+import { escapeHtml } from '@/helpers/EscapeHtml';
 import type { ProfileSecurityParams, SecurityRow } from './profile.types';
 
 /**
@@ -24,12 +23,12 @@ export function ProfileSecurity({ email, phone, passwordMask }: ProfileSecurityP
             <span class="profile-security__label">${escapeHtml(row.label)}</span>
             <span class="profile-security__value">${escapeHtml(row.value)}</span>
           </div>
-          ${Button({
-            text: PROFILE_TEXTS.BTN_CHANGE,
-            mode: 'ghost',
-            className: 'profile-security__btn',
-            attrs: { 'data-edit-tab': row.target },
-          })}
+          <a
+            href="/profile/${row.target}"
+            class="button button_ghost profile-security__btn"
+          >
+            ${PROFILE_TEXTS.BTN_CHANGE}
+          </a>
         </div>
       `,
         )

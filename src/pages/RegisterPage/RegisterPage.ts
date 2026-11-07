@@ -4,6 +4,7 @@ import { Page } from '@/pages/Page.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import type { RegisterField } from '@/api/auth/auth.types.ts';
 import { RegisterPageModel } from './RegisterPage.model.ts';
+import { bindPasswordToggles } from '@/helpers/PasswordToggle.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 import { renderFieldError } from '@/helpers/FieldError.ts';
 import { renderRegisterError } from '@/components/register/registerError.ts';
@@ -111,26 +112,9 @@ export class RegisterPage extends Page {
       });
     });
 
-    this.container
-      ?.querySelector<HTMLElement>('[data-toggle-password]')
-      ?.addEventListener('click', (event: MouseEvent) => {
-        const button = event.currentTarget;
-        if (!(button instanceof HTMLElement)) return;
-
-        const inputId = button.dataset.togglePassword;
-        if (!inputId) return;
-
-        const input = document.getElementById(inputId);
-        if (!(input instanceof HTMLInputElement)) return;
-
-        const show = input.type === 'password';
-        input.type = show ? 'text' : 'password';
-
-        button.setAttribute('aria-label', show ? 'Скрыть пароль' : 'Показать пароль');
-        button.setAttribute('aria-pressed', String(show));
-        button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
-        button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
-      });
+    if (this.container) {
+      bindPasswordToggles(this.container);
+    }
   }
 
   async afterMount(): Promise<void> {

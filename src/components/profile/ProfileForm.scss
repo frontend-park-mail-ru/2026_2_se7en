@@ -43,7 +43,7 @@
     position: relative;
   }
 
-  &__input {
+  &__input .input__field {
     width: 100%;
     padding: 0.875rem 1rem;
     background-color: $login-bg;
@@ -58,10 +58,14 @@
       @include focus-ring($black);
       background-color: $white;
     }
+  }
 
-    &_error {
-      border-color: $red-500;
-    }
+  &__input_error .input__field {
+    border-color: $red-500;
+  }
+
+  &__input_password .input__field {
+    padding-right: 3rem;
   }
 
   &__toggle {
