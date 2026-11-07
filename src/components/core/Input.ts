@@ -1,5 +1,5 @@
-import { escapeHtml } from '@/helpers/EscapeHtml';
 import './Input.scss';
+import { escapeHtml } from '@/helpers/EscapeHtml';
 
 type IconPosition = 'left' | 'right';
 
@@ -48,7 +48,7 @@ export function Input({
         type="${type}"
         ${idAttr}
         ${nameAttr}
-        placeholder="${placeholder}"
+        placeholder="${escapeHtml(placeholder)}"
         ${valueAttr}
         class="${fieldClasses}"
       >

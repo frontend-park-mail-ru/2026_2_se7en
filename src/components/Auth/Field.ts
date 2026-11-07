@@ -1,7 +1,7 @@
 import './Field.scss';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.ts';
 import { renderFieldError } from '@/helpers/FieldError.ts';
+import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons.ts';
 
 export interface FieldParams {
   id: string;

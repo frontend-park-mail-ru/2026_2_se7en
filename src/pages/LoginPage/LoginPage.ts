@@ -1,15 +1,16 @@
+import { AuthLayout } from '@/components/Auth/AuthLayout.ts';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.ts';
+import type { LoginFieldConfig } from '@/api/auth/auth.types.ts';
+import { LoginPageModel } from './LoginPage.model.ts';
 import { Page } from '@/pages/Page.ts';
 import { ROUTES } from '@/constants/Routes.ts';
-import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.ts';
-import { eventBus } from '@/helpers/EventBus.ts';
-import { showPage } from '@/helpers/ShowPage.ts';
-import { renderFieldError } from '@/helpers/FieldError.ts';
-import { AuthForm, renderAuthError } from '@/components/Auth/AuthForm.ts';
-import { AuthLayout } from '@/components/Auth/AuthLayout.ts';
-import { LoginPageModel } from './LoginPage.model.ts';
-import type { LoginFieldConfig } from '@/api/auth/auth.types.ts';
 import { SpinnerIcon } from '@/components/core/Icons.ts';
+import { bindPasswordToggles } from '@/helpers/PasswordToggle.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
+import { renderFieldError } from '@/helpers/FieldError.ts';
+import { showPage } from '@/helpers/ShowPage.ts';
+import { AuthForm, renderAuthError } from '@/components/Auth/AuthForm.ts';
+import { LOGIN_FORM_ID, LOGIN_SUBMIT_ID } from '@/constants/Login.ts';
 
 /**
  * View страницы входа.
@@ -138,23 +139,9 @@ export class LoginPage extends Page {
       });
     }
 
-    this.container?.querySelectorAll<HTMLElement>('[data-toggle-password]').forEach((button) => {
-      button.addEventListener('click', () => this.togglePassword(button));
-    });
-  }
-
-  private togglePassword(button: HTMLElement): void {
-    const inputId = button.dataset.togglePassword;
-    if (!inputId) return;
-
-    const input = document.getElementById(inputId);
-    if (!(input instanceof HTMLInputElement)) return;
-
-    const show = input.type === 'password';
-    input.type = show ? 'text' : 'password';
-
-    button.querySelector('[data-eye="open"]')?.classList.toggle('is-hidden', show);
-    button.querySelector('[data-eye="closed"]')?.classList.toggle('is-hidden', !show);
+    if (this.container) {
+      bindPasswordToggles(this.container);
+    }
   }
 
   async afterMount(): Promise<void> {
