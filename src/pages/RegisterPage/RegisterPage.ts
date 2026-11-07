@@ -4,6 +4,7 @@ import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
 import type { RegisterField } from '@/api/auth/auth.types.js';
 import { RegisterPageModel } from '@/pages/RegisterPage/RegisterPage.model.js';
+import { bindPasswordToggles } from '@/helpers/PasswordToggle.js';
 import { eventBus } from '@/helpers/EventBus.js';
 import { renderFieldError } from '@/helpers/FieldError.js';
 import { renderRegisterError } from '@/components/register/registerError.js';
