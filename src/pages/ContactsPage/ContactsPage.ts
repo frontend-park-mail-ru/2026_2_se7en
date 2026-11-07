@@ -51,7 +51,6 @@ export class ContactsPage extends Page {
     if (!this.container) return;
 
     this.container.innerHTML = this.render();
-    this.bindEvents();
   }
 
   private updateContactItems(): void {
@@ -97,6 +96,7 @@ export class ContactsPage extends Page {
   };
 
   async afterMount(): Promise<void> {
+    this.bindEvents();
     eventBus.emit('contacts:load');
   }
 

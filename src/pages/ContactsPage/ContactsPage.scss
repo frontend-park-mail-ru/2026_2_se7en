@@ -13,12 +13,14 @@
     width: min(45%, 17.0625rem);
   }
 
-  .contact-dialog__placeholder {
-    padding: 0.5rem;
-  }
+  .contact-dialog {
+    &__placeholder {
+      padding: 0.5rem;
+    }
 
-  .contact-dialog__title {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+    &__title {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
   }
 }

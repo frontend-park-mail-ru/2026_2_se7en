@@ -79,6 +79,7 @@
 .contact-item {
   @include flex-align-center;
   width: 100%;
+  justify-content: flex-start;
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: $radius-md;

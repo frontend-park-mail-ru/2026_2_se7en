@@ -7,6 +7,7 @@ import { Signal } from '@/reactive/Signal.ts';
 import { debugError } from '@/helpers/DebugError.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 import { toDisplayContact } from '@/helpers/contact.ts';
+import { toRuLowerCase } from '@/helpers/contact.ts';
 
 /**
  * Модель страницы контактов.
@@ -45,7 +46,7 @@ export class ContactsPageModel {
   }
 
   get filteredContacts(): DisplayContact[] {
-    const query = this.searchQuery.trim().toLocaleLowerCase('ru-RU');
+    const query = toRuLowerCase(this.searchQuery.trim());
 
     if (!query) return this.contacts.value;
 
@@ -73,11 +74,10 @@ export class ContactsPageModel {
       }
 
       this.contacts.value = [];
-      this.activeContact.value = null;
     } else {
       this.contacts.value = (response.data?.items ?? []).map(toDisplayContact);
-      this.activeContact.value = null;
     }
+    this.activeContact.value = null;
 
     this.isLoading.value = false;
     this.isFetching = false;

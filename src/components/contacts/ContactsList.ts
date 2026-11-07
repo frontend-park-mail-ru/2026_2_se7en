@@ -28,13 +28,8 @@ export class ContactsList {
   private renderContact(contact: DisplayContact, activeContactId: string | null): string {
     const isActive = contact.id === activeContactId;
 
-    return `
-      <button
-        type="button"
-        class="contact-item${isActive ? ' contact-item_active' : ''}"
-        data-contact-id="${escapeHtml(contact.id)}"
-        aria-pressed="${isActive}"
-      >
+    return Button({
+      text: `
         <span class="contact-item__avatar-box">
           <span class="contact-item__avatar">${escapeHtml(contact.initials)}</span>
           ${contact.isOnline ? '<span class="contact-item__online"></span>' : ''}
@@ -45,8 +40,14 @@ export class ContactsList {
             ${contact.isOnline ? 'в сети' : 'был недавно'}
           </span>
         </span>
-      </button>
-    `;
+      `,
+      mode: 'ghost',
+      className: `contact-item${isActive ? ' contact-item_active' : ''}`,
+      attrs: {
+        'data-contact-id': contact.id,
+        'aria-pressed': String(isActive),
+      },
+    });
   }
 
   /**
@@ -106,13 +107,15 @@ export class ContactsList {
       icon: SearchIcon,
     });
 
+    const showSearch = !isLoading && !hasError && totalCount > 0;
+
     return `
       <section class="contacts-list" aria-label="Список контактов">
         <header class="contacts-list__header">
           <h2 class="contacts-list__title">Контакты</h2>
         </header>
         ${
-          !isLoading && !hasError && totalCount > 0
+          showSearch
             ? `
               <div class="contacts-list__search">${search}</div>
               <p class="contacts-list__count">${getContactCount(totalCount)}</p>

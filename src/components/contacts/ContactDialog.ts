@@ -7,14 +7,6 @@ import { escapeHtml } from '@/helpers/EscapeHtml.ts';
  * */
 export class ContactDialog {
   render(activeContact: DisplayContact | null, hasContacts: boolean): string {
-    const placeholder = hasContacts
-      ? `
-          <p class="contact-dialog__text">Выберите контакт чтобы показать диалог с ним.</p>
-        `
-      : `
-          <p class="contact-dialog__text">Добавить пользователя в контакты можно на странице его профиля.</p>
-        `;
-
     return `
       <section class="contact-dialog" aria-label="Диалог с контактом">
         ${
@@ -39,7 +31,13 @@ export class ContactDialog {
             : `
               <div class="contact-dialog__placeholder">
                 <h2 class="contact-dialog__title">Общение начинается с контакта</h2>
-                ${placeholder}
+                <p class="contact-dialog__text">
+                  ${
+                    hasContacts
+                      ? 'Выберите контакт чтобы показать диалог с ним.'
+                      : 'Добавить пользователя в контакты можно на странице его профиля'
+                  }
+                </p>
               </div>
             `
         }
