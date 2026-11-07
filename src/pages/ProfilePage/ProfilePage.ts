@@ -2,12 +2,14 @@ import './ProfilePage.scss';
 import { DefaultLayout } from '@/layouts/DefaultLayout';
 import { Page } from '@/pages/Page';
 import { ProfileContent } from '@/components/profile/ProfileContent';
-import { ProfilePageModel } from './ProfilePage.model';
+import { ProfilePageModel, VALID_TABS } from './ProfilePage.model';
 import { ROUTES } from '@/constants/Routes';
 import { bindPasswordToggles } from '@/helpers/PasswordToggle';
+import { router } from '@/helpers/Router';
+import type { ProfileTab } from '@/components/profile/Profile.types';
 
 /**
- * Страница профиля. Только верстка, без логики.
+ * Страница профиля.
  */
 export class ProfilePage extends Page {
   static route = ROUTES.PROFILE;
@@ -34,6 +36,14 @@ export class ProfilePage extends Page {
   }
 
   async afterMount(): Promise<void> {
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    const tab = segments[1];
+
+    if (tab && !VALID_TABS.includes(tab as ProfileTab)) {
+      void router.goTo(ROUTES.PROFILE_SECURITY, { replace: true });
+      return;
+    }
+
     await this.model.loadProfile();
   }
 
