@@ -39,4 +39,19 @@
     box-shadow: $shadow-card;
     max-width: 36rem;
   }
+
+  &__error {
+    @include flex-align-center;
+    gap: 0.75rem;
+    padding: 1rem;
+    color: $red-500;
+    background-color: $red-50;
+    border: 1px solid $red-200;
+    border-radius: $radius-md;
+  }
+
+  &__loading {
+    padding: 2rem;
+    color: $gray-500;
+  }
 }

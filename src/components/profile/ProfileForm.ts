@@ -2,7 +2,8 @@ import './ProfileForm.scss';
 import { Button } from '@/components/core/Button';
 import { Input } from '@/components/core/Input';
 import { PROFILE_TEXTS } from '@/constants/Profile';
-import type { ProfileFormParams } from './profile.types';
+import type { ProfileFormParams } from './Profile.types';
+import { ROUTES } from '@/constants/Routes';
 import { escapeHtml } from '@/helpers/EscapeHtml';
 import { renderFieldError } from '@/helpers/FieldError';
 import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons';
@@ -66,26 +67,24 @@ export function ProfileForm({ fields }: ProfileFormParams): string {
 
   return `
     <div class="profile-form">
-      <form id="profile-form" novalidate>
-        <div class="profile-form__fields">
-          ${fieldsHtml}
-        </div>
+      <div class="profile-form__fields">
+        ${fieldsHtml}
+      </div>
 
-        <div class="profile-form__actions">
-          <a
-            href="/profile/security"
-            class="button button_secondary profile-form__btn"
-          >
-            ${PROFILE_TEXTS.BTN_CANCEL}
-          </a>
-          ${Button({
-            text: PROFILE_TEXTS.BTN_SAVE,
-            type: 'submit',
-            mode: 'primary',
-            className: 'profile-form__btn',
-          })}
-        </div>
-      </form>
+      <div class="profile-form__actions">
+        <a
+          href="${ROUTES.PROFILE_SECURITY}"
+          class="button button_secondary profile-form__btn"
+        >
+          ${PROFILE_TEXTS.BTN_CANCEL}
+        </a>
+        ${Button({
+          text: PROFILE_TEXTS.BTN_SAVE,
+          type: 'button',
+          mode: 'primary',
+          className: 'profile-form__btn',
+        })}
+      </div>
     </div>
   `;
 }

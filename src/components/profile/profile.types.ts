@@ -37,4 +37,5 @@ export interface ProfileFormParams {
 export interface ProfileContentParams {
   profile: ProfileData | null;
   activeTab: ProfileTab;
+  errorMessage?: string | null;
 }

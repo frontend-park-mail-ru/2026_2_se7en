@@ -1,5 +1,5 @@
 import './ProfileCard.scss';
-import type { ProfileCardParams } from './profile.types';
+import type { ProfileCardParams } from './Profile.types';
 import { UserIcon } from '@/components/core/Icons';
 import { escapeHtml } from '@/helpers/EscapeHtml';
 

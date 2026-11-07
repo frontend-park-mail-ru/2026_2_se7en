@@ -48,7 +48,7 @@ export function Input({
         type="${type}"
         ${idAttr}
         ${nameAttr}
-        placeholder="${placeholder}"
+        placeholder="${escapeHtml(placeholder)}"
         ${valueAttr}
         class="${fieldClasses}"
       >

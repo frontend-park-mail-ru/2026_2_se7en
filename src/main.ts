@@ -13,7 +13,7 @@ router
   .use(ROUTES.HOME, ChatsPage, { requiresAuth: true })
   .use(ROUTES.LOGIN, LoginPage, { guestOnly: true })
   .use(ROUTES.REGISTER, RegisterPage, { guestOnly: true })
-  .use(/^\/profile(\/(public|security|phone|password))?$/, ProfilePage, { requiresAuth: true });
+  .use(ROUTES.PROFILE_PATTERN, ProfilePage, { requiresAuth: true });
 
 async function initApp() {
   await user.updateCurrentUser();

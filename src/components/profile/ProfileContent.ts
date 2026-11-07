@@ -1,13 +1,28 @@
+import { BannerErrorIcon } from '@/components/core/Icons';
 import { PROFILE_TEXTS } from '@/constants/Profile';
 import { ProfileCard } from '@/components/profile/ProfileCard';
 import type { ProfileData } from '@/api/profile/profile.types';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileMenu } from '@/components/profile/ProfileMenu';
 import { ProfileSecurity } from '@/components/profile/ProfileSecurity';
-import type { FormFieldParams, ProfileContentParams } from './profile.types';
+import { escapeHtml } from '@/helpers/EscapeHtml';
+import type { FormFieldParams, ProfileContentParams } from './Profile.types';
 
+/**
+ * Генерирует HTML разметку формы публичного профиля.
+ *
+ * @param profile - Данные профиля пользователя.
+ * @returns Строка HTML с формой публичных данных.
+ */
 function renderPublicForm(profile: ProfileData): string {
   const fields: FormFieldParams[] = [
+    {
+      id: 'email',
+      name: 'email',
+      label: PROFILE_TEXTS.LABEL_EMAIL,
+      type: 'email',
+      value: profile.email,
+    },
     {
       id: 'first_name',
       name: 'first_name',
@@ -31,6 +46,12 @@ function renderPublicForm(profile: ProfileData): string {
   return ProfileForm({ fields });
 }
 
+/**
+ * Генерирует HTML разметку формы изменения номера телефона.
+ *
+ * @param profile - Данные профиля пользователя.
+ * @returns Строка HTML с формой телефона.
+ */
 function renderPhoneForm(profile: ProfileData): string {
   const fields: FormFieldParams[] = [
     {
@@ -43,6 +64,11 @@ function renderPhoneForm(profile: ProfileData): string {
   return ProfileForm({ fields });
 }
 
+/**
+ * Генерирует HTML разметку формы смены пароля.
+ *
+ * @returns Строка HTML с формой смены пароля.
+ */
 function renderPasswordForm(): string {
   const fields: FormFieldParams[] = [
     {
@@ -72,10 +98,42 @@ function renderPasswordForm(): string {
 }
 
 /**
- * Основной контент страницы профиля.
+ * Основной компонент содержимого страницы профиля.
+ *
+ * @param params - Параметры отображения контента профиля.
+ * @returns Строка HTML с контентом страницы.
  */
-export function ProfileContent({ profile, activeTab }: ProfileContentParams): string {
-  if (!profile) return '';
+export function ProfileContent({ profile, activeTab, errorMessage }: ProfileContentParams): string {
+  if (errorMessage) {
+    return `
+      <div class="profile-page">
+        <aside class="profile-page__sidebar">
+          ${ProfileMenu(activeTab)}
+        </aside>
+        <main class="profile-page__main">
+          <div class="profile-page__content">
+            <div class="profile-page__error" role="alert">
+              ${BannerErrorIcon}
+              <p>${escapeHtml(errorMessage)}</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    `;
+  }
+
+  if (!profile) {
+    return `
+      <div class="profile-page">
+        <aside class="profile-page__sidebar">
+          ${ProfileMenu(activeTab)}
+        </aside>
+        <main class="profile-page__main">
+          <div class="profile-page__loading">Загрузка…</div>
+        </main>
+      </div>
+    `;
+  }
 
   let headerTitle = '';
   let cardSubtitle = '';

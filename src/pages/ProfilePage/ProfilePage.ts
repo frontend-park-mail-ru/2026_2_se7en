@@ -18,7 +18,9 @@ export class ProfilePage extends Page {
   constructor() {
     super();
 
-    this.setSubscribers([this.model.activeTab, this.model.profile], () => this.update());
+    this.setSubscribers([this.model.activeTab, this.model.profile, this.model.errorMessage], () =>
+      this.update(),
+    );
   }
 
   render(): string {
@@ -26,6 +28,7 @@ export class ProfilePage extends Page {
       ProfileContent({
         profile: this.model.profile.value,
         activeTab: this.model.activeTab.value,
+        errorMessage: this.model.errorMessage.value,
       }),
     );
   }
@@ -36,10 +39,6 @@ export class ProfilePage extends Page {
 
   bindEvents(): void {
     this.layout.bindEvents();
-
-    document.getElementById('profile-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-    });
 
     if (this.container) {
       bindPasswordToggles(this.container);
