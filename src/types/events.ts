@@ -54,8 +54,20 @@ type ChatsEvents = {
   'chats:select': { id: string };
 };
 
+/** События страницы контактов. */
+type ContactsEvents = {
+  /** View: загрузить или перезагрузить список контактов. */
+  'contacts:load': void;
+
+  /** View: пользователь выбрал контакт. */
+  'contacts:select': { id: string };
+
+  /** View: пользователь изменил поисковый запрос. */
+  'contacts:search': { query: string };
+};
+
 /** Общая карта всех событий приложения. */
-export type EventMap = BaseEvents & RegisterEvents & LoginEvents & ChatsEvents;
+export type EventMap = BaseEvents & RegisterEvents & LoginEvents & ChatsEvents & ContactsEvents;
 
 /** Имя любого события. */
 export type EventName = keyof EventMap;

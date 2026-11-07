@@ -1,0 +1,24 @@
+// Страница контактов: панель списка и область диалога.
+.contacts-page {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// Адаптация панелей для узких экранов.
+@media (max-width: 42rem) {
+  .contacts-list {
+    width: min(45%, 17.0625rem);
+  }
+
+  .contact-dialog__placeholder {
+    padding: 0.5rem;
+  }
+
+  .contact-dialog__title {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}

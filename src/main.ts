@@ -1,5 +1,6 @@
 import './styles/base.scss';
 import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.ts';
+import { ContactsPage } from '@/pages/ContactsPage/ContactsPage.ts';
 import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.ts';
@@ -10,6 +11,7 @@ router.setAuthCheck(() => user.getIsAuth());
 
 router
   .use(ROUTES.HOME, ChatsPage, { requiresAuth: true })
+  .use(ROUTES.CONTACTS, ContactsPage, { requiresAuth: true })
   .use(ROUTES.LOGIN, LoginPage, { guestOnly: true })
   .use(ROUTES.REGISTER, RegisterPage, { guestOnly: true });
 
