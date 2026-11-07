@@ -1,17 +1,16 @@
 import './RegisterPage.scss';
-import { LoginPage } from '@/pages/LoginPage/LoginPage.ts';
-import { Page } from '@/pages/Page.ts';
-import { ROUTES } from '@/constants/Routes.ts';
-import type { RegisterField } from '@/api/auth/auth.types.ts';
-import { RegisterPageModel } from './RegisterPage.model.ts';
-import { bindPasswordToggles } from '@/helpers/PasswordToggle.ts';
-import { eventBus } from '@/helpers/EventBus.ts';
-import { renderFieldError } from '@/helpers/FieldError.ts';
-import { renderRegisterError } from '@/components/register/registerError.ts';
-import { renderRegisterForm } from '@/components/register/registerForm.ts';
-import { renderRegisterHeader } from '@/components/register/registerHeader.ts';
-import { showPage } from '@/helpers/ShowPage.ts';
-import { ELEMENT_IDS, ERROR_MESSAGES } from './register.constants.ts';
+import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
+import { Page } from '@/pages/Page.js';
+import { ROUTES } from '@/constants/Routes.js';
+import type { RegisterField } from '@/api/auth/auth.types.js';
+import { RegisterPageModel } from '@/pages/RegisterPage/RegisterPage.model.js';
+import { eventBus } from '@/helpers/EventBus.js';
+import { renderFieldError } from '@/helpers/FieldError.js';
+import { renderRegisterError } from '@/components/register/registerError.js';
+import { renderRegisterForm } from '@/components/register/registerForm.js';
+import { renderRegisterHeader } from '@/components/register/registerHeader.js';
+import { showPage } from '@/helpers/ShowPage.js';
+import { ELEMENT_IDS, ERROR_MESSAGES } from '@/pages/RegisterPage/register.constants.js';
 
 /**
  * View страницы регистрации.
@@ -59,24 +58,8 @@ export class RegisterPage extends Page {
     const errors = this.model.fieldErrors.value;
 
     (Object.keys(this.model.formData) as RegisterField[]).forEach((fieldId) => {
-      const wrapper = this.container?.querySelector(`[data-form-field="${fieldId}"]`);
-      if (!wrapper) return;
-
       const errKey = errors[fieldId];
-      const errorMessage = errKey ? ERROR_MESSAGES[errKey] || errKey : '';
-      const hasError = Boolean(errorMessage);
-
-      ['label', 'input'].forEach((name) => {
-        wrapper.querySelector(name)?.classList.toggle(`register-field__${name}_error`, hasError);
-      });
-
-      const description = wrapper.querySelector('[data-field-description]');
-      description?.classList.toggle('is-hidden', hasError);
-
-      const errorSlot = wrapper.querySelector('[data-field-error]');
-      if (errorSlot) {
-        errorSlot.innerHTML = renderFieldError(errorMessage, 'register-field__error');
-      }
+      this.setFieldErrorDom(fieldId, errKey ? ERROR_MESSAGES[errKey] || errKey : '');
     });
   }
 
@@ -98,6 +81,28 @@ export class RegisterPage extends Page {
     submitBtn.textContent = isSubmitting ? 'Создание...' : 'Создать аккаунт';
   }
 
+  /**
+   * Обновляет/убирает сообщение об ошибке под конкретным полем
+   * без перерендера всей формы.
+   */
+  private setFieldErrorDom(field: RegisterField, message: string): void {
+    const wrapper = this.container?.querySelector(`[data-form-field="${field}"]`);
+    if (!wrapper) return;
+
+    const hasError = Boolean(message);
+
+    (['label', 'input'] as const).forEach((tag) => {
+      wrapper.querySelector(tag)?.classList.toggle(`register-field__${tag}_error`, hasError);
+    });
+
+    wrapper.querySelector('[data-field-description]')?.classList.toggle('is-hidden', hasError);
+
+    const errorSlot = wrapper.querySelector('[data-field-error]');
+    if (errorSlot) {
+      errorSlot.innerHTML = renderFieldError(message, 'register-field__error');
+    }
+  }
+
   bindEvents(): void {
     document.getElementById(ELEMENT_IDS.FORM)?.addEventListener('submit', (event: SubmitEvent) => {
       event.preventDefault();
@@ -106,9 +111,14 @@ export class RegisterPage extends Page {
 
     (Object.keys(this.model.formData) as RegisterField[]).forEach((fieldName) => {
       const input = document.getElementById(fieldName);
+
       input?.addEventListener('input', () => {
         if (!(input instanceof HTMLInputElement)) return;
         eventBus.emit('register:field-change', { field: fieldName, value: input.value });
+      });
+
+      input?.addEventListener('blur', () => {
+        eventBus.emit('register:field-blur', { field: fieldName });
       });
     });
 
