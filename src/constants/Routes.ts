@@ -10,15 +10,17 @@ type Route =
   | 'PROFILE_PASSWORD'
   | 'PROFILE_PATTERN';
 
+const PROFILE = '/profile';
+
 export const ROUTES = {
   HOME: '/chats',
   LOGIN: '/login',
   REGISTER: '/register',
-  PROFILE: '/profile',
-  PROFILE_PUBLIC: '/profile/public',
-  PROFILE_SECURITY: '/profile/security',
-  PROFILE_EMAIL: '/profile/email',
-  PROFILE_PHONE: '/profile/phone',
-  PROFILE_PASSWORD: '/profile/password',
+  PROFILE,
+  PROFILE_PUBLIC: `${PROFILE}/public`,
+  PROFILE_SECURITY: `${PROFILE}/security`,
+  PROFILE_EMAIL: `${PROFILE}/email`,
+  PROFILE_PHONE: `${PROFILE}/phone`,
+  PROFILE_PASSWORD: `${PROFILE}/password`,
   PROFILE_PATTERN: /^\/profile(\/[^/]+)?$/,
 } as const satisfies Record<Route, string | RegExp>;

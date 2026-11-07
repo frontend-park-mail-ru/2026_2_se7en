@@ -1,4 +1,5 @@
 import { ApiSuccess } from '@/api/ApiResponse';
+import { DEFAULT_ERROR_MESSAGE } from '@/api/error.constants';
 import { ProfileApi } from '@/api/profile/ProfileApi';
 import type { ProfileData } from '@/api/profile/profile.types';
 import type { ProfileTab } from '@/components/profile/Profile.types';
@@ -29,7 +30,7 @@ export class ProfilePageModel {
     if (res instanceof ApiSuccess) {
       this.profile.value = res.data;
     } else {
-      this.errorMessage.value = 'Сервис временно недоступен. Попробуйте позже';
+      this.errorMessage.value = DEFAULT_ERROR_MESSAGE;
     }
   }
 }
