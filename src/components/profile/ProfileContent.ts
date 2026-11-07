@@ -17,13 +17,6 @@ import type { FormFieldParams, ProfileContentParams } from './Profile.types';
 function renderPublicForm(profile: ProfileData): string {
   const fields: FormFieldParams[] = [
     {
-      id: 'email',
-      name: 'email',
-      label: PROFILE_TEXTS.LABEL_EMAIL,
-      type: 'email',
-      value: profile.email,
-    },
-    {
       id: 'first_name',
       name: 'first_name',
       label: PROFILE_TEXTS.LABEL_NAME,
@@ -59,6 +52,25 @@ function renderPhoneForm(profile: ProfileData): string {
       name: 'phone',
       label: PROFILE_TEXTS.LABEL_PHONE,
       value: profile.phone_number || '',
+    },
+  ];
+  return ProfileForm({ fields });
+}
+
+/**
+ * Генерирует HTML разметку формы изменения почты.
+ *
+ * @param profile - Данные профиля пользователя.
+ * @returns Строка HTML с формой почты.
+ */
+function renderEmailForm(profile: ProfileData): string {
+  const fields: FormFieldParams[] = [
+    {
+      id: 'email',
+      name: 'email',
+      label: PROFILE_TEXTS.LABEL_EMAIL,
+      type: 'email',
+      value: profile.email,
     },
   ];
   return ProfileForm({ fields });
@@ -154,6 +166,11 @@ export function ProfileContent({ profile, activeTab, errorMessage }: ProfileCont
       headerTitle = PROFILE_TEXTS.TITLE_PASSWORD;
       cardSubtitle = PROFILE_TEXTS.SUBTITLE_SECURITY;
       contentHtml = renderPasswordForm();
+      break;
+    case 'email':
+      headerTitle = PROFILE_TEXTS.TITLE_EMAIL;
+      cardSubtitle = PROFILE_TEXTS.SUBTITLE_SECURITY;
+      contentHtml = renderEmailForm(profile);
       break;
     case 'security':
     default:

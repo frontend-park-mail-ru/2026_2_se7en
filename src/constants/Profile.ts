@@ -3,6 +3,7 @@ export const PROFILE_TEXTS = {
   TITLE_PUBLIC: 'Профиль',
   TITLE_PHONE: 'Новый телефон',
   TITLE_PASSWORD: 'Новый пароль',
+  TITLE_EMAIL: 'Новая почта',
 
   SUBTITLE_SECURITY: 'Аккаунт и безопасность',
   SUBTITLE_PUBLIC: 'Публичный профиль',

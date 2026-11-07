@@ -4,7 +4,7 @@ import type { ProfileData } from '@/api/profile/profile.types';
 import type { ProfileTab } from '@/components/profile/Profile.types';
 import { Signal } from '@/reactive/Signal';
 
-const VALID_TABS: ProfileTab[] = ['public', 'security', 'phone', 'password'];
+const VALID_TABS: ProfileTab[] = ['public', 'security', 'email', 'phone', 'password'];
 
 /**
  * Модель страницы профиля.

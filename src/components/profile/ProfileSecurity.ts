@@ -8,7 +8,7 @@ import type { ProfileSecurityParams, SecurityRow } from './Profile.types';
  */
 export function ProfileSecurity({ email, phone, passwordMask }: ProfileSecurityParams): string {
   const rows: SecurityRow[] = [
-    { label: PROFILE_TEXTS.LABEL_EMAIL, value: email, target: 'public' },
+    { label: PROFILE_TEXTS.LABEL_EMAIL, value: email, target: 'email' },
     { label: PROFILE_TEXTS.LABEL_PHONE, value: phone, target: 'phone' },
     { label: PROFILE_TEXTS.LABEL_PASSWORD, value: passwordMask, target: 'password' },
   ];

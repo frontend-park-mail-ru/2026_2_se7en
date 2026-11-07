@@ -1,6 +1,6 @@
 import type { ProfileData } from '@/api/profile/profile.types';
 
-export type ProfileTab = 'public' | 'security' | 'phone' | 'password';
+export type ProfileTab = 'public' | 'security' | 'email' | 'phone' | 'password';
 
 export interface ProfileCardParams {
   name: string;
