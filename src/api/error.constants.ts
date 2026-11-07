@@ -39,3 +39,5 @@ export const ERROR_HINTS: Record<ErrorCodes, string> = {
   [ERROR_CODES.INTERNAL_ERROR]: 'Не удалось выполнить действие. Попробуйте позже.',
   [ERROR_CODES.UNKNOWN_ERROR]: 'Попробуйте позже.',
 };
+
+export const DEFAULT_ERROR_MESSAGE = 'Сервис временно недоступен. Попробуйте позже';

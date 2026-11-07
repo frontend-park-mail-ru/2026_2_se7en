@@ -1,0 +1,27 @@
+.profile-card {
+  @include flex-align-center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  &__avatar {
+    @include flex-center;
+    @include size(4rem);
+    background-color: $blue-50;
+    color: $gray-900;
+    border-radius: $radius-full;
+  }
+
+  &__name {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $gray-900;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $gray-900;
+    margin-top: 0.25rem;
+  }
+}

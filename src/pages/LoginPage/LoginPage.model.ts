@@ -1,7 +1,7 @@
 import { ApiError } from '@/api/ApiResponse.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
-import { eventBus } from '@/helpers/EventBus.ts';
 import { Signal } from '@/reactive/Signal.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
 import { user } from '@/store/User.ts';
 import {
   ERROR_CODES,
@@ -9,13 +9,13 @@ import {
   ERROR_MESSAGES,
   type ErrorCodes,
 } from '@/api/error.constants.ts';
+import type { LoginData, LoginFieldErrors } from '@/api/auth/auth.types.ts';
 import {
   validateEmail,
   validateForbiddenChars,
   validateMultiple,
   validatePassword,
 } from '@/helpers/Validation.ts';
-import type { LoginData, LoginFieldErrors } from '@/api/auth/auth.types.ts';
 
 const NETWORK_OR_SERVER_ERRORS: ErrorCodes[] = [
   ERROR_CODES.NETWORK_ERROR,
