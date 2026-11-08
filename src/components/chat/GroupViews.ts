@@ -205,3 +205,61 @@ export function renderGroupCreateDetails(
     </section>
   `;
 }
+export function renderGroupInfo(
+  chat: DisplayChat,
+  members: GroupMemberView[] = [],
+  options: GroupMembersView = {},
+): string {
+  return `
+    <section class="group-view group-view_info" aria-label="Информация о группе">
+      <header class="group-view__header">
+        ${backButton()}
+        <h2>Информация о группе</h2>
+        ${options.canManage ? '<button type="button" class="group-view__header-action" data-open-group-edit>Изменить</button>' : ''}
+      </header>
+      <div class="group-view__content">
+        <div class="group-view__summary">
+          ${avatar(chat.initials, false, false, chat.icon_url ?? undefined)}
+          <span>
+            <strong>${escapeHtml(chat.name)}</strong>
+            <small>${chat.members_count ?? members.length} из 100 участников</small>
+          </span>
+        </div>
+        <div class="group-view__description">
+          <span>Описание</span>
+          <p>${escapeHtml(chat.description || 'Описание группы не добавлено')}</p>
+        </div>
+        ${options.canManage ? '<button type="button" class="group-view__mobile-edit" data-open-group-edit>Изменить</button>' : ''}
+        <div class="group-view__section-heading">
+          <h3 class="group-view__section-title">Участники</h3>
+          ${options.canManage ? '<button type="button" data-group-add>Добавить</button>' : ''}
+        </div>
+        <div class="group-view__members" aria-busy="${Boolean(options.loading)}">
+          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p><button type="button" data-group-retry>Повторить</button></div>` : members.length ? members.map((member) => memberRow(member)).join('') : '<p class="group-view__empty">В группе пока нет участников</p>'}
+        </div>
+      </div>
+      <footer class="group-view__footer group-view__footer_info">
+        <button type="button" data-group-leave>
+          <img src="${asset('1df05.svg')}" alt="" width="19" height="19">
+          Выйти из группы
+        </button>
+      </footer>
+      ${
+        options.leaveConfirmOpen
+          ? `
+        <div class="group-view__modal-backdrop">
+          <div class="group-view__modal" role="dialog" aria-modal="true" aria-labelledby="leave-group-title">
+            <h3 id="leave-group-title">Выйти из группы?</h3>
+            <p>Вы больше не сможете читать её сообщения, пока вас не добавят снова.</p>
+            <div class="group-view__modal-actions">
+              <button type="button" data-group-leave-cancel>Отмена</button>
+              <button type="button" class="group-view__modal-danger" data-group-leave-confirm>Выйти</button>
+            </div>
+          </div>
+        </div>
+      `
+          : ''
+      }
+    </section>
+  `;
+}

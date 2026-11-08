@@ -1,6 +1,6 @@
 import './ChatsPage.scss';
 import { ApiError } from '@/api/ApiResponse.ts';
-import type { Message } from '@/api/chats/chats.types.ts';
+import type { ChatMember, Message } from '@/api/chats/chats.types.ts';
 import { ChatArea } from '@/components/chat/ChatArea.ts';
 import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
 import { renderContactPicker } from '@/components/chat/ContactPicker.ts';
@@ -12,6 +12,7 @@ import type {
 import {
   renderGroupCreateDetails,
   renderGroupCreateMembers,
+  renderGroupInfo,
 } from '@/components/chat/GroupViews.ts';
 import { validateAvatar, validateGroupForm } from '@/components/chat/GroupValidation.ts';
 import { ROUTES } from '@/constants/Routes.ts';
@@ -22,6 +23,26 @@ import { Page } from '@/pages/Page.ts';
 import { user } from '@/store/User.ts';
 import { ChatsPageModel } from './ChatsPage.model.ts';
 
+function toGroupMemberView(member: ChatMember): GroupMemberView {
+  const name =
+    [member.profile.first_name, member.profile.last_name].filter(Boolean).join(' ') ||
+    member.profile.nickname;
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0] ?? '')
+    .join('')
+    .toUpperCase();
+  return {
+    id: member.user_id,
+    name,
+    initials,
+    status: member.profile.nickname,
+    role: member.role,
+  };
+}
+
 export class ChatsPage extends Page {
   static route = ROUTES.HOME;
 
@@ -29,10 +50,12 @@ export class ChatsPage extends Page {
   private readonly layout = new DefaultLayout();
   private readonly chatList = new ChatList();
   private readonly chatArea = new ChatArea();
-  private view: 'chat' | 'list' | 'contact-picker' | 'group-members' | 'group-details' = 'chat';
+  private view:
+    'chat' | 'list' | 'contact-picker' | 'group-members' | 'group-details' | 'group-info' = 'chat';
   private createMenuOpen = false;
   private dialogMenuOpen = false;
   private deleteConfirmOpen = false;
+  private leaveConfirmOpen = false;
   private chatFilter: ChatFilter = 'all';
   private chatSearch = '';
   private contactSearch = '';
@@ -55,6 +78,8 @@ export class ChatsPage extends Page {
         this.model.role,
         this.model.messages,
         this.model.members,
+        this.model.membersLoading,
+        this.model.membersError,
         this.model.typingUsers,
         this.model.isLoading,
         this.model.hasNetworkError,
@@ -137,6 +162,16 @@ export class ChatsPage extends Page {
         `${renderContactPicker(this.contacts, { query: this.contactSearch })}${rightPanel}`,
         'layout_messenger layout_contact-picker',
       );
+    }
+    if (chat && this.view === 'group-info') {
+      const members = this.model.members.value.map(toGroupMemberView);
+      const groupInfo = renderGroupInfo(chat, members, {
+        canManage: false,
+        leaveConfirmOpen: this.leaveConfirmOpen,
+        loading: this.model.membersLoading.value,
+        error: this.model.membersError.value,
+      });
+      return this.layout.render(`${chatList}${groupInfo}`, 'layout_messenger layout_group-screen');
     }
     const modifier = this.view === 'list' ? 'layout_chat-list' : chat ? 'layout_dialog-open' : '';
     return this.layout.render(`${chatList}${rightPanel}`, `layout_messenger ${modifier}`.trim());
@@ -238,6 +273,42 @@ export class ChatsPage extends Page {
     if (target.closest('[data-group-back]')) {
       this.view = this.view === 'group-details' ? 'group-members' : 'chat';
       this.update();
+      return;
+    }
+    if (target.closest('[data-open-group-info]')) {
+      this.view = 'group-info';
+      this.dialogMenuOpen = false;
+      this.update();
+      return;
+    }
+    if (target.closest('[data-group-retry]')) {
+      void this.model.loadMembers();
+      return;
+    }
+    if (target.closest('[data-group-leave]')) {
+      this.view = 'group-info';
+      this.leaveConfirmOpen = true;
+      this.update();
+      return;
+    }
+    if (target.closest('[data-group-leave-cancel]')) {
+      this.leaveConfirmOpen = false;
+      this.update();
+      return;
+    }
+    if (target.closest('[data-group-leave-confirm]')) {
+      if (this.actionPending) return;
+      this.actionPending = true;
+      void this.model.leaveGroup().then((result) => {
+        this.actionPending = false;
+        if (result instanceof ApiError) {
+          eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
+        } else {
+          this.leaveConfirmOpen = false;
+          this.view = 'chat';
+        }
+        this.update();
+      });
       return;
     }
     if (target.closest('[data-confirm-delete]')) {
