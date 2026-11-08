@@ -1,121 +1,160 @@
 import { BannerErrorIcon } from '@/components/core/Icons';
 import { PROFILE_TEXTS } from '@/constants/Profile';
 import { ProfileCard } from '@/components/profile/ProfileCard';
-import type { ProfileData } from '@/api/profile/profile.types';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileMenu } from '@/components/profile/ProfileMenu';
 import { ProfileSecurity } from '@/components/profile/ProfileSecurity';
+import { ROUTES } from '@/constants/Routes';
 import { escapeHtml } from '@/helpers/EscapeHtml';
+import { getProfileErrorMessage } from '@/pages/ProfilePage/profile.helpers';
 import type { FormFieldParams, ProfileContentParams } from './Profile.types';
+import type { ProfileFieldErrors, ProfileFormValues } from '@/api/profile/profile.types';
+
+interface FormRenderOptions {
+  values: ProfileFormValues;
+  errors: ProfileFieldErrors;
+  isSubmitting: boolean;
+  formError?: string | null;
+}
 
 /**
  * Генерирует HTML разметку формы публичного профиля.
- *
- * @param profile - Данные профиля пользователя.
- * @returns Строка HTML с формой публичных данных.
  */
-function renderPublicForm(profile: ProfileData): string {
+function renderPublicForm({ values, errors, isSubmitting, formError }: FormRenderOptions): string {
   const fields: FormFieldParams[] = [
     {
       id: 'first_name',
       name: 'first_name',
       label: PROFILE_TEXTS.LABEL_NAME,
-      value: profile.first_name,
+      value: values.first_name,
+      error: getProfileErrorMessage(errors.first_name),
     },
     {
       id: 'last_name',
       name: 'last_name',
       label: PROFILE_TEXTS.LABEL_SURNAME,
-      value: profile.last_name || '',
+      value: values.last_name,
       hint: PROFILE_TEXTS.HINT_OPTIONAL,
+      error: getProfileErrorMessage(errors.last_name),
     },
     {
       id: 'nickname',
       name: 'nickname',
       label: PROFILE_TEXTS.LABEL_NICKNAME,
-      value: profile.nickname,
+      value: values.nickname,
+      error: getProfileErrorMessage(errors.nickname),
     },
   ];
-  return ProfileForm({ fields });
+  return ProfileForm({
+    fields,
+    cancelHref: ROUTES.PROFILE_SECURITY,
+    isSubmitting,
+    formError,
+  });
 }
 
 /**
  * Генерирует HTML разметку формы изменения номера телефона.
- *
- * @param profile - Данные профиля пользователя.
- * @returns Строка HTML с формой телефона.
  */
-function renderPhoneForm(profile: ProfileData): string {
+function renderPhoneForm({ values, errors, isSubmitting, formError }: FormRenderOptions): string {
   const fields: FormFieldParams[] = [
     {
       id: 'phone',
       name: 'phone',
       label: PROFILE_TEXTS.LABEL_PHONE,
-      value: profile.phone_number || '',
+      value: values.phone,
+      error: getProfileErrorMessage(errors.phone),
     },
   ];
-  return ProfileForm({ fields });
+  return ProfileForm({
+    fields,
+    cancelHref: ROUTES.PROFILE_SECURITY,
+    isSubmitting,
+    formError,
+  });
 }
 
 /**
  * Генерирует HTML разметку формы изменения почты.
- *
- * @param profile - Данные профиля пользователя.
- * @returns Строка HTML с формой почты.
  */
-function renderEmailForm(profile: ProfileData): string {
+function renderEmailForm({ values, errors, isSubmitting, formError }: FormRenderOptions): string {
   const fields: FormFieldParams[] = [
     {
       id: 'email',
       name: 'email',
       label: PROFILE_TEXTS.LABEL_EMAIL,
       type: 'email',
-      value: profile.email,
+      value: values.email,
+      error: getProfileErrorMessage(errors.email),
     },
   ];
-  return ProfileForm({ fields });
+  return ProfileForm({
+    fields,
+    cancelHref: ROUTES.PROFILE_SECURITY,
+    isSubmitting,
+    formError,
+  });
 }
 
 /**
  * Генерирует HTML разметку формы смены пароля.
- *
- * @returns Строка HTML с формой смены пароля.
  */
-function renderPasswordForm(): string {
+function renderPasswordForm({
+  values,
+  errors,
+  isSubmitting,
+  formError,
+}: FormRenderOptions): string {
   const fields: FormFieldParams[] = [
     {
       id: 'old_password',
       name: 'old_password',
       label: PROFILE_TEXTS.LABEL_OLD_PASSWORD,
       type: 'password',
+      value: values.old_password,
       isPassword: true,
+      error: getProfileErrorMessage(errors.old_password),
     },
     {
       id: 'new_password',
       name: 'new_password',
       label: PROFILE_TEXTS.LABEL_NEW_PASSWORD,
       type: 'password',
+      value: values.new_password,
       isPassword: true,
       hint: PROFILE_TEXTS.HINT_PASSWORD_LENGTH,
+      error: getProfileErrorMessage(errors.new_password),
     },
     {
       id: 'confirm_password',
       name: 'confirm_password',
       label: PROFILE_TEXTS.LABEL_CONFIRM_PASSWORD,
       type: 'password',
+      value: values.confirm_password,
       isPassword: true,
+      error: getProfileErrorMessage(errors.confirm_password),
     },
   ];
-  return ProfileForm({ fields });
+  return ProfileForm({
+    fields,
+    cancelHref: ROUTES.PROFILE_SECURITY,
+    isSubmitting,
+    formError,
+  });
 }
 
 /**
  * Основной компонент содержимого страницы профиля.
- *
- * @param params - Параметры отображения контента профиля.
- * @returns Строка HTML с контентом страницы.
  */
-export function ProfileContent({ profile, activeTab, errorMessage }: ProfileContentParams): string {
+export function ProfileContent({
+  profile,
+  activeTab,
+  formValues,
+  fieldErrors,
+  isSubmitting,
+  formError,
+  errorMessage,
+}: ProfileContentParams): string {
   if (errorMessage) {
     return `
       <div class="profile-page">
@@ -151,26 +190,33 @@ export function ProfileContent({ profile, activeTab, errorMessage }: ProfileCont
   let cardSubtitle = '';
   let contentHtml = '';
 
+  const formOptions: FormRenderOptions = {
+    values: formValues,
+    errors: fieldErrors,
+    isSubmitting,
+    formError,
+  };
+
   switch (activeTab) {
     case 'public':
       headerTitle = PROFILE_TEXTS.TITLE_PUBLIC;
       cardSubtitle = PROFILE_TEXTS.SUBTITLE_PUBLIC;
-      contentHtml = renderPublicForm(profile);
+      contentHtml = renderPublicForm(formOptions);
       break;
     case 'phone':
       headerTitle = PROFILE_TEXTS.TITLE_PHONE;
       cardSubtitle = PROFILE_TEXTS.SUBTITLE_SECURITY;
-      contentHtml = renderPhoneForm(profile);
+      contentHtml = renderPhoneForm(formOptions);
       break;
     case 'password':
       headerTitle = PROFILE_TEXTS.TITLE_PASSWORD;
       cardSubtitle = PROFILE_TEXTS.SUBTITLE_SECURITY;
-      contentHtml = renderPasswordForm();
+      contentHtml = renderPasswordForm(formOptions);
       break;
     case 'email':
       headerTitle = PROFILE_TEXTS.TITLE_EMAIL;
       cardSubtitle = PROFILE_TEXTS.SUBTITLE_SECURITY;
-      contentHtml = renderEmailForm(profile);
+      contentHtml = renderEmailForm(formOptions);
       break;
     case 'security':
     default:

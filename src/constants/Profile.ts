@@ -1,3 +1,6 @@
+export const PROFILE_FORM_ID = 'profile-form';
+export const PROFILE_SUBMIT_ID = 'profile-submit';
+
 export const PROFILE_TEXTS = {
   TITLE_SECURITY: 'Аккаунт и безопасность',
   TITLE_PUBLIC: 'Профиль',
@@ -31,3 +34,27 @@ export const PROFILE_TEXTS = {
   HINT_PASSWORD_LENGTH: '8–16 символов',
   FALLBACK_NAME: 'Пользователь',
 } as const;
+
+export const PROFILE_ERROR_MESSAGES: Record<string, string> = {
+  required: 'Обязательное поле',
+  first_name_length: 'Имя должно содержать от 2 до 32 символов',
+  first_name_no_digits: 'Имя не должно содержать цифры',
+  last_name_length: 'Фамилия должна содержать от 2 до 32 символов',
+  last_name_no_digits: 'Фамилия не должна содержать цифры',
+  nickname_length: 'Длина никнейма должна быть от 3 до 16 символов',
+  nickname_invalid_format:
+    'Можно использовать только латинские буквы, цифры и нижнее подчёркивание',
+  nickname_already_exists: 'Такой никнейм уже используется',
+  email_invalid_format: 'Введите почту в формате name@example.com',
+  email_max_length: 'Электронная почта должна содержать не более 64 символов',
+  email_already_exists: 'Такая электронная почта уже используется',
+  phone_invalid_format: 'Введите номер в формате +79991234567 (от 10 до 15 цифр, без пробелов)',
+  phone_already_exists: 'Такой номер телефона уже используется',
+  password_length: 'Длина пароля должна быть от 8 до 16 символов',
+  passwords_do_not_match: 'Пароли не совпадают',
+  new_password_same_as_old: 'Новый пароль должен отличаться от старого',
+  invalid_old_password: 'Неверный текущий пароль',
+  contains_emoji: 'Поле не должно содержать смайлики или спецсимволы',
+  contains_invalid_chars: 'Поле содержит недопустимые скрытые символы',
+  invalid_format: 'Неверный формат',
+};

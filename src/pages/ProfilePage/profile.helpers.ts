@@ -1,0 +1,236 @@
+import { PROFILE_ERROR_MESSAGES } from '@/constants/Profile.ts';
+import type { ProfileTab } from '@/components/profile/Profile.types.ts';
+import { validateForbiddenChars } from '@/helpers/Validation.ts';
+import {
+  EMAIL_REGEX,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  VALIDATION_MESSAGES,
+} from '@/constants/Validation.ts';
+import type {
+  ProfileField,
+  ProfileFieldErrors,
+  ProfileFormValues,
+} from '@/api/profile/profile.types.ts';
+
+const MAX_EMAIL_LENGTH = 64;
+const MIN_NAME_LENGTH = 2;
+const MAX_NAME_LENGTH = 32;
+const MIN_NICKNAME_LENGTH = 3;
+const MAX_NICKNAME_LENGTH = 16;
+
+const NAME_NO_DIGITS_REGEX = /^[^0-9]+$/;
+const NICKNAME_REGEX = /^[a-zA-Z0-9_]+$/;
+const PHONE_REGEX = /^\+?[1-9]\d{9,14}$/;
+
+export const TAB_FIELDS: Record<Exclude<ProfileTab, 'security'>, ProfileField[]> = {
+  public: ['first_name', 'last_name', 'nickname'],
+  phone: ['phone'],
+  email: ['email'],
+  password: ['old_password', 'new_password', 'confirm_password'],
+};
+
+/**
+ * Возвращает человекочитаемый текст ошибки по ключу.
+ */
+export function getProfileErrorMessage(errorKey?: string): string {
+  if (!errorKey) return '';
+  return PROFILE_ERROR_MESSAGES[errorKey] || errorKey;
+}
+
+/**
+ * Проверяет одно поле профиля по правилам бэкенда (internal/tools/validators.go).
+ */
+export function validateProfileField(
+  field: ProfileField,
+  rawValue: string,
+  allValues: ProfileFormValues,
+): string | null {
+  const isPasswordField =
+    field === 'old_password' || field === 'new_password' || field === 'confirm_password';
+  const value = isPasswordField ? rawValue : rawValue.trim();
+
+  if (field === 'last_name' && !value) {
+    return null;
+  }
+
+  if (!value) {
+    return 'required';
+  }
+
+  const forbidden = validateForbiddenChars(value);
+  if (forbidden) {
+    return forbidden === VALIDATION_MESSAGES.CONTAINS_EMOJI
+      ? 'contains_emoji'
+      : 'contains_invalid_chars';
+  }
+
+  switch (field) {
+    case 'first_name': {
+      const charCount = Array.from(value).length;
+      if (charCount < MIN_NAME_LENGTH || charCount > MAX_NAME_LENGTH) {
+        return 'first_name_length';
+      }
+      if (!NAME_NO_DIGITS_REGEX.test(value)) {
+        return 'first_name_no_digits';
+      }
+      return null;
+    }
+
+    case 'last_name': {
+      const charCount = Array.from(value).length;
+      if (charCount < MIN_NAME_LENGTH || charCount > MAX_NAME_LENGTH) {
+        return 'last_name_length';
+      }
+      if (!NAME_NO_DIGITS_REGEX.test(value)) {
+        return 'last_name_no_digits';
+      }
+      return null;
+    }
+
+    case 'nickname': {
+      if (value.length < MIN_NICKNAME_LENGTH || value.length > MAX_NICKNAME_LENGTH) {
+        return 'nickname_length';
+      }
+      if (!NICKNAME_REGEX.test(value)) {
+        return 'nickname_invalid_format';
+      }
+      return null;
+    }
+
+    case 'email': {
+      if (value.length > MAX_EMAIL_LENGTH) {
+        return 'email_max_length';
+      }
+      if (!EMAIL_REGEX.test(value)) {
+        return 'email_invalid_format';
+      }
+      return null;
+    }
+
+    case 'phone': {
+      if (!PHONE_REGEX.test(value)) {
+        return 'phone_invalid_format';
+      }
+      return null;
+    }
+
+    case 'old_password': {
+      if (value.length < PASSWORD_MIN_LENGTH || value.length > PASSWORD_MAX_LENGTH) {
+        return 'password_length';
+      }
+      return null;
+    }
+
+    case 'new_password': {
+      if (value.length < PASSWORD_MIN_LENGTH || value.length > PASSWORD_MAX_LENGTH) {
+        return 'password_length';
+      }
+      if (allValues.old_password && value === allValues.old_password) {
+        return 'new_password_same_as_old';
+      }
+      return null;
+    }
+
+    case 'confirm_password': {
+      if (value !== allValues.new_password) {
+        return 'passwords_do_not_match';
+      }
+      return null;
+    }
+
+    default:
+      return null;
+  }
+}
+
+/**
+ * Валидирует все поля активной вкладки профиля.
+ */
+export function validateProfileTab(
+  tab: Exclude<ProfileTab, 'security'>,
+  values: ProfileFormValues,
+): { isValid: boolean; fieldErrors: ProfileFieldErrors } {
+  const fields = TAB_FIELDS[tab];
+  const fieldErrors: ProfileFieldErrors = {};
+
+  for (const field of fields) {
+    const error = validateProfileField(field, values[field], values);
+    if (error) {
+      fieldErrors[field] = error;
+    }
+  }
+
+  return {
+    isValid: Object.keys(fieldErrors).length === 0,
+    fieldErrors,
+  };
+}
+
+/**
+ * Нормализует ошибку из ErrorDetail бэкенда для конкретного поля.
+ */
+export function normalizeProfileBackendReason(field: ProfileField, reason: string): string {
+  const normalized = String(reason).toLowerCase();
+
+  if (normalized === 'required' || normalized.includes('required')) {
+    return 'required';
+  }
+
+  if (field === 'nickname') {
+    if (normalized.includes('already exists') || normalized.includes('taken')) {
+      return 'nickname_already_exists';
+    }
+    if (normalized === 'invalid_length' || normalized.includes('length')) {
+      return 'nickname_length';
+    }
+    return 'nickname_invalid_format';
+  }
+
+  if (field === 'email') {
+    if (normalized.includes('already exists') || normalized.includes('taken')) {
+      return 'email_already_exists';
+    }
+    if (normalized === 'too_long' || normalized.includes('length')) {
+      return 'email_max_length';
+    }
+    return 'email_invalid_format';
+  }
+
+  if (field === 'phone') {
+    if (normalized.includes('already exists') || normalized.includes('taken')) {
+      return 'phone_already_exists';
+    }
+    return 'phone_invalid_format';
+  }
+
+  if (field === 'first_name') {
+    if (normalized === 'contains_digits' || normalized.includes('digit')) {
+      return 'first_name_no_digits';
+    }
+    return 'first_name_length';
+  }
+
+  if (field === 'last_name') {
+    if (normalized === 'contains_digits' || normalized.includes('digit')) {
+      return 'last_name_no_digits';
+    }
+    return 'last_name_length';
+  }
+
+  if (field === 'old_password') {
+    if (normalized === 'invalid_length' || normalized.includes('length')) {
+      return 'password_length';
+    }
+    return 'invalid_old_password';
+  }
+
+  if (field === 'new_password') {
+    if (normalized === 'invalid_length' || normalized.includes('length')) {
+      return 'password_length';
+    }
+    return 'invalid_format';
+  }
+
+  return 'invalid_format';
+}

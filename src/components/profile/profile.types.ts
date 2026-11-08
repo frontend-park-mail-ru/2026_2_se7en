@@ -1,4 +1,8 @@
-import type { ProfileData } from '@/api/profile/profile.types';
+import type {
+  ProfileData,
+  ProfileFieldErrors,
+  ProfileFormValues,
+} from '@/api/profile/profile.types';
 
 export type ProfileTab = 'public' | 'security' | 'email' | 'phone' | 'password';
 
@@ -32,10 +36,17 @@ export interface FormFieldParams {
 
 export interface ProfileFormParams {
   fields: FormFieldParams[];
+  cancelHref?: string;
+  isSubmitting?: boolean;
+  formError?: string | null;
 }
 
 export interface ProfileContentParams {
   profile: ProfileData | null;
   activeTab: ProfileTab;
+  formValues: ProfileFormValues;
+  fieldErrors: ProfileFieldErrors;
+  isSubmitting: boolean;
+  formError?: string | null;
   errorMessage?: string | null;
 }

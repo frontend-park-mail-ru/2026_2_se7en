@@ -4,8 +4,10 @@ export interface ProfileData {
   first_name: string;
   last_name: string | null;
   nickname: string;
-  phone_number: string | null;
-  icon_url: string | null;
+  bio?: string | null;
+  phone_number?: string | null;
+  icon_id?: string | null;
+  icon_url?: string | null;
 }
 
 export interface UpdateProfileData {
@@ -13,4 +15,26 @@ export interface UpdateProfileData {
   first_name?: string;
   last_name?: string;
   nickname?: string;
+  bio?: string;
+  phone_number?: string;
 }
+
+export interface UpdatePasswordData {
+  old_password: string;
+  new_password: string;
+}
+
+export interface ProfileFormValues {
+  first_name: string;
+  last_name: string;
+  nickname: string;
+  phone: string;
+  email: string;
+  old_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export type ProfileField = keyof ProfileFormValues;
+
+export type ProfileFieldErrors = Partial<Record<ProfileField, string>>;
