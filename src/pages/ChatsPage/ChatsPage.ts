@@ -3,6 +3,14 @@ import { ApiError } from '@/api/ApiResponse.ts';
 import type { Message } from '@/api/chats/chats.types.ts';
 import { ChatArea } from '@/components/chat/ChatArea.ts';
 import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
+import { type ContactPreview, renderContactPicker } from '@/components/chat/ContactPicker.ts';
+import {
+  type GroupFormView,
+  type GroupMemberView,
+  renderGroupCreateDetails,
+  renderGroupCreateMembers,
+} from '@/components/chat/GroupViews.ts';
+import { validateAvatar, validateGroupForm } from '@/components/chat/GroupValidation.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 import { formatMessageTime } from '@/helpers/chat.ts';
@@ -18,14 +26,22 @@ export class ChatsPage extends Page {
   private readonly layout = new DefaultLayout();
   private readonly chatList = new ChatList();
   private readonly chatArea = new ChatArea();
-  private view: 'chat' | 'list' = 'chat';
+  private view: 'chat' | 'list' | 'contact-picker' | 'group-members' | 'group-details' = 'chat';
   private createMenuOpen = false;
   private dialogMenuOpen = false;
   private deleteConfirmOpen = false;
   private chatFilter: ChatFilter = 'all';
   private chatSearch = '';
+  private contactSearch = '';
+  private memberSearch = '';
   private messageDraft = '';
   private actionPending = false;
+  private createForm: GroupFormView = {};
+  private createAvatarFile: File | null = null;
+  private createAvatarObjectUrl: string | null = null;
+  private readonly contacts: ContactPreview[] = [];
+  private readonly groupContacts: GroupMemberView[] = [];
+  private readonly selectedMemberIds = new Set<string>();
 
   constructor() {
     super();
@@ -77,7 +93,7 @@ export class ChatsPage extends Page {
       isRead: message.is_read,
       time: formatMessageTime(new Date(message.created_at)),
     }));
-    const leftPanel = this.chatList.render(chats, chat, loading, this.createMenuOpen, {
+    const chatList = this.chatList.render(chats, chat, loading, this.createMenuOpen, {
       query: this.chatSearch,
       filter: this.chatFilter,
     });
@@ -100,8 +116,27 @@ export class ChatsPage extends Page {
         deleteConfirmOpen: this.deleteConfirmOpen,
       },
     );
+    if (this.view === 'group-members' || this.view === 'group-details') {
+      const groupPanel =
+        this.view === 'group-details'
+          ? renderGroupCreateDetails(this.selectedMemberIds, this.groupContacts, this.createForm)
+          : renderGroupCreateMembers(this.selectedMemberIds, this.groupContacts, {
+              mode: 'create',
+              query: this.memberSearch,
+            });
+      return this.layout.render(
+        `${groupPanel}${rightPanel}`,
+        'layout_messenger layout_group-create',
+      );
+    }
+    if (this.view === 'contact-picker') {
+      return this.layout.render(
+        `${renderContactPicker(this.contacts, { query: this.contactSearch })}${rightPanel}`,
+        'layout_messenger layout_contact-picker',
+      );
+    }
     const modifier = this.view === 'list' ? 'layout_chat-list' : chat ? 'layout_dialog-open' : '';
-    return this.layout.render(`${leftPanel}${rightPanel}`, `layout_messenger ${modifier}`.trim());
+    return this.layout.render(`${chatList}${rightPanel}`, `layout_messenger ${modifier}`.trim());
   }
 
   private update(): void {
@@ -161,6 +196,47 @@ export class ChatsPage extends Page {
       this.update();
       return;
     }
+    if (target.closest('[data-create-dialog]')) {
+      this.createMenuOpen = false;
+      this.contactSearch = '';
+      this.view = 'contact-picker';
+      this.update();
+      return;
+    }
+    if (target.closest('[data-contact-back]')) {
+      this.view = 'chat';
+      this.update();
+      return;
+    }
+    if (target.closest('[data-create-group]')) {
+      this.createMenuOpen = false;
+      this.memberSearch = '';
+      if (this.createAvatarObjectUrl) URL.revokeObjectURL(this.createAvatarObjectUrl);
+      this.createAvatarObjectUrl = null;
+      this.createAvatarFile = null;
+      this.createForm = {};
+      this.selectedMemberIds.clear();
+      this.view = 'group-members';
+      this.update();
+      return;
+    }
+    const memberId = target.closest<HTMLElement>('[data-group-member]')?.dataset.groupMember;
+    if (memberId) {
+      if (this.selectedMemberIds.has(memberId)) this.selectedMemberIds.delete(memberId);
+      else this.selectedMemberIds.add(memberId);
+      this.update();
+      return;
+    }
+    if (target.closest('[data-group-next]')) {
+      this.view = 'group-details';
+      this.update();
+      return;
+    }
+    if (target.closest('[data-group-back]')) {
+      this.view = this.view === 'group-details' ? 'group-members' : 'chat';
+      this.update();
+      return;
+    }
     if (target.closest('[data-confirm-delete]')) {
       if (this.actionPending) return;
       this.actionPending = true;
@@ -208,18 +284,67 @@ export class ChatsPage extends Page {
       if (sendButton) sendButton.disabled = !input.value.trim();
       return;
     }
-    if (!input.matches('[data-chat-list-search]')) return;
-    this.chatSearch = input.value;
-    const cursor = input.selectionStart;
+    if (input.matches('[data-chat-list-search]')) {
+      this.chatSearch = input.value;
+      const cursor = input.selectionStart;
+      this.update();
+      const search = this.container?.querySelector<HTMLInputElement>('[data-chat-list-search]');
+      search?.focus();
+      if (cursor !== null) search?.setSelectionRange(cursor, cursor);
+      return;
+    }
+    if (input.matches('[data-contact-search]')) this.contactSearch = input.value;
+    if (input.matches('[data-member-search]')) this.memberSearch = input.value;
+    if (!input.closest('[data-group-create-form]')) return;
+    if (input.name === 'group-name') this.createForm.name = input.value;
+    if (input.name === 'group-description') this.createForm.description = input.value;
+  };
+
+  private readonly handleContainerChange = (event: Event): void => {
+    const input = event.target as HTMLInputElement | null;
+    if (!input?.matches('[data-group-avatar]')) return;
+    const file = input.files?.[0] ?? null;
+    if (this.createAvatarObjectUrl) URL.revokeObjectURL(this.createAvatarObjectUrl);
+    this.createAvatarFile = file;
+    this.createAvatarObjectUrl = file ? URL.createObjectURL(file) : null;
+    this.createForm.avatarUrl = this.createAvatarObjectUrl ?? undefined;
+    this.createForm.avatarFileName = file?.name;
+    this.createForm.avatarError = validateAvatar(file);
     this.update();
-    const search = this.container?.querySelector<HTMLInputElement>('[data-chat-list-search]');
-    search?.focus();
-    if (cursor !== null) search?.setSelectionRange(cursor, cursor);
   };
 
   private readonly handleContainerSubmit = (event: SubmitEvent): void => {
     const form = event.target as HTMLFormElement | null;
-    if (!form?.matches('[data-message-form]')) return;
+    if (!form) return;
+    if (form.matches('[data-group-create-form]')) {
+      event.preventDefault();
+      if (this.createForm.submitting) return;
+      if (
+        !validateGroupForm(this.createForm, this.selectedMemberIds.size + 1, this.createAvatarFile)
+      ) {
+        this.update();
+        return;
+      }
+      this.createForm.submitting = true;
+      this.createForm.submitError = '';
+      this.update();
+      void this.model
+        .createGroup(this.createForm.name!.trim(), (this.createForm.description ?? '').trim(), [
+          ...this.selectedMemberIds,
+        ])
+        .then((result) => {
+          this.createForm.submitting = false;
+          if (result instanceof ApiError) this.createForm.submitError = result.message;
+          else {
+            this.view = 'chat';
+            this.selectedMemberIds.clear();
+            this.createForm = {};
+          }
+          this.update();
+        });
+      return;
+    }
+    if (!form.matches('[data-message-form]')) return;
     event.preventDefault();
     const text = this.messageDraft.trim();
     if (!text || this.model.sending.value) return;
@@ -234,6 +359,7 @@ export class ChatsPage extends Page {
   async afterMount(): Promise<void> {
     this.container?.addEventListener('click', this.handleContainerClick);
     this.container?.addEventListener('input', this.handleContainerInput);
+    this.container?.addEventListener('change', this.handleContainerChange);
     this.container?.addEventListener('submit', this.handleContainerSubmit);
     this.model.start();
   }
@@ -241,7 +367,9 @@ export class ChatsPage extends Page {
   unmount(): void {
     this.container?.removeEventListener('click', this.handleContainerClick);
     this.container?.removeEventListener('input', this.handleContainerInput);
+    this.container?.removeEventListener('change', this.handleContainerChange);
     this.container?.removeEventListener('submit', this.handleContainerSubmit);
+    if (this.createAvatarObjectUrl) URL.revokeObjectURL(this.createAvatarObjectUrl);
     this.layout.unmount();
     this.model.destroy();
     super.unmount();
