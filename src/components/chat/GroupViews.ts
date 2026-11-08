@@ -205,6 +205,7 @@ export function renderGroupCreateDetails(
     </section>
   `;
 }
+
 /** Отображает информацию о группе и её участниках. */
 export function renderGroupInfo(
   chat: DisplayChat,
@@ -252,6 +253,74 @@ export function renderGroupInfo(
             <div class="group-view__modal-actions">
               ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-group-leave-cancel': '' } })}
               ${Button({ text: 'Выйти', mode: 'unstyled', className: 'group-view__modal-danger', attrs: { 'data-group-leave-confirm': '' } })}
+            </div>
+          </div>
+        </div>
+      `
+          : ''
+      }
+    </section>
+  `;
+}
+
+/** Отображает форму редактирования группы и управления участниками. */
+export function renderGroupEdit(
+  chat: DisplayChat,
+  members: GroupMemberView[] = [],
+  form: GroupFormView = {},
+  options: GroupMembersView = {},
+): string {
+  const memberToRemove = members.find((member) => member.id === options.removeMemberId);
+  return `
+    <section class="group-view group-view_edit" aria-label="Редактирование группы">
+      <header class="group-view__header">
+        ${backButton()}
+        <h2>
+          <span class="group-view__desktop-title">Редактирование группы</span>
+          <span class="group-view__mobile-title">Редактирование</span>
+        </h2>
+      </header>
+      <form class="group-view__form" data-group-edit-form novalidate>
+      <div class="group-view__content">
+        ${avatarPicker(chat.initials, 'edit', form.avatarUrl ?? chat.icon_url ?? undefined, form.avatarError, form.avatarFileName)}
+        <label class="group-view__field" for="edit-group-name">
+          <span>Название группы</span>
+          ${Input({ id: 'edit-group-name', name: 'group-name', value: form.name ?? chat.name, unstyled: true, attrs: { maxlength: '100', autocomplete: 'off', 'aria-invalid': String(Boolean(form.nameError)), 'aria-describedby': 'edit-group-name-error', required: '' } })}
+          <small id="edit-group-name-error" class="group-view__error" role="status">${escapeHtml(form.nameError)}</small>
+        </label>
+        <label class="group-view__field" for="edit-group-description">
+          <span>Описание <small>Необязательно</small></span>
+          <textarea id="edit-group-description" name="group-description" maxlength="500" aria-invalid="${Boolean(form.descriptionError)}" aria-describedby="edit-group-description-error">${escapeHtml(form.description ?? chat.description)}</textarea>
+          <small id="edit-group-description-error" class="group-view__error" role="status">${escapeHtml(form.descriptionError)}</small>
+        </label>
+        <div class="group-view__members-heading">
+          <strong>Участники</strong>
+          <span>${chat.members_count ?? members.length} из 100 участников</span>
+        </div>
+        <label class="group-view__search">
+          <img src="${asset('9e868.svg')}" alt="" width="17" height="17">
+          ${Input({ type: 'search', name: 'member-search', value: options.query, placeholder: 'Поиск участников', unstyled: true, attrs: { 'aria-label': 'Поиск участников', 'data-member-search': '' } })}
+        </label>
+        <div class="group-view__members" aria-busy="${Boolean(options.loading)}">
+          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-group-retry': '' } })}</div>` : members.length ? members.map((member) => memberRow(member, { showMenu: true, menuOpen: options.openMemberMenuId === member.id })).join('') : '<p class="group-view__empty">Участники пока не загружены</p>'}
+        </div>
+        <p class="group-view__error" role="status">${escapeHtml(form.membersError || form.submitError)}</p>
+      </div>
+      <footer class="group-view__footer group-view__footer_edit">
+        ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-group-cancel': '' } })}
+        ${Button({ text: form.submitting ? 'Сохранение…' : 'Сохранить', type: 'submit', mode: 'unstyled', disabled: form.submitting, attrs: { 'data-group-save': '' } })}
+      </footer>
+      </form>
+      ${
+        memberToRemove
+          ? `
+        <div class="group-view__modal-backdrop">
+          <div class="group-view__modal" role="dialog" aria-modal="true" aria-labelledby="remove-member-title">
+            <h3 id="remove-member-title">Удалить участника?</h3>
+            <p>${escapeHtml(memberToRemove.name)} будет удалён из группы.</p>
+            <div class="group-view__modal-actions">
+              ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-member-remove-cancel': '' } })}
+              ${Button({ text: 'Удалить', mode: 'unstyled', className: 'group-view__modal-danger', attrs: { 'data-member-remove-confirm': memberToRemove.id } })}
             </div>
           </div>
         </div>

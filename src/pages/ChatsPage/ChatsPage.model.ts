@@ -746,7 +746,11 @@ export class ChatsPageModel {
       return;
     }
 
-    if (event.type === 'chat.created' || event.type === 'chat.deleted') {
+    if (
+      event.type === 'chat.created' ||
+      event.type === 'chat.updated' ||
+      event.type === 'chat.deleted'
+    ) {
       void this.loadChats(false);
       return;
     }
