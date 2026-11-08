@@ -116,12 +116,7 @@ export class ChatsPage extends Page {
     if (focusedInput) {
       const nextInput = this.container.querySelector<HTMLInputElement>('[data-message-input]');
       nextInput?.focus();
-      if (
-        selectionStart !== null &&
-        selectionStart !== undefined &&
-        selectionEnd !== null &&
-        selectionEnd !== undefined
-      ) {
+      if (selectionStart != null && selectionEnd != null) {
         nextInput?.setSelectionRange(selectionStart, selectionEnd);
       }
     }

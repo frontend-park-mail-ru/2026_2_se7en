@@ -15,9 +15,7 @@ import type {
   DisplayChat,
 } from '@/api/chats/chats.types.ts';
 import { sortChatsByLastMessage, toDisplayChat } from '@/helpers/chat.ts';
-
-const TYPING_IDLE_MS = 2000;
-const REMOTE_TYPING_TIMEOUT_MS = 6000;
+import { REMOTE_TYPING_TIMEOUT_MS, TYPING_IDLE_MS } from './chats.constants.ts';
 
 export class ChatsPageModel {
   readonly chats = new Signal<DisplayChat[]>([]);
@@ -51,7 +49,9 @@ export class ChatsPageModel {
     (error) => debugError(`WebSocket: ${String(error)}`),
     (reconnected) => {
       this.markMessagesRead(this.selectedChatId, this.messages.value);
-      if (reconnected) void this.reconcileAfterReconnect();
+      if (reconnected) {
+        void this.reconcileAfterReconnect();
+      }
     },
   );
 
@@ -89,7 +89,9 @@ export class ChatsPageModel {
     }
     this.isFetching = true;
 
-    if (showLoading) this.isLoading.value = true;
+    if (showLoading) {
+      this.isLoading.value = true;
+    }
     this.hasNetworkError.value = false;
 
     const response = await ChatsApi.getChats();
@@ -103,7 +105,9 @@ export class ChatsPageModel {
         }
       }
 
-      if (showLoading) this.chats.value = [];
+      if (showLoading) {
+        this.chats.value = [];
+      }
     } else {
       const previousCounts = new Map(this.chats.value.map((chat) => [chat.id, chat.unreadCount]));
       const next = sortChatsByLastMessage(
@@ -122,7 +126,9 @@ export class ChatsPageModel {
       }
 
       for (const chat of next) {
-        if (chat.id) this.socket.subscribe(chat.id);
+        if (chat.id) {
+          this.socket.subscribe(chat.id);
+        }
       }
 
       this.chats.value = next;
@@ -130,7 +136,9 @@ export class ChatsPageModel {
 
       if (this.selectedChatId) {
         const selected = next.find((chat) => chat.id === this.selectedChatId);
-        if (selected) this.activeChat.value = selected;
+        if (selected) {
+          this.activeChat.value = selected;
+        }
       }
     }
 
@@ -163,7 +171,9 @@ export class ChatsPageModel {
     this.messagesLoading.value = true;
     const detail = await ChatsApi.getChat(id);
 
-    if (version !== this.selectionVersion) return;
+    if (version !== this.selectionVersion) {
+      return;
+    }
 
     if (detail instanceof ApiError) {
       this.messagesError.value = detail.message;
@@ -185,13 +195,17 @@ export class ChatsPageModel {
   }
 
   async loadMessages(id = this.selectedChatId, version = this.selectionVersion): Promise<void> {
-    if (!id) return;
+    if (!id) {
+      return;
+    }
 
     this.messagesLoading.value = true;
     this.messagesError.value = '';
 
     const result = await ChatsApi.getMessages(id);
-    if (version !== this.selectionVersion) return;
+    if (version !== this.selectionVersion) {
+      return;
+    }
 
     if (result instanceof ApiError) {
       this.messagesError.value = result.message;
@@ -212,11 +226,15 @@ export class ChatsPageModel {
   async loadOlderMessages(): Promise<void> {
     const id = this.selectedChatId;
     const oldest = this.messages.value[0];
-    if (!id || !oldest || !this.hasMoreMessages.value) return;
+    if (!id || !oldest || !this.hasMoreMessages.value) {
+      return;
+    }
 
     const version = this.selectionVersion;
     const result = await ChatsApi.getMessages(id, oldest.id);
-    if (version !== this.selectionVersion) return;
+    if (version !== this.selectionVersion) {
+      return;
+    }
 
     if (result instanceof ApiError) {
       this.messagesError.value = result.message;
@@ -230,13 +248,17 @@ export class ChatsPageModel {
   }
 
   async loadMembers(id = this.selectedChatId, version = this.selectionVersion): Promise<void> {
-    if (!id) return;
+    if (!id) {
+      return;
+    }
 
     this.membersLoading.value = true;
     this.membersError.value = '';
 
     const result = await ChatsApi.getMembers(id);
-    if (version !== this.selectionVersion) return;
+    if (version !== this.selectionVersion) {
+      return;
+    }
 
     if (result instanceof ApiError) {
       this.membersError.value = result.message;
@@ -258,7 +280,9 @@ export class ChatsPageModel {
 
   private async catchUpActiveMessages(): Promise<void> {
     const chatId = this.selectedChatId;
-    if (!chatId || this.messagesLoading.value) return;
+    if (!chatId || this.messagesLoading.value) {
+      return;
+    }
 
     const version = this.selectionVersion;
     const currentMessages = this.messages.value;
@@ -270,7 +294,9 @@ export class ChatsPageModel {
 
     while (!reachedKnownMessage && !reachedHistoryStart) {
       const result = await ChatsApi.getMessages(chatId, before);
-      if (version !== this.selectionVersion) return;
+      if (version !== this.selectionVersion) {
+        return;
+      }
 
       if (result instanceof ApiError) {
         debugError(`Не удалось догрузить сообщения после восстановления связи: ${result.message}`);
@@ -287,14 +313,20 @@ export class ChatsPageModel {
       }
 
       reachedHistoryStart = page.length < 50;
-      if (reachedKnownMessage || reachedHistoryStart) break;
+      if (reachedKnownMessage || reachedHistoryStart) {
+        break;
+      }
 
       const nextBefore = page[page.length - 1]?.id;
-      if (!nextBefore || nextBefore === before) break;
+      if (!nextBefore || nextBefore === before) {
+        break;
+      }
       before = nextBefore;
     }
 
-    if (version !== this.selectionVersion) return;
+    if (version !== this.selectionVersion) {
+      return;
+    }
 
     if (missed.length) {
       const byId = new Map(this.messages.value.map((message) => [message.id, message]));
@@ -316,7 +348,9 @@ export class ChatsPageModel {
     const id = this.selectedChatId;
     const text = content.trim();
 
-    if (!id || !text || this.sending.value) return false;
+    if (!id || !text || this.sending.value) {
+      return false;
+    }
 
     this.stopTyping();
     this.sending.value = true;
@@ -330,7 +364,9 @@ export class ChatsPageModel {
       return false;
     }
 
-    if (result.data) this.acceptMessage(result.data);
+    if (result.data) {
+      this.acceptMessage(result.data);
+    }
     return true;
   }
 
@@ -348,24 +384,26 @@ export class ChatsPageModel {
       }
     }
 
-    if (this.localTypingTimer !== null) window.clearTimeout(this.localTypingTimer);
+    window.clearTimeout(this.localTypingTimer ?? undefined);
     this.localTypingTimer = window.setTimeout(() => this.stopTyping(), TYPING_IDLE_MS);
   }
 
   stopTyping(): void {
-    if (this.localTypingTimer !== null) {
-      window.clearTimeout(this.localTypingTimer);
-      this.localTypingTimer = null;
-    }
+    window.clearTimeout(this.localTypingTimer ?? undefined);
+    this.localTypingTimer = null;
 
     const chatId = this.localTypingChatId;
     this.localTypingChatId = null;
-    if (chatId) this.socket.send({ type: 'typing.stop', chat_id: chatId });
+    if (chatId) {
+      this.socket.send({ type: 'typing.stop', chat_id: chatId });
+    }
   }
 
   private removeRemoteTypingUser(userId: string): void {
     const timer = this.remoteTypingTimers.get(userId);
-    if (timer === undefined) return;
+    if (timer === undefined) {
+      return;
+    }
 
     window.clearTimeout(timer);
     this.remoteTypingTimers.delete(userId);
@@ -375,7 +413,9 @@ export class ChatsPageModel {
   private clearRemoteTyping(): void {
     for (const timer of this.remoteTypingTimers.values()) window.clearTimeout(timer);
     this.remoteTypingTimers.clear();
-    if (this.typingUsers.value.length > 0) this.typingUsers.value = [];
+    if (this.typingUsers.value.length > 0) {
+      this.typingUsers.value = [];
+    }
   }
 
   async createGroup(
@@ -402,7 +442,9 @@ export class ChatsPageModel {
     description: string,
   ): Promise<ApiResult<ChatDetailResponse> | null> {
     const id = this.selectedChatId;
-    if (!id) return null;
+    if (!id) {
+      return null;
+    }
 
     const result = await ChatsApi.updateGroup(id, {
       name,
@@ -420,25 +462,35 @@ export class ChatsPageModel {
 
   async deleteChat(): Promise<ApiResult<void> | null> {
     const id = this.selectedChatId;
-    if (!id) return null;
+    if (!id) {
+      return null;
+    }
 
     const result = await ChatsApi.deleteChat(id);
-    if (result.success) this.removeCurrentChat();
+    if (result.success) {
+      this.removeCurrentChat();
+    }
     return result;
   }
 
   async leaveGroup(): Promise<ApiResult<void> | null> {
     const id = this.selectedChatId;
-    if (!id) return null;
+    if (!id) {
+      return null;
+    }
 
     const result = await ChatsApi.leaveGroup(id);
-    if (result.success) this.removeCurrentChat();
+    if (result.success) {
+      this.removeCurrentChat();
+    }
     return result;
   }
 
   async removeMember(userId: string): Promise<ApiResult<void> | null> {
     const id = this.selectedChatId;
-    if (!id) return null;
+    if (!id) {
+      return null;
+    }
 
     const result = await ChatsApi.removeMember(id, userId);
     if (result.success) {
@@ -465,16 +517,22 @@ export class ChatsPageModel {
   }
 
   private setUnreadCount(chatId: string, count: number): void {
-    if (this.chats.value.find((chat) => chat.id === chatId)?.unreadCount === count) return;
+    if (this.chats.value.find((chat) => chat.id === chatId)?.unreadCount === count) {
+      return;
+    }
     this.chats.value = this.chats.value.map((chat) =>
       chat.id === chatId ? { ...chat, unreadCount: count } : chat,
     );
   }
 
   private markMessagesRead(chatId: string | null, messages: ChatMessage[]): void {
-    if (!chatId) return;
+    if (!chatId) {
+      return;
+    }
     const currentUserId = user.getId();
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      return;
+    }
 
     for (const message of messages) {
       if (message.user_id !== currentUserId && !message.is_read) {
@@ -489,7 +547,9 @@ export class ChatsPageModel {
 
   private async refreshUnreadCounts(chats: DisplayChat[]): Promise<void> {
     const currentUserId = user.getId();
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      return;
+    }
 
     const version = ++this.unreadRefreshVersion;
     const queue = chats.filter((chat) => chat.id && chat.last_message);
@@ -500,7 +560,9 @@ export class ChatsPageModel {
       while (index < queue.length && version === this.unreadRefreshVersion) {
         const chat = queue[index++];
         const chatId = chat.id;
-        if (!chatId) continue;
+        if (!chatId) {
+          continue;
+        }
 
         let before: string | undefined;
         let unreadCount = 0;
@@ -508,7 +570,9 @@ export class ChatsPageModel {
 
         while (!complete && version === this.unreadRefreshVersion) {
           const response = await ChatsApi.getMessages(chatId, before);
-          if (response instanceof ApiError) break;
+          if (response instanceof ApiError) {
+            break;
+          }
 
           const page = response.data?.items ?? [];
           unreadCount += page.filter(
@@ -516,31 +580,43 @@ export class ChatsPageModel {
           ).length;
           complete = page.length < 50;
           before = page[page.length - 1]?.id;
-          if (!before) complete = true;
+          if (!before) {
+            complete = true;
+          }
         }
 
-        if (version !== this.unreadRefreshVersion || !complete) continue;
+        if (version !== this.unreadRefreshVersion || !complete) {
+          continue;
+        }
 
         counts.set(chatId, { messageId: chat.last_message?.id, count: unreadCount });
       }
     };
 
     await Promise.all(Array.from({ length: Math.min(4, queue.length) }, () => worker()));
-    if (version !== this.unreadRefreshVersion) return;
+    if (version !== this.unreadRefreshVersion) {
+      return;
+    }
 
     let changed = false;
     const updated = this.chats.value.map((chat) => {
       const result = counts.get(chat.id ?? '');
-      if (!result || chat.last_message?.id !== result.messageId) return chat;
+      if (!result || chat.last_message?.id !== result.messageId) {
+        return chat;
+      }
 
       const count = this.selectedChatId === chat.id ? 0 : result.count;
-      if (chat.unreadCount === count) return chat;
+      if (chat.unreadCount === count) {
+        return chat;
+      }
 
       changed = true;
       return { ...chat, unreadCount: count };
     });
 
-    if (changed) this.chats.value = updated;
+    if (changed) {
+      this.chats.value = updated;
+    }
   }
 
   private acceptMessage(message: ChatMessage): void {
@@ -556,25 +632,28 @@ export class ChatsPageModel {
     }
 
     const updated = this.chats.value.map((chat) => {
-      if (chat.id !== id) return chat;
+      if (chat.id !== id) {
+        return chat;
+      }
 
-      const updatedChat = toDisplayChat({
-        ...chat,
-        last_message: {
-          id: message.id,
-          content: message.content,
-          type: message.type,
-          created_at: message.created_at,
-        },
-      });
-      updatedChat.unreadCount =
-        chat.unreadCount +
-        (this.selectedChatId !== id &&
-        message.user_id !== user.getId() &&
-        chat.last_message?.id !== message.id
-          ? 1
-          : 0);
-      return updatedChat;
+      return {
+        ...toDisplayChat({
+          ...chat,
+          last_message: {
+            id: message.id,
+            content: message.content,
+            type: message.type,
+            created_at: message.created_at,
+          },
+        }),
+        unreadCount:
+          chat.unreadCount +
+          (this.selectedChatId !== id &&
+          message.user_id !== user.getId() &&
+          chat.last_message?.id !== message.id
+            ? 1
+            : 0),
+      };
     });
 
     this.chats.value = sortChatsByLastMessage(updated);
@@ -607,7 +686,9 @@ export class ChatsPageModel {
       }
 
       const previousTimer = this.remoteTypingTimers.get(typingUserId);
-      if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+      if (previousTimer !== undefined) {
+        window.clearTimeout(previousTimer);
+      }
       const timer = window.setTimeout(
         () => this.removeRemoteTypingUser(typingUserId),
         REMOTE_TYPING_TIMEOUT_MS,
