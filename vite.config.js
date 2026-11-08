@@ -62,6 +62,7 @@ export default defineConfig(({ mode }) => {
         '/api/v1': {
           target: backendUrl,
           changeOrigin: true,
+          ws: true,
           secure: backendUrl.startsWith('https:'),
         },
       },
