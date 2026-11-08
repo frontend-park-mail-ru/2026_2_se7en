@@ -24,6 +24,7 @@ export interface LoginData {
 }
 
 export interface CurrentUser {
+  id: string;
   name: string;
 }
 

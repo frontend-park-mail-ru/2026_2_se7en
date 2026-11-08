@@ -52,6 +52,17 @@ export const UserIcon = `
   </svg>
 `;
 
+/** Одна галочка: сообщение отправлено, но ещё не прочитано. */
+export const MessageSentIcon = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" role="img" aria-label="Отправлено"><path d="M10.5 3 4.5 9 1.5 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+/** Две галочки: сообщение прочитано. */
+export const MessageReadIcon =
+  '<img src="/design-assets/b3d0c.svg" alt="Прочитано" width="12" height="12">';
+
+/** Иконка редактирования в меню группы. */
+export const EditGroupIcon =
+  '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><path d="M4 14.5 13.8 4.7a2.1 2.1 0 0 1 3 3L7 17.5H4v-3Z" stroke="currentColor" stroke-width="1.5"/><path d="m12 6.5 3 3" stroke="currentColor" stroke-width="1.5"/></svg>';
+
 export const ChatsIcon = `
   <svg class="icon icon_lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>

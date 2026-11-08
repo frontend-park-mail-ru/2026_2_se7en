@@ -1,0 +1,148 @@
+// Размеры общего каркаса и боковой панели для экранов чатов и групп.
+.layout_messenger {
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  background: #fff;
+
+  .sidebar {
+    @include flex;
+    flex: 0 0 92px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 0;
+    padding: 16px 0 24px;
+    background: #fff;
+    border-right: 1px solid #ecf2f7;
+
+    &__logo {
+      width: 56px;
+      height: 56px;
+      overflow: hidden;
+      border-radius: 15px;
+
+      &-box {
+        @include flex-justify-center;
+        width: 100%;
+        margin-bottom: 24px;
+      }
+
+      &-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    &__nav {
+      @include flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    &__nav-item {
+      @include flex-column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      width: 70px;
+      height: 64px;
+      color: #9aa8ba;
+      border-radius: 14px;
+
+      &_active,
+      &:hover {
+        color: #142033;
+        background: #eaf5ff;
+      }
+
+      .icon {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    &__nav-label {
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 500;
+    }
+
+    &__bottom {
+      position: relative;
+      @include flex-column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    &__avatar-box,
+    &__avatar {
+      position: relative;
+      width: 50px;
+      height: 50px;
+    }
+
+    &__avatar {
+      @include flex;
+      align-items: center;
+      justify-content: center;
+      background: #e8f3ff url('/design-assets/69aeb.svg') center / 50px 50px no-repeat;
+      border-radius: 50%;
+    }
+
+    &__avatar-letter {
+      color: #142033;
+      font-size: 17px;
+      line-height: 24px;
+      font-weight: 500;
+    }
+
+    &__status {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 11px;
+      height: 11px;
+      background: url('/design-assets/d4a6f.svg') center / contain no-repeat;
+    }
+
+    #logout-button {
+      position: absolute;
+      right: -2px;
+      bottom: 58px;
+      width: 54px;
+      height: 44px;
+      opacity: 0;
+      pointer-events: none;
+      background: #fff;
+      border: 1px solid #ecf2f7;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(20, 32, 51, 0.14);
+    }
+
+    &__bottom:hover #logout-button,
+    &__bottom:focus-within #logout-button {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .sidebar {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 700px) {
+  .layout_messenger {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+}

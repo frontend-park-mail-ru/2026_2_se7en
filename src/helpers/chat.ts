@@ -52,13 +52,9 @@ export function formatMessageTime(messageDate: Date | null): string {
   });
 }
 
-/**
- * Преобразует чат из ответа backend в формат для UI.
- */
-export function toDisplayChat(chat: Chat): DisplayChat {
-  const name = chat.name ?? '';
-
-  const initials = name
+/** Возвращает инициалы из первых двух слов имени. */
+export function getChatInitials(name: string): string {
+  return name
     .trim()
     .split(/\s+/)
     .filter(Boolean)
@@ -66,8 +62,17 @@ export function toDisplayChat(chat: Chat): DisplayChat {
     .map((part) => part[0] ?? '')
     .join('')
     .toUpperCase();
+}
 
-  const createdAt = chat.last_message?.created_at;
+/**
+ * Преобразует чат из ответа backend в формат для UI.
+ */
+export function toDisplayChat(chat: Chat): DisplayChat {
+  const name = chat.name ?? '';
+
+  const initials = getChatInitials(name);
+
+  const createdAt = chat.last_message?.created_at ?? chat.updated_at ?? chat.created_at;
 
   const messageDate = createdAt ? new Date(createdAt) : null;
 
@@ -79,4 +84,13 @@ export function toDisplayChat(chat: Chat): DisplayChat {
     lastMessage: chat.last_message?.content ?? '',
     unreadCount: 0,
   };
+}
+
+export function sortChatsByLastMessage(chats: DisplayChat[]): DisplayChat[] {
+  return [...chats].sort((left, right) => {
+    const leftDate = left.last_message?.created_at ?? left.updated_at ?? left.created_at ?? '';
+    const rightDate = right.last_message?.created_at ?? right.updated_at ?? right.created_at ?? '';
+
+    return Date.parse(rightDate) - Date.parse(leftDate);
+  });
 }
