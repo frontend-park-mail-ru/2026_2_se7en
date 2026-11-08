@@ -23,6 +23,7 @@ export type WsServerEventType =
   | 'subscribed'
   | 'unsubscribed'
   | 'chat.created'
+  | 'chat.updated'
   | 'chat.deleted'
   | 'member.added'
   | 'member.deleted'
