@@ -263,6 +263,7 @@ export function renderGroupInfo(
   `;
 }
 
+/** Отображает форму редактирования группы и управления участниками. */
 export function renderGroupEdit(
   chat: DisplayChat,
   members: GroupMemberView[] = [],
@@ -284,7 +285,7 @@ export function renderGroupEdit(
         ${avatarPicker(chat.initials, 'edit', form.avatarUrl ?? chat.icon_url ?? undefined, form.avatarError, form.avatarFileName)}
         <label class="group-view__field" for="edit-group-name">
           <span>Название группы</span>
-          <input id="edit-group-name" type="text" name="group-name" maxlength="100" value="${escapeHtml(form.name ?? chat.name)}" autocomplete="off" aria-invalid="${Boolean(form.nameError)}" aria-describedby="edit-group-name-error" required>
+          ${Input({ id: 'edit-group-name', name: 'group-name', value: form.name ?? chat.name, unstyled: true, attrs: { maxlength: '100', autocomplete: 'off', 'aria-invalid': String(Boolean(form.nameError)), 'aria-describedby': 'edit-group-name-error', required: '' } })}
           <small id="edit-group-name-error" class="group-view__error" role="status">${escapeHtml(form.nameError)}</small>
         </label>
         <label class="group-view__field" for="edit-group-description">
@@ -298,16 +299,16 @@ export function renderGroupEdit(
         </div>
         <label class="group-view__search">
           <img src="${asset('9e868.svg')}" alt="" width="17" height="17">
-          <input type="search" name="member-search" value="${escapeHtml(options.query)}" placeholder="Поиск участников" aria-label="Поиск участников" data-member-search>
+          ${Input({ type: 'search', name: 'member-search', value: options.query, placeholder: 'Поиск участников', unstyled: true, attrs: { 'aria-label': 'Поиск участников', 'data-member-search': '' } })}
         </label>
         <div class="group-view__members" aria-busy="${Boolean(options.loading)}">
-          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p><button type="button" data-group-retry>Повторить</button></div>` : members.length ? members.map((member) => memberRow(member, { showMenu: true, menuOpen: options.openMemberMenuId === member.id })).join('') : '<p class="group-view__empty">Участники пока не загружены</p>'}
+          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-group-retry': '' } })}</div>` : members.length ? members.map((member) => memberRow(member, { showMenu: true, menuOpen: options.openMemberMenuId === member.id })).join('') : '<p class="group-view__empty">Участники пока не загружены</p>'}
         </div>
         <p class="group-view__error" role="status">${escapeHtml(form.membersError || form.submitError)}</p>
       </div>
       <footer class="group-view__footer group-view__footer_edit">
-        <button type="button" data-group-cancel>Отмена</button>
-        <button type="submit" data-group-save ${form.submitting ? 'disabled' : ''}>${form.submitting ? 'Сохранение…' : 'Сохранить'}</button>
+        ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-group-cancel': '' } })}
+        ${Button({ text: form.submitting ? 'Сохранение…' : 'Сохранить', type: 'submit', mode: 'unstyled', disabled: form.submitting, attrs: { 'data-group-save': '' } })}
       </footer>
       </form>
       ${
@@ -318,8 +319,8 @@ export function renderGroupEdit(
             <h3 id="remove-member-title">Удалить участника?</h3>
             <p>${escapeHtml(memberToRemove.name)} будет удалён из группы.</p>
             <div class="group-view__modal-actions">
-              <button type="button" data-member-remove-cancel>Отмена</button>
-              <button type="button" class="group-view__modal-danger" data-member-remove-confirm="${escapeHtml(memberToRemove.id)}">Удалить</button>
+              ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-member-remove-cancel': '' } })}
+              ${Button({ text: 'Удалить', mode: 'unstyled', className: 'group-view__modal-danger', attrs: { 'data-member-remove-confirm': memberToRemove.id } })}
             </div>
           </div>
         </div>

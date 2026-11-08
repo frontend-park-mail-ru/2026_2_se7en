@@ -1,22 +1,14 @@
 import './ChatsPage.scss';
 import { ApiError } from '@/api/ApiResponse.ts';
-import { ChatArea } from '@/components/chat/ChatArea.ts';
-import { ChatsPageModel } from './ChatsPage.model.ts';
-import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
-import { Page } from '@/pages/Page.ts';
-import { ROUTES } from '@/constants/Routes.ts';
-import { eventBus } from '@/helpers/EventBus.ts';
-import { formatMessageTime } from '@/helpers/chat.ts';
-import { user } from '@/store/User.ts';
-import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
 import type { ChatMember, Message } from '@/api/chats/chats.types.ts';
+import { ChatArea } from '@/components/chat/ChatArea.ts';
+import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
 import { renderContactPicker } from '@/components/chat/ContactPicker.ts';
 import type {
   ContactPreview,
   GroupFormView,
   GroupMemberView,
 } from '@/components/chat/chat.types.ts';
-
 import {
   renderGroupCreateDetails,
   renderGroupCreateMembers,
@@ -31,16 +23,7 @@ import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import { Page } from '@/pages/Page.ts';
 import { user } from '@/store/User.ts';
 import { ChatsPageModel } from './ChatsPage.model.ts';
-
-type ChatsView =
-  | 'chat'
-  | 'list'
-  | 'contact-picker'
-  | 'group-members'
-  | 'group-details'
-  | 'group-add-members'
-  | 'group-info'
-  | 'group-edit';
+import type { ChatsView } from './ChatsPage.types.ts';
 
 /** Преобразует участника из ответа API для отображения. */
 function toGroupMemberView(member: ChatMember): GroupMemberView {
@@ -124,12 +107,14 @@ export class ChatsPage extends Page {
     const networkError = this.model.hasNetworkError.value;
     const groupMembers = this.model.members.value.map(toGroupMemberView);
     const typingUsers = this.model.typingUsers.value;
+    const typingName =
+      groupMembers.find((member) => member.id === typingUsers[0])?.name ?? 'Кто-то';
     const typingLabel =
       typingUsers.length > 1
         ? 'Несколько печатают…'
         : typingUsers.length === 1
           ? chat?.type === 'group'
-            ? `${groupMembers.find((member) => member.id === typingUsers[0])?.name ?? 'Кто-то'} печатает…`
+            ? `${typingName} печатает…`
             : 'Собеседник печатает…'
           : '';
     const role = this.model.role.value;
@@ -156,9 +141,7 @@ export class ChatsPage extends Page {
     });
 
     if (
-      this.view === 'group-members' ||
-      this.view === 'group-details' ||
-      this.view === 'group-add-members'
+      (['group-members', 'group-details', 'group-add-members'] as ChatsView[]).includes(this.view)
     ) {
       const leftPanel =
         this.view === 'group-details'
@@ -192,7 +175,7 @@ export class ChatsPage extends Page {
       filter: this.chatFilter,
     });
 
-    if (chat && (this.view === 'group-info' || this.view === 'group-edit')) {
+    if (chat && (['group-info', 'group-edit'] as ChatsView[]).includes(this.view)) {
       const rightPanel =
         this.view === 'group-info'
           ? renderGroupInfo(chat, groupMembers, {
@@ -221,7 +204,9 @@ export class ChatsPage extends Page {
   }
 
   private update(): void {
-    if (!this.container) return;
+    if (!this.container) {
+      return;
+    }
 
     const focusedInput = document.activeElement?.matches('[data-message-input]')
       ? (document.activeElement as HTMLInputElement)
@@ -245,7 +230,9 @@ export class ChatsPage extends Page {
 
   private readonly handleContainerClick = (event: MouseEvent): void => {
     const target = event.target as HTMLElement | null;
-    if (!target) return;
+    if (!target) {
+      return;
+    }
 
     const chatItem = target.closest<HTMLElement>('[data-chat-id]');
     if (chatItem?.dataset.chatId) {
@@ -267,12 +254,10 @@ export class ChatsPage extends Page {
 
     const selectedFilter = target.closest<HTMLElement>('[data-chat-filter]')?.dataset.chatFilter;
     if (
-      selectedFilter === 'all' ||
-      selectedFilter === 'unread' ||
-      selectedFilter === 'dialog' ||
-      selectedFilter === 'group'
+      selectedFilter &&
+      (['all', 'unread', 'dialog', 'group'] as string[]).includes(selectedFilter)
     ) {
-      this.chatFilter = selectedFilter;
+      this.chatFilter = selectedFilter as ChatFilter;
       this.update();
       return;
     }
@@ -315,7 +300,9 @@ export class ChatsPage extends Page {
     if (target.closest('[data-create-group]')) {
       this.createMenuOpen = false;
       this.memberSearch = '';
-      if (this.createAvatarObjectUrl) URL.revokeObjectURL(this.createAvatarObjectUrl);
+      if (this.createAvatarObjectUrl) {
+        URL.revokeObjectURL(this.createAvatarObjectUrl);
+      }
       this.createAvatarObjectUrl = null;
       this.createAvatarFile = null;
       this.createForm = {};
@@ -327,13 +314,19 @@ export class ChatsPage extends Page {
 
     if (target.closest('[data-group-member]')) {
       const id = target.closest<HTMLElement>('[data-group-member]')?.dataset.groupMember;
-      if (!id) return;
+      if (!id) {
+        return;
+      }
+
       const selection =
         this.view === 'group-add-members'
           ? this.selectedAdditionalMemberIds
           : this.selectedMemberIds;
-      if (selection.has(id)) selection.delete(id);
-      else selection.add(id);
+      if (selection.has(id)) {
+        selection.delete(id);
+      } else {
+        selection.add(id);
+      }
       this.update();
       return;
     }
@@ -345,10 +338,17 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-group-back]')) {
-      if (this.view === 'group-details') this.view = 'group-members';
-      else if (this.view === 'group-edit') this.view = 'group-info';
-      else if (this.view === 'group-add-members') this.view = 'group-info';
-      else this.view = 'chat';
+      switch (this.view) {
+        case 'group-details':
+          this.view = 'group-members';
+          break;
+        case 'group-edit':
+        case 'group-add-members':
+          this.view = 'group-info';
+          break;
+        default:
+          this.view = 'chat';
+      }
       this.update();
       return;
     }
@@ -362,7 +362,9 @@ export class ChatsPage extends Page {
 
     if (target.closest('[data-open-group-edit]')) {
       const activeChat = this.model.activeChat.value;
-      if (this.editAvatarObjectUrl) URL.revokeObjectURL(this.editAvatarObjectUrl);
+      if (this.editAvatarObjectUrl) {
+        URL.revokeObjectURL(this.editAvatarObjectUrl);
+      }
       this.editAvatarObjectUrl = null;
       this.editAvatarFile = null;
       this.editForm = {
@@ -414,7 +416,9 @@ export class ChatsPage extends Page {
       .memberRemoveConfirm;
 
     if (confirmedMemberId) {
-      if (this.actionPending) return;
+      if (this.actionPending) {
+        return;
+      }
       this.actionPending = true;
 
       void this.model.removeMember(confirmedMemberId).then((result) => {
@@ -444,7 +448,9 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-group-leave-confirm]')) {
-      if (this.actionPending) return;
+      if (this.actionPending) {
+        return;
+      }
       this.actionPending = true;
 
       void this.model.leaveGroup().then((result) => {
@@ -461,7 +467,9 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-confirm-delete]')) {
-      if (this.actionPending) return;
+      if (this.actionPending) {
+        return;
+      }
       this.actionPending = true;
 
       void this.model.deleteChat().then((result) => {
@@ -513,13 +521,17 @@ export class ChatsPage extends Page {
 
   private readonly handleContainerInput = (event: Event): void => {
     const input = event.target as HTMLInputElement | HTMLTextAreaElement | null;
-    if (!input) return;
+    if (!input) {
+      return;
+    }
 
     if (input.matches('[data-message-input]')) {
       this.messageDraft = input.value;
       this.model.updateTyping(input.value);
       const sendButton = this.container?.querySelector<HTMLButtonElement>('.chat-area__send');
-      if (sendButton) sendButton.disabled = !input.value.trim();
+      if (sendButton) {
+        sendButton.disabled = !input.value.trim();
+      }
       return;
     }
 
@@ -529,34 +541,53 @@ export class ChatsPage extends Page {
       this.update();
       const search = this.container?.querySelector<HTMLInputElement>('[data-chat-list-search]');
       search?.focus();
-      if (cursor !== null) search?.setSelectionRange(cursor, cursor);
+      if (cursor !== null) {
+        search?.setSelectionRange(cursor, cursor);
+      }
       return;
     }
-    if (input.matches('[data-contact-search]')) this.contactSearch = input.value;
-    if (input.matches('[data-member-search]')) this.memberSearch = input.value;
+    if (input.matches('[data-contact-search]')) {
+      this.contactSearch = input.value;
+    }
+    if (input.matches('[data-member-search]')) {
+      this.memberSearch = input.value;
+    }
 
     const form = input.closest<HTMLFormElement>('[data-group-create-form], [data-group-edit-form]');
-    if (!form) return;
+    if (!form) {
+      return;
+    }
+
     const draft = form.matches('[data-group-create-form]') ? this.createForm : this.editForm;
-    if (input.name === 'group-name') draft.name = input.value;
-    if (input.name === 'group-description') draft.description = input.value;
+    if (input.name === 'group-name') {
+      draft.name = input.value;
+    }
+    if (input.name === 'group-description') {
+      draft.description = input.value;
+    }
   };
 
   private readonly handleContainerChange = (event: Event): void => {
     const input = event.target as HTMLInputElement | null;
-    if (!input?.matches('[data-group-avatar]')) return;
+    if (!input?.matches('[data-group-avatar]')) {
+      return;
+    }
     const file = input.files?.[0] ?? null;
     const avatarError = validateAvatar(file);
     const mode = input.dataset.groupAvatar;
     if (mode === 'create') {
-      if (this.createAvatarObjectUrl) URL.revokeObjectURL(this.createAvatarObjectUrl);
+      if (this.createAvatarObjectUrl) {
+        URL.revokeObjectURL(this.createAvatarObjectUrl);
+      }
       this.createAvatarFile = file;
       this.createAvatarObjectUrl = file ? URL.createObjectURL(file) : null;
       this.createForm.avatarUrl = this.createAvatarObjectUrl ?? undefined;
       this.createForm.avatarFileName = this.createAvatarFile?.name;
       this.createForm.avatarError = avatarError;
     } else {
-      if (this.editAvatarObjectUrl) URL.revokeObjectURL(this.editAvatarObjectUrl);
+      if (this.editAvatarObjectUrl) {
+        URL.revokeObjectURL(this.editAvatarObjectUrl);
+      }
       this.editAvatarFile = file;
       this.editAvatarObjectUrl = file ? URL.createObjectURL(file) : null;
       this.editForm.avatarUrl = this.editAvatarObjectUrl ?? undefined;
@@ -568,13 +599,17 @@ export class ChatsPage extends Page {
 
   private readonly handleContainerSubmit = (event: SubmitEvent): void => {
     const form = event.target as HTMLFormElement | null;
-    if (!form) return;
+    if (!form) {
+      return;
+    }
 
     if (form.matches('[data-message-form]')) {
       event.preventDefault();
 
       const text = this.messageDraft.trim();
-      if (!text || this.model.sending.value) return;
+      if (!text || this.model.sending.value) {
+        return;
+      }
 
       void this.model.sendMessage(text).then((sent) => {
         if (sent) {
@@ -587,7 +622,9 @@ export class ChatsPage extends Page {
 
     if (form.matches('[data-group-create-form]')) {
       event.preventDefault();
-      if (this.createForm.submitting) return;
+      if (this.createForm.submitting) {
+        return;
+      }
 
       const valid = validateGroupForm(
         this.createForm,
@@ -626,7 +663,9 @@ export class ChatsPage extends Page {
 
     if (form.matches('[data-group-edit-form]')) {
       event.preventDefault();
-      if (this.editForm.submitting) return;
+      if (this.editForm.submitting) {
+        return;
+      }
 
       const valid = validateGroupForm(
         this.editForm,
@@ -673,8 +712,12 @@ export class ChatsPage extends Page {
     this.container?.removeEventListener('input', this.handleContainerInput);
     this.container?.removeEventListener('change', this.handleContainerChange);
     this.container?.removeEventListener('submit', this.handleContainerSubmit);
-    if (this.createAvatarObjectUrl) URL.revokeObjectURL(this.createAvatarObjectUrl);
-    if (this.editAvatarObjectUrl) URL.revokeObjectURL(this.editAvatarObjectUrl);
+    if (this.createAvatarObjectUrl) {
+      URL.revokeObjectURL(this.createAvatarObjectUrl);
+    }
+    if (this.editAvatarObjectUrl) {
+      URL.revokeObjectURL(this.editAvatarObjectUrl);
+    }
     this.layout.unmount();
     this.model.destroy();
     super.unmount();
