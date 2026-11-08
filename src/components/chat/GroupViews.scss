@@ -1,14 +1,13 @@
 .group-view,
 .group-create-panel {
-  display: flex;
-  flex-direction: column;
+  @include flex-column;
   min-width: 0;
   min-height: 0;
   height: 100%;
   background: #fff;
 
   &__header {
-    display: flex;
+    @include flex;
     flex: 0 0 76px;
     align-items: center;
     gap: 12px;
@@ -118,12 +117,11 @@
   }
 
   &__field {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: 5px;
 
     > span {
-      display: flex;
+      @include flex;
       justify-content: space-between;
       color: #6c7b91;
       font-size: 12px;
@@ -163,14 +161,14 @@
   }
 
   &__form {
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     min-height: 0;
   }
 
   &__content {
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     min-height: 0;
@@ -180,13 +178,12 @@
 
   &__summary,
   &__photo {
-    display: flex;
-    align-items: center;
+    @include flex-align-center;
     gap: 12px;
     text-align: left;
 
     > span:last-child {
-      display: flex;
+      @include flex;
       flex-direction: column;
       gap: 4px;
     }
@@ -214,8 +211,7 @@
   }
 
   &__description {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: 5px;
     margin-top: 16px;
 
@@ -240,8 +236,7 @@
   }
 
   &__section-heading {
-    display: flex;
-    align-items: center;
+    @include flex-align-center;
     justify-content: space-between;
     margin-top: 18px;
 
@@ -251,7 +246,7 @@
   }
 
   &__members-heading {
-    display: flex;
+    @include flex;
     justify-content: space-between;
     margin-bottom: 8px;
 
@@ -262,8 +257,7 @@
   }
 
   &__search {
-    display: flex;
-    align-items: center;
+    @include flex-align-center;
     gap: 8px;
     height: 42px;
     padding: 0 12px;
@@ -284,8 +278,7 @@
   }
 
   &__members {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: 4px;
     margin-top: 8px;
   }
@@ -306,8 +299,7 @@
   }
 
   &__member {
-    display: flex;
-    align-items: center;
+    @include flex-align-center;
     gap: 12px;
     min-height: 50px;
     width: 100%;
@@ -353,20 +345,18 @@
   }
 
   &__member-text {
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     gap: 4px;
     min-width: 0;
 
     strong {
-      overflow: hidden;
+      @include truncate;
       color: #142033;
       font-size: 13px;
       line-height: 16px;
       font-weight: 600;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     small {
@@ -394,8 +384,7 @@
   }
 
   &__footer {
-    display: flex;
-    align-items: center;
+    @include flex-align-center;
     gap: 8px;
     min-height: 54px;
     padding: 8px 24px;
@@ -406,7 +395,7 @@
       border-top: 1px solid #ecf2f7;
 
       button {
-        display: flex;
+        @include flex;
         align-items: center;
         gap: 8px;
         color: #ff4b55;
@@ -471,7 +460,7 @@
   }
 
   &__modal-actions {
-    display: flex;
+    @include flex;
     gap: 8px;
     margin-top: 16px;
 
@@ -524,7 +513,7 @@
   }
 
   &__form {
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     min-height: 0;
@@ -567,7 +556,7 @@
   }
 
   &__footer {
-    display: flex;
+    @include flex;
     justify-content: space-between;
     min-height: 54px;
     padding: 8px 16px;
@@ -599,7 +588,7 @@
   }
 
   &__details {
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     min-height: 0;
@@ -608,8 +597,7 @@
   }
 
   &__photo {
-    display: flex;
-    align-items: center;
+    @include flex-align-center;
     gap: 12px;
     align-self: flex-start;
     margin-bottom: 12px;
@@ -617,7 +605,7 @@
     cursor: pointer;
 
     > span:last-child {
-      display: flex;
+      @include flex;
       flex-direction: column;
       gap: 4px;
     }
@@ -635,7 +623,7 @@
   }
 
   &__members-heading {
-    display: flex;
+    @include flex;
     justify-content: space-between;
     margin: 16px 0 8px;
     color: #6c7b91;

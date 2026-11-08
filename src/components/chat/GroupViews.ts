@@ -2,38 +2,9 @@ import './GroupViews.scss';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { user } from '@/store/User.ts';
-
-export interface GroupMemberView {
-  id: string;
-  name: string;
-  initials: string;
-  avatarUrl?: string;
-  status: string;
-  role?: 'creator' | 'admin' | 'member';
-}
-
-export interface GroupFormView {
-  name?: string;
-  description?: string;
-  avatarUrl?: string;
-  avatarFileName?: string;
-  nameError?: string;
-  descriptionError?: string;
-  avatarError?: string;
-  membersError?: string;
-  submitError?: string;
-  submitting?: boolean;
-}
-
-export interface GroupMembersView {
-  loading?: boolean;
-  error?: string;
-  openMemberMenuId?: string | null;
-  removeMemberId?: string | null;
-  canManage?: boolean;
-  leaveConfirmOpen?: boolean;
-  query?: string;
-}
+import { Button } from '@/components/core/Button.ts';
+import { Input } from '@/components/core/Input.ts';
+import type { GroupMemberView, GroupFormView } from './chat.types.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
 
@@ -47,11 +18,13 @@ function avatar(initials: string, small = false, online = true, imageUrl?: strin
 }
 
 function backButton(): string {
-  return `
-    <button type="button" data-group-back class="group-view__back" aria-label="Назад">
-      <img src="${asset('63b18.svg')}" alt="" width="20" height="20">
-    </button>
-  `;
+  return Button({
+    text: `<img src="${asset('63b18.svg')}" alt="" width="20" height="20">`,
+    mode: 'unstyled',
+    className: 'group-view__back',
+    ariaLabel: 'Назад',
+    attrs: { 'data-group-back': '' },
+  });
 }
 
 function avatarPicker(
@@ -71,7 +44,7 @@ function avatarPicker(
           <small>${escapeHtml(fileName || 'Необязательно')}</small>
         </span>
       </label>
-      <input class="group-view__file-input" id="${id}" type="file" name="avatar" accept="image/png,image/jpeg,image/webp" data-group-avatar="${mode}" aria-describedby="${id}-error">
+      ${Input({ className: 'group-view__file-input', id, type: 'file', name: 'avatar', unstyled: true, attrs: { accept: 'image/png,image/jpeg,image/webp', 'data-group-avatar': mode, 'aria-describedby': `${id}-error` } })}
       <small id="${id}-error" class="group-view__error" role="status">${escapeHtml(error)}</small>
     </div>
   `;
@@ -86,9 +59,7 @@ function memberRow(
     menuOpen?: boolean;
   } = {},
 ): string {
-  const tag = options.selectable ? 'button' : 'div';
-  return `
-    <${tag} class="group-view__member" ${options.selectable ? `type="button" data-group-member="${escapeHtml(member.id)}" aria-pressed="${Boolean(options.selected)}"` : ''}>
+  const content = `
       ${avatar(member.initials, options.selectable, member.status === 'в сети', member.avatarUrl)}
       <span class="group-view__member-text">
         <strong>${escapeHtml(member.name)}</strong>
@@ -112,16 +83,27 @@ function memberRow(
         options.showMenu && member.role !== 'creator'
           ? `
         <span class="group-view__member-actions">
-          <button type="button" class="group-view__member-menu" data-member-menu-toggle="${escapeHtml(member.id)}" aria-label="Действия с участником ${escapeHtml(member.name)}" aria-expanded="${Boolean(options.menuOpen)}">⋯</button>
-          ${options.menuOpen ? `<span class="group-view__member-popover" role="menu"><button type="button" role="menuitem" data-member-remove="${escapeHtml(member.id)}">Удалить из группы</button></span>` : ''}
+          ${Button({ text: '⋯', mode: 'unstyled', className: 'group-view__member-menu', ariaLabel: `Действия с участником ${member.name}`, attrs: { 'data-member-menu-toggle': member.id, 'aria-expanded': String(Boolean(options.menuOpen)) } })}
+          ${options.menuOpen ? `<span class="group-view__member-popover" role="menu">${Button({ text: 'Удалить из группы', mode: 'unstyled', attrs: { role: 'menuitem', 'data-member-remove': member.id } })}</span>` : ''}
         </span>
       `
           : ''
       }
-    </${tag}>
   `;
+  return options.selectable
+    ? Button({
+        text: content,
+        mode: 'unstyled',
+        className: 'group-view__member',
+        attrs: {
+          'data-group-member': member.id,
+          'aria-pressed': String(Boolean(options.selected)),
+        },
+      })
+    : `<div class="group-view__member">${content}</div>`;
 }
 
+/** Отображает выбор участников новой группы. */
 export function renderGroupCreateMembers(
   selectedIds: Set<string>,
   contacts: GroupMemberView[],
@@ -145,14 +127,14 @@ export function renderGroupCreateMembers(
       <p class="group-create-panel__count">${adding ? `${selectedIds.size} выбрано` : `${count} из 100 участников`}</p>
       <label class="group-create-panel__search">
         <img src="${asset('9e868.svg')}" alt="" width="17" height="17">
-        <input type="search" name="member-search" value="${escapeHtml(options.query)}" placeholder="Поиск по имени или никнейму" aria-label="Поиск участников" data-member-search>
+        ${Input({ type: 'search', name: 'member-search', value: options.query, placeholder: 'Поиск по имени или никнейму', unstyled: true, attrs: { 'aria-label': 'Поиск участников', 'data-member-search': '' } })}
       </label>
       <div class="group-create-panel__members" aria-busy="${Boolean(options.loading)}">
         ${
           options.loading
             ? '<p class="group-create-panel__empty" role="status">Загрузка контактов…</p>'
             : options.error
-              ? `<div class="group-create-panel__empty" role="alert"><p>${escapeHtml(options.error)}</p><button type="button" data-contacts-retry>Повторить</button></div>`
+              ? `<div class="group-create-panel__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-contacts-retry': '' } })}</div>`
               : contacts.length
                 ? contacts
                     .map((member) =>
@@ -165,12 +147,13 @@ export function renderGroupCreateMembers(
       <p class="group-create-panel__selection-error group-view__error" role="status">${escapeHtml(options.membersError)}</p>
       <footer class="group-create-panel__footer">
         <span>${adding ? `${selectedIds.size} выбрано` : `${count} из 100 участников`}</span>
-        <button type="button" ${adding ? 'data-group-add-submit' : 'data-group-next'}>${adding ? 'Добавить' : 'Продолжить'}</button>
+        ${Button({ text: adding ? 'Добавить' : 'Продолжить', mode: 'unstyled', attrs: { [adding ? 'data-group-add-submit' : 'data-group-next']: '' } })}
       </footer>
     </section>
   `;
 }
 
+/** Отображает форму данных новой группы. */
 export function renderGroupCreateDetails(
   selectedIds: Set<string>,
   contacts: GroupMemberView[],
@@ -192,7 +175,7 @@ export function renderGroupCreateDetails(
         ${avatarPicker(currentInitials, 'create', form.avatarUrl, form.avatarError, form.avatarFileName)}
         <label class="group-view__field" for="create-group-name">
           <span>Название группы</span>
-          <input id="create-group-name" type="text" name="group-name" maxlength="100" placeholder="Название группы" value="${escapeHtml(form.name)}" autocomplete="off" aria-invalid="${Boolean(form.nameError)}" aria-describedby="create-group-name-error" required>
+          ${Input({ id: 'create-group-name', name: 'group-name', placeholder: 'Название группы', value: form.name, unstyled: true, attrs: { maxlength: '100', autocomplete: 'off', 'aria-invalid': String(Boolean(form.nameError)), 'aria-describedby': 'create-group-name-error', required: '' } })}
           <small id="create-group-name-error" class="group-view__error" role="status">${escapeHtml(form.nameError)}</small>
         </label>
         <label class="group-view__field" for="create-group-description">
@@ -216,7 +199,7 @@ export function renderGroupCreateDetails(
         <p class="group-view__error" role="status">${escapeHtml(form.membersError || form.submitError)}</p>
         </div>
         <footer class="group-create-panel__footer group-create-panel__footer_single">
-          <button type="submit" data-group-create ${form.submitting ? 'disabled' : ''}>${form.submitting ? 'Создание…' : 'Создать группу'}</button>
+          ${Button({ text: form.submitting ? 'Создание…' : 'Создать группу', type: 'submit', mode: 'unstyled', disabled: form.submitting, attrs: { 'data-group-create': '' } })}
         </footer>
       </form>
     </section>

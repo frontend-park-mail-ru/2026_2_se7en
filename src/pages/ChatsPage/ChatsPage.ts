@@ -3,10 +3,13 @@ import { ApiError } from '@/api/ApiResponse.ts';
 import type { Message } from '@/api/chats/chats.types.ts';
 import { ChatArea } from '@/components/chat/ChatArea.ts';
 import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
-import { type ContactPreview, renderContactPicker } from '@/components/chat/ContactPicker.ts';
+import { renderContactPicker } from '@/components/chat/ContactPicker.ts';
+import type {
+  ContactPreview,
+  GroupFormView,
+  GroupMemberView,
+} from '@/components/chat/chat.types.ts';
 import {
-  type GroupFormView,
-  type GroupMemberView,
   renderGroupCreateDetails,
   renderGroupCreateMembers,
 } from '@/components/chat/GroupViews.ts';

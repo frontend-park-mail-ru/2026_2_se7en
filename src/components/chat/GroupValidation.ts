@@ -1,4 +1,4 @@
-import type { GroupFormView } from './GroupViews.ts';
+import type { GroupFormView } from './chat.types.ts';
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const ALLOWED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
