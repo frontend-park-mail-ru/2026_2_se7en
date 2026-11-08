@@ -4,7 +4,7 @@ import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { user } from '@/store/User.ts';
 import { Button } from '@/components/core/Button.ts';
 import { Input } from '@/components/core/Input.ts';
-import type { GroupMemberView, GroupFormView } from './chat.types.ts';
+import type { GroupMemberView, GroupFormView, GroupMembersView } from './chat.types.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
 
@@ -205,6 +205,7 @@ export function renderGroupCreateDetails(
     </section>
   `;
 }
+/** Отображает информацию о группе и её участниках. */
 export function renderGroupInfo(
   chat: DisplayChat,
   members: GroupMemberView[] = [],
@@ -215,7 +216,7 @@ export function renderGroupInfo(
       <header class="group-view__header">
         ${backButton()}
         <h2>Информация о группе</h2>
-        ${options.canManage ? '<button type="button" class="group-view__header-action" data-open-group-edit>Изменить</button>' : ''}
+        ${options.canManage ? Button({ text: 'Изменить', mode: 'unstyled', className: 'group-view__header-action', attrs: { 'data-open-group-edit': '' } }) : ''}
       </header>
       <div class="group-view__content">
         <div class="group-view__summary">
@@ -229,20 +230,17 @@ export function renderGroupInfo(
           <span>Описание</span>
           <p>${escapeHtml(chat.description || 'Описание группы не добавлено')}</p>
         </div>
-        ${options.canManage ? '<button type="button" class="group-view__mobile-edit" data-open-group-edit>Изменить</button>' : ''}
+        ${options.canManage ? Button({ text: 'Изменить', mode: 'unstyled', className: 'group-view__mobile-edit', attrs: { 'data-open-group-edit': '' } }) : ''}
         <div class="group-view__section-heading">
           <h3 class="group-view__section-title">Участники</h3>
-          ${options.canManage ? '<button type="button" data-group-add>Добавить</button>' : ''}
+          ${options.canManage ? Button({ text: 'Добавить', mode: 'unstyled', attrs: { 'data-group-add': '' } }) : ''}
         </div>
         <div class="group-view__members" aria-busy="${Boolean(options.loading)}">
-          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p><button type="button" data-group-retry>Повторить</button></div>` : members.length ? members.map((member) => memberRow(member)).join('') : '<p class="group-view__empty">В группе пока нет участников</p>'}
+          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-group-retry': '' } })}</div>` : members.length ? members.map((member) => memberRow(member)).join('') : '<p class="group-view__empty">В группе пока нет участников</p>'}
         </div>
       </div>
       <footer class="group-view__footer group-view__footer_info">
-        <button type="button" data-group-leave>
-          <img src="${asset('1df05.svg')}" alt="" width="19" height="19">
-          Выйти из группы
-        </button>
+        ${Button({ text: `<img src="${asset('1df05.svg')}" alt="" width="19" height="19"> Выйти из группы`, mode: 'unstyled', attrs: { 'data-group-leave': '' } })}
       </footer>
       ${
         options.leaveConfirmOpen
@@ -252,8 +250,8 @@ export function renderGroupInfo(
             <h3 id="leave-group-title">Выйти из группы?</h3>
             <p>Вы больше не сможете читать её сообщения, пока вас не добавят снова.</p>
             <div class="group-view__modal-actions">
-              <button type="button" data-group-leave-cancel>Отмена</button>
-              <button type="button" class="group-view__modal-danger" data-group-leave-confirm>Выйти</button>
+              ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-group-leave-cancel': '' } })}
+              ${Button({ text: 'Выйти', mode: 'unstyled', className: 'group-view__modal-danger', attrs: { 'data-group-leave-confirm': '' } })}
             </div>
           </div>
         </div>

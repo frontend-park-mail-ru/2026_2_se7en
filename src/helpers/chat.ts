@@ -52,13 +52,9 @@ export function formatMessageTime(messageDate: Date | null): string {
   });
 }
 
-/**
- * Преобразует чат из ответа backend в формат для UI.
- */
-export function toDisplayChat(chat: Chat): DisplayChat {
-  const name = chat.name ?? '';
-
-  const initials = name
+/** Возвращает инициалы из первых двух слов имени. */
+export function getChatInitials(name: string): string {
+  return name
     .trim()
     .split(/\s+/)
     .filter(Boolean)
@@ -66,6 +62,15 @@ export function toDisplayChat(chat: Chat): DisplayChat {
     .map((part) => part[0] ?? '')
     .join('')
     .toUpperCase();
+}
+
+/**
+ * Преобразует чат из ответа backend в формат для UI.
+ */
+export function toDisplayChat(chat: Chat): DisplayChat {
+  const name = chat.name ?? '';
+
+  const initials = getChatInitials(name);
 
   const createdAt = chat.last_message?.created_at ?? chat.updated_at ?? chat.created_at;
 

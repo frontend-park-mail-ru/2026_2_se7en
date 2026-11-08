@@ -17,23 +17,19 @@ import {
 import { validateAvatar, validateGroupForm } from '@/components/chat/GroupValidation.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
-import { formatMessageTime } from '@/helpers/chat.ts';
+import { formatMessageTime, getChatInitials } from '@/helpers/chat.ts';
 import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import { Page } from '@/pages/Page.ts';
 import { user } from '@/store/User.ts';
 import { ChatsPageModel } from './ChatsPage.model.ts';
 
+/** Преобразует участника из ответа API для отображения. */
 function toGroupMemberView(member: ChatMember): GroupMemberView {
   const name =
     [member.profile.first_name, member.profile.last_name].filter(Boolean).join(' ') ||
     member.profile.nickname;
-  const initials = name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0] ?? '')
-    .join('')
-    .toUpperCase();
+  const initials = getChatInitials(name);
+
   return {
     id: member.user_id,
     name,
