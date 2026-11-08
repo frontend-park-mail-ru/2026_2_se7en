@@ -2,12 +2,15 @@ import './ChatList.scss';
 import './Skeleton.scss';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { Button } from '@/components/core/Button.ts';
+import type { ChatFilter } from './chat.types.ts';
+export type { ChatFilter } from './chat.types.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
 
-export type ChatFilter = 'all' | 'unread' | 'dialog' | 'group';
-
+/** Отображает и фильтрует список диалогов и групп. */
 export class ChatList {
+  /** Возвращает строку списка с данными одного чата. */
   renderChatItem(chat: DisplayChat, activeChatId: string | null): string {
     const isActive = activeChatId === chat.id;
     const unreadBadge = chat.unreadCount
@@ -15,11 +18,8 @@ export class ChatList {
       : '';
 
     return `
-      <button
-        type="button"
-        data-chat-id="${escapeHtml(chat.id ?? '')}"
-        class="chat-item${isActive ? ' chat-item_active' : ''}"
-      >
+      ${Button({
+        text: `
         <span class="chat-item__avatar-box">
           <span class="chat-item__avatar">${chat.icon_url ? `<img class="chat-item__avatar-image" src="${escapeHtml(chat.icon_url)}" alt="">` : escapeHtml(chat.initials)}</span>
           ${chat.isOnline ? '<span class="chat-item__online"></span>' : ''}
@@ -32,7 +32,11 @@ export class ChatList {
           <span class="chat-item__time">${escapeHtml(chat.time)}</span>
           ${unreadBadge}
         </span>
-      </button>
+`,
+        mode: 'unstyled',
+        className: `chat-item${isActive ? ' chat-item_active' : ''}`,
+        attrs: { 'data-chat-id': chat.id ?? '' },
+      })}
     `;
   }
 
@@ -43,16 +47,7 @@ export class ChatList {
           <h2 class="chat-panel__title">Чаты</h2>
           <p class="chat-panel__status">В сети</p>
         </div>
-        <button
-          id="new-chat-button"
-          type="button"
-          class="chat-panel__new"
-          aria-label="Создать чат"
-          aria-haspopup="menu"
-          aria-expanded="${isCreateMenuOpen}"
-        >
-          <img src="${asset('f1f87.svg')}" alt="" width="19" height="19">
-        </button>
+        ${Button({ text: `<img src="${asset('f1f87.svg')}" alt="" width="19" height="19">`, id: 'new-chat-button', mode: 'unstyled', className: 'chat-panel__new', ariaLabel: 'Создать чат', attrs: { 'aria-haspopup': 'menu', 'aria-expanded': String(isCreateMenuOpen) } })}
       </div>
     `;
   }
@@ -65,10 +60,10 @@ export class ChatList {
           <input type="search" name="chat-search" value="${escapeHtml(query)}" placeholder="Поиск по сообщениям" aria-label="Поиск по сообщениям" data-chat-list-search>
         </label>
         <div class="chat-panel__filters" role="group" aria-label="Фильтр чатов">
-          <button type="button" class="chat-panel__filter${activeFilter === 'all' ? ' chat-panel__filter_active' : ''}" data-chat-filter="all" aria-pressed="${activeFilter === 'all'}">Все</button>
-          <button type="button" class="chat-panel__filter${activeFilter === 'unread' ? ' chat-panel__filter_active' : ''}" data-chat-filter="unread" aria-pressed="${activeFilter === 'unread'}">Непрочитанные</button>
-          <button type="button" class="chat-panel__filter${activeFilter === 'dialog' ? ' chat-panel__filter_active' : ''}" data-chat-filter="dialog" aria-pressed="${activeFilter === 'dialog'}">Диалоги</button>
-          <button type="button" class="chat-panel__filter${activeFilter === 'group' ? ' chat-panel__filter_active' : ''}" data-chat-filter="group" aria-pressed="${activeFilter === 'group'}">Группы</button>
+          ${Button({ text: 'Все', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'all' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'all', 'aria-pressed': String(activeFilter === 'all') } })}
+          ${Button({ text: 'Непрочитанные', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'unread' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'unread', 'aria-pressed': String(activeFilter === 'unread') } })}
+          ${Button({ text: 'Диалоги', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'dialog' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'dialog', 'aria-pressed': String(activeFilter === 'dialog') } })}
+          ${Button({ text: 'Группы', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'group' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'group', 'aria-pressed': String(activeFilter === 'group') } })}
         </div>
       </div>
     `;
@@ -79,13 +74,14 @@ export class ChatList {
 
     return `
       <div class="chat-panel__create-menu" role="menu" aria-label="Создать чат">
-        <button type="button" role="menuitem" data-create-dialog>Новый диалог</button>
-        <button type="button" role="menuitem" data-create-group>Новая группа</button>
-        <button type="button" role="menuitem" data-create-channel>Новый канал</button>
+        ${Button({ text: 'Новый диалог', mode: 'unstyled', attrs: { role: 'menuitem', 'data-create-dialog': '' } })}
+        ${Button({ text: 'Новая группа', mode: 'unstyled', attrs: { role: 'menuitem', 'data-create-group': '' } })}
+        ${Button({ text: 'Новый канал', mode: 'unstyled', attrs: { role: 'menuitem', 'data-create-channel': '' } })}
       </div>
     `;
   }
 
+  /** Применяет поиск и фильтр, затем возвращает разметку списка чатов. */
   render(
     chats: DisplayChat[],
     activeChat: DisplayChat | null,
@@ -96,9 +92,19 @@ export class ChatList {
     const filter = options.filter ?? 'all';
     const query = (options.query ?? '').trim().toLocaleLowerCase('ru-RU');
     const visibleChats = chats.filter((chat) => {
-      if (filter === 'unread' && chat.unreadCount === 0) return false;
-      if (filter === 'dialog' && chat.type !== 'dialog') return false;
-      if (filter === 'group' && chat.type !== 'group') return false;
+      switch (filter) {
+        case 'unread':
+          if (chat.unreadCount === 0) return false;
+          break;
+        case 'dialog':
+          if (chat.type !== 'dialog') return false;
+          break;
+        case 'group':
+          if (chat.type !== 'group') return false;
+          break;
+        case 'all':
+          break;
+      }
       if (!query) return true;
 
       return `${chat.name ?? ''} ${chat.lastMessage}`.toLocaleLowerCase('ru-RU').includes(query);

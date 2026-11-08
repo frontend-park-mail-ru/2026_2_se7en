@@ -1,6 +1,6 @@
 .chat-area {
   position: relative;
-  display: flex;
+  @include flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
@@ -35,7 +35,7 @@
   &__header {
     position: relative;
     z-index: 2;
-    display: flex;
+    @include flex;
     flex: 0 0 76px;
     align-items: center;
     padding: 0 24px;
@@ -52,7 +52,7 @@
   }
 
   &__identity {
-    display: flex;
+    @include flex;
     align-items: center;
     gap: 12px;
     min-width: 0;
@@ -90,18 +90,15 @@
   }
 
   &__identity-text {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: 4px;
     min-width: 0;
 
     strong {
-      overflow: hidden;
+      @include truncate;
       color: #142033;
       font-size: 16px;
       font-weight: 600;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     small {
@@ -112,7 +109,7 @@
   }
 
   &__actions {
-    display: flex;
+    @include flex;
     gap: 8px;
     margin-left: auto;
   }
@@ -135,8 +132,7 @@
     z-index: 5;
     top: 60px;
     right: 16px;
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     min-width: 220px;
     padding: 8px;
     background: #fff;
@@ -145,7 +141,7 @@
     box-shadow: 0 8px 24px rgba(20, 32, 51, 0.14);
 
     button {
-      display: flex;
+      @include flex;
       align-items: center;
       gap: 8px;
       min-height: 40px;
@@ -172,7 +168,7 @@
 
   &__history {
     position: relative;
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     gap: 12px;
@@ -251,14 +247,13 @@
 
   &__messages {
     position: relative;
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: 12px;
     width: 100%;
   }
 
   &__message-row {
-    display: flex;
+    @include flex;
     justify-content: flex-start;
 
     &_outgoing {
@@ -267,7 +262,7 @@
   }
 
   &__message {
-    display: flex;
+    @include flex;
     align-items: flex-end;
     gap: 8px;
     max-width: min(360px, 78%);
@@ -294,7 +289,7 @@
   }
 
   &__message-meta {
-    display: flex;
+    @include flex;
     flex: 0 0 auto;
     align-items: center;
     gap: 4px;
@@ -308,7 +303,7 @@
   }
 
   &__composer {
-    display: flex;
+    @include flex;
     flex: 0 0 82px;
     align-items: center;
     gap: 8px;
@@ -333,7 +328,7 @@
   }
 
   &__input-wrap {
-    display: flex;
+    @include flex;
     flex: 1;
     align-items: center;
     gap: 8px;
@@ -409,7 +404,7 @@
   }
 
   &__modal-actions {
-    display: flex;
+    @include flex;
     gap: 8px;
     margin-top: 16px;
 

@@ -1,15 +1,14 @@
 .chat-panel {
   position: relative;
-  display: flex;
+  @include flex-column;
   flex: 0 0 402px;
-  flex-direction: column;
   min-width: 0;
   height: 100%;
   background: #fff;
   border-right: 1px solid #ecf2f7;
 
   &__header {
-    display: flex;
+    @include flex;
     flex: 0 0 76px;
     align-items: center;
     justify-content: space-between;
@@ -41,14 +40,13 @@
   }
 
   &__tools {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: 12px;
     padding: 0 16px 12px;
   }
 
   &__search {
-    display: flex;
+    @include flex;
     align-items: center;
     gap: 8px;
     height: 42px;
@@ -71,7 +69,7 @@
   }
 
   &__filters {
-    display: flex;
+    @include flex;
     align-items: center;
     gap: 8px;
     overflow-x: auto;
@@ -107,7 +105,7 @@
   }
 
   &__footer {
-    display: flex;
+    @include flex;
     flex: 0 0 42px;
     align-items: center;
     justify-content: space-between;
@@ -118,8 +116,7 @@
   }
 
   &__empty {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     align-items: center;
     justify-content: center;
     height: 100%;
@@ -134,7 +131,7 @@
   }
 
   &__loading-item {
-    display: flex;
+    @include flex;
     align-items: center;
     gap: 12px;
     height: 76px;
@@ -148,7 +145,7 @@
   }
 
   &__loading-lines {
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     gap: 8px;
@@ -169,8 +166,7 @@
     z-index: 20;
     top: 74px;
     right: 16px;
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     width: 220px;
     padding: 12px 16px;
     background: #fff;
@@ -198,7 +194,7 @@
 }
 
 .chat-item {
-  display: flex;
+  @include flex;
   align-items: center;
   gap: 12px;
   width: 100%;
@@ -249,7 +245,7 @@
   }
 
   &__body {
-    display: flex;
+    @include flex;
     flex: 1;
     flex-direction: column;
     gap: 4px;
@@ -259,9 +255,7 @@
   &__name,
   &__message {
     display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @include truncate;
   }
 
   &__name {
@@ -278,7 +272,7 @@
   }
 
   &__meta {
-    display: flex;
+    @include flex;
     flex: 0 0 42px;
     flex-direction: column;
     align-items: flex-end;

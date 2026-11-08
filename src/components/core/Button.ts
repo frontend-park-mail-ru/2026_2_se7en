@@ -4,7 +4,7 @@ import { renderAttrs } from '@/helpers/RenderAttrs.ts';
 export interface ButtonParams {
   text: string;
   id?: string;
-  mode?: 'primary' | 'secondary' | 'ghost';
+  mode?: 'primary' | 'secondary' | 'ghost' | 'unstyled';
   className?: string;
   iconBefore?: string;
   iconAfter?: string;
@@ -35,6 +35,7 @@ export function Button({
     primary: 'button_primary',
     secondary: 'button_secondary',
     ghost: 'button_ghost',
+    unstyled: '',
   };
 
   const modeClass = modeClasses[mode] || modeClasses.primary;
@@ -45,7 +46,7 @@ export function Button({
   const attrsHtml = renderAttrs(attrs);
   const iconBeforeHtml = iconBefore ? `<span class="button__icon">${iconBefore}</span>` : '';
   const iconAfterHtml = iconAfter ? `<span class="button__icon">${iconAfter}</span>` : '';
-  const finalClasses = `button ${modeClass} ${className}`.trim();
+  const finalClasses = `${mode === 'unstyled' ? '' : 'button'} ${modeClass} ${className}`.trim();
 
   return `
     <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${attrsHtml} ${disabledAttr} type="${type}" class="${finalClasses}">
