@@ -1,11 +1,11 @@
+import type { ProfileTab } from '@/components/profile/Profile.types.ts';
+import { validateForbiddenChars } from '@/helpers/Validation.ts';
 import {
   PROFILE_ERROR_MESSAGES,
   PROFILE_LIMITS,
   PROFILE_REGEXES,
   PROFILE_TAB_FIELDS,
 } from '@/constants/Profile.ts';
-import type { ProfileTab } from '@/components/profile/Profile.types.ts';
-import { validateForbiddenChars } from '@/helpers/Validation.ts';
 import {
   EMAIL_REGEX,
   PASSWORD_MAX_LENGTH,

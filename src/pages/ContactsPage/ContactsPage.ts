@@ -96,7 +96,6 @@ export class ContactsPage extends Page {
   };
 
   async afterMount(): Promise<void> {
-    this.bindEvents();
     eventBus.emit('contacts:load');
   }
 

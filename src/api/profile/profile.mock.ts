@@ -1,7 +1,7 @@
 import { MOCK_CREDENTIALS } from '@/api/auth/auth.mock.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
-import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
 import { debugError } from '@/helpers/DebugError.ts';
+import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import type { ProfileData, UpdatePasswordData, UpdateProfileData } from './Profile.types.ts';
 

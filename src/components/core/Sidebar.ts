@@ -1,10 +1,10 @@
 import './Sidebar.scss';
 import { Button } from '@/components/core/Button.js';
-import { ChatsIcon, ContactsIcon, LogoutIcon } from '@/components/core/Icons.js';
 import { ROUTES } from '@/constants/Routes.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { router } from '@/helpers/Router.ts';
 import { user } from '@/store/User';
+import { ChatsIcon, ContactsIcon, LogoutIcon } from '@/components/core/Icons.js';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
