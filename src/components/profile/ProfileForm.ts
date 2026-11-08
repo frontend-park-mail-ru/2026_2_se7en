@@ -1,12 +1,12 @@
 import './ProfileForm.scss';
 import { Button } from '@/components/core/Button';
 import { Input } from '@/components/core/Input';
-import { PROFILE_TEXTS } from '@/constants/Profile';
 import type { ProfileFormParams } from './Profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { escapeHtml } from '@/helpers/EscapeHtml';
 import { renderFieldError } from '@/helpers/FieldError';
-import { EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons';
+import { BannerErrorIcon, EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons';
+import { PROFILE_FORM_ID, PROFILE_SUBMIT_ID, PROFILE_TEXTS } from '@/constants/Profile';
 
 const authEyeClosedIcon = EyeClosedIcon.replace(
   'class="icon icon_md"',
@@ -18,9 +18,28 @@ const authEyeOpenIcon = EyeOpenIcon.replace(
 );
 
 /**
+ * Рендерит баннер общей ошибки над формой редактирования профиля.
+ */
+export function renderProfileFormError(error?: string | null): string {
+  if (!error) return '';
+
+  return `
+    <div class="profile-page__error profile-form__alert" role="alert">
+      ${BannerErrorIcon}
+      <p>${escapeHtml(error)}</p>
+    </div>
+  `;
+}
+
+/**
  * Универсальная форма профиля.
  */
-export function ProfileForm({ fields }: ProfileFormParams): string {
+export function ProfileForm({
+  fields,
+  cancelHref = ROUTES.PROFILE_SECURITY,
+  isSubmitting = false,
+  formError = null,
+}: ProfileFormParams): string {
   const fieldsHtml = fields
     .map((field) => {
       const hasError = Boolean(field.error);
@@ -66,25 +85,29 @@ export function ProfileForm({ fields }: ProfileFormParams): string {
     .join('');
 
   return `
-    <div class="profile-form">
+    <form id="${PROFILE_FORM_ID}" class="profile-form" novalidate>
+      <div data-form-error-slot>${renderProfileFormError(formError)}</div>
+
       <div class="profile-form__fields">
         ${fieldsHtml}
       </div>
 
       <div class="profile-form__actions">
         <a
-          href="${ROUTES.PROFILE_SECURITY}"
+          href="${cancelHref}"
           class="button button_secondary profile-form__btn"
         >
           ${PROFILE_TEXTS.BTN_CANCEL}
         </a>
         ${Button({
-          text: PROFILE_TEXTS.BTN_SAVE,
-          type: 'button',
+          id: PROFILE_SUBMIT_ID,
+          text: isSubmitting ? PROFILE_TEXTS.BTN_SAVING : PROFILE_TEXTS.BTN_SAVE,
+          type: 'submit',
           mode: 'primary',
-          className: 'profile-form__btn',
+          disabled: isSubmitting,
+          className: 'profile-form__btn button_submit',
         })}
       </div>
-    </div>
+    </form>
   `;
 }
