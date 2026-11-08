@@ -1,3 +1,6 @@
+import type { ProfileField } from '@/api/profile/Profile.types';
+import type { ProfileTab } from '@/components/profile/Profile.types';
+
 export const PROFILE_FORM_ID = 'profile-form';
 export const PROFILE_SUBMIT_ID = 'profile-submit';
 
@@ -57,4 +60,28 @@ export const PROFILE_ERROR_MESSAGES: Record<string, string> = {
   contains_emoji: 'Поле не должно содержать смайлики или спецсимволы',
   contains_invalid_chars: 'Поле содержит недопустимые скрытые символы',
   invalid_format: 'Неверный формат',
+};
+
+/** Лимиты длины полей профиля (синхронизированы с бэкендом). */
+export const PROFILE_LIMITS = {
+  MAX_EMAIL_LENGTH: 64,
+  MIN_NAME_LENGTH: 2,
+  MAX_NAME_LENGTH: 32,
+  MIN_NICKNAME_LENGTH: 3,
+  MAX_NICKNAME_LENGTH: 16,
+} as const;
+
+/** Регулярные выражения для полей профиля. */
+export const PROFILE_REGEXES = {
+  NAME_NO_DIGITS: /^[^0-9]+$/,
+  NICKNAME: /^[a-zA-Z0-9_]+$/,
+  PHONE: /^\+?[1-9]\d{9,14}$/,
+} as const;
+
+/** Поля, относящиеся к каждой вкладке профиля. */
+export const PROFILE_TAB_FIELDS: Record<Exclude<ProfileTab, 'security'>, ProfileField[]> = {
+  public: ['first_name', 'last_name', 'nickname'],
+  phone: ['phone'],
+  email: ['email'],
+  password: ['old_password', 'new_password', 'confirm_password'],
 };

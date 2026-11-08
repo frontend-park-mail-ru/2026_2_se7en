@@ -6,16 +6,8 @@ import { ProfileMenu } from '@/components/profile/ProfileMenu';
 import { ProfileSecurity } from '@/components/profile/ProfileSecurity';
 import { ROUTES } from '@/constants/Routes';
 import { escapeHtml } from '@/helpers/EscapeHtml';
-import { getProfileErrorMessage } from '@/pages/ProfilePage/profile.helpers';
-import type { FormFieldParams, ProfileContentParams } from './Profile.types';
-import type { ProfileFieldErrors, ProfileFormValues } from '@/api/profile/profile.types';
-
-interface FormRenderOptions {
-  values: ProfileFormValues;
-  errors: ProfileFieldErrors;
-  isSubmitting: boolean;
-  formError?: string | null;
-}
+import { getProfileErrorMessage } from '@/pages/ProfilePage/Profile.helpers';
+import type { FormFieldParams, FormRenderOptions, ProfileContentParams } from './Profile.types';
 
 /**
  * Генерирует HTML разметку формы публичного профиля.

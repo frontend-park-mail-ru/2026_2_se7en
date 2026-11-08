@@ -1,12 +1,14 @@
 import { MOCK_CREDENTIALS } from '@/api/auth/auth.mock.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
 import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
+import { debugError } from '@/helpers/DebugError.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
-import type { ProfileData, UpdatePasswordData, UpdateProfileData } from './profile.types.ts';
+import type { ProfileData, UpdatePasswordData, UpdateProfileData } from './Profile.types.ts';
 
 const STORAGE_PROFILE_KEY = 'mock_profile_state';
 const STORAGE_PASSWORD_KEY = 'mock_profile_password';
 
+/** Дефолтное состояние профиля до любых изменений. */
 const DEFAULT_MOCK_PROFILE: ProfileData = {
   id: '1',
   email: 'user@example.com',
@@ -19,39 +21,45 @@ const DEFAULT_MOCK_PROFILE: ProfileData = {
   icon_url: null,
 };
 
+/** Читает сохранённое состояние профиля из localStorage или возвращает дефолт. */
 function loadMockProfile(): ProfileData {
   try {
     const raw = localStorage.getItem(STORAGE_PROFILE_KEY);
     if (raw) {
       return { ...DEFAULT_MOCK_PROFILE, ...(JSON.parse(raw) as Partial<ProfileData>) };
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    debugError(error);
   }
+
   return { ...DEFAULT_MOCK_PROFILE };
 }
 
+/** Сохраняет состояние профиля в localStorage. */
 function saveMockProfile(profile: ProfileData): void {
   try {
     localStorage.setItem(STORAGE_PROFILE_KEY, JSON.stringify(profile));
-  } catch {
-    // ignore
+  } catch (error) {
+    debugError(error);
   }
 }
 
+/** Возвращает сохранённый пароль мока или дефолтный. */
 function getMockPassword(): string {
   try {
     return localStorage.getItem(STORAGE_PASSWORD_KEY) || MOCK_CREDENTIALS.password;
-  } catch {
+  } catch (error) {
+    debugError(error);
     return MOCK_CREDENTIALS.password;
   }
 }
 
+/** Сохраняет пароль мока в localStorage. */
 function saveMockPassword(password: string): void {
   try {
     localStorage.setItem(STORAGE_PASSWORD_KEY, password);
-  } catch {
-    // ignore
+  } catch (error) {
+    debugError(error);
   }
 }
 
@@ -68,12 +76,14 @@ export async function mockGetProfile(): Promise<ApiResult<ProfileData>> {
  */
 export async function mockUpdateProfile(data: UpdateProfileData): Promise<ApiResult<ProfileData>> {
   await new Promise<void>((r) => setTimeout(r, 500));
+
   const current = loadMockProfile();
   const next: ProfileData = {
     ...current,
     ...data,
     last_name: data.last_name === '' ? null : (data.last_name ?? current.last_name),
   };
+
   saveMockProfile(next);
   return new ApiSuccess<ProfileData>(next, STATUSES.OK);
 }

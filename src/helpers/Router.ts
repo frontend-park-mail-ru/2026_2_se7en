@@ -35,15 +35,33 @@ export class Router {
     return Router.instance;
   }
 
+  /**
+   * Проверяет, что текущая страница — экземпляр указанного класса.
+   * Вынесено в метод, чтобы избежать type-narrowing при `instanceof`.
+   */
   private isCurrentPageOfType(page: PageConstructor): boolean {
     return this.currentPage instanceof page;
   }
 
+  /**
+   * Устанавливает функцию проверки авторизации.
+   *
+   * @param checkFn Функция, возвращающая `true`, если пользователь авторизован.
+   * @returns Экземпляр роутера для чейнинга.
+   */
   setAuthCheck(checkFn: () => boolean): this {
     this.checkAuth = checkFn;
     return this;
   }
 
+  /**
+   * Регистрирует маршрут.
+   *
+   * @param path Путь или регулярное выражение.
+   * @param page Класс страницы.
+   * @param meta Опции доступа (`guestOnly` / `requiresAuth`).
+   * @returns Экземпляр роутера для чейнинга.
+   */
   use(
     path: string | RegExp,
     page: PageConstructor,
@@ -53,6 +71,21 @@ export class Router {
     return this;
   }
 
+  /**
+   * Заменяет текущую запись в истории без перерисовки страницы.
+   *
+   * @param pathname Новый URL-путь.
+   */
+  replaceState(pathname: string): void {
+    window.history.replaceState({}, '', pathname);
+  }
+
+  /**
+   * Выполняет навигацию на указанный путь.
+   *
+   * @param pathname Целевой путь.
+   * @param options Опции навигации (`replace`).
+   */
   async goTo(pathname: string, options: NavigateOptions = {}): Promise<void> {
     const isAuth = this.checkAuth();
     let targetPath = pathname.replace(/\/+$/, '') || '/';
@@ -98,6 +131,10 @@ export class Router {
     await this.currentPage.mount();
   }
 
+  /**
+   * Запускает роутер: слушает `popstate`, клики по ссылкам и делает
+   * первоначальную навигацию по текущему URL.
+   */
   start(): void {
     window.addEventListener('popstate', () => {
       void this.goTo(window.location.pathname, { replace: true });

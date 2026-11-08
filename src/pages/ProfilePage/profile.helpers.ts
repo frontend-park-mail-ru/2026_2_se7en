@@ -1,4 +1,9 @@
-import { PROFILE_ERROR_MESSAGES } from '@/constants/Profile.ts';
+import {
+  PROFILE_ERROR_MESSAGES,
+  PROFILE_LIMITS,
+  PROFILE_REGEXES,
+  PROFILE_TAB_FIELDS,
+} from '@/constants/Profile.ts';
 import type { ProfileTab } from '@/components/profile/Profile.types.ts';
 import { validateForbiddenChars } from '@/helpers/Validation.ts';
 import {
@@ -11,30 +16,19 @@ import type {
   ProfileField,
   ProfileFieldErrors,
   ProfileFormValues,
-} from '@/api/profile/profile.types.ts';
+} from '@/api/profile/Profile.types.ts';
 
-const MAX_EMAIL_LENGTH = 64;
-const MIN_NAME_LENGTH = 2;
-const MAX_NAME_LENGTH = 32;
-const MIN_NICKNAME_LENGTH = 3;
-const MAX_NICKNAME_LENGTH = 16;
-
-const NAME_NO_DIGITS_REGEX = /^[^0-9]+$/;
-const NICKNAME_REGEX = /^[a-zA-Z0-9_]+$/;
-const PHONE_REGEX = /^\+?[1-9]\d{9,14}$/;
-
-export const TAB_FIELDS: Record<Exclude<ProfileTab, 'security'>, ProfileField[]> = {
-  public: ['first_name', 'last_name', 'nickname'],
-  phone: ['phone'],
-  email: ['email'],
-  password: ['old_password', 'new_password', 'confirm_password'],
-};
+/** Поля, для которых не применяется trim при валидации. */
+const PASSWORD_FIELDS = ['old_password', 'new_password', 'confirm_password'] as const;
 
 /**
  * Возвращает человекочитаемый текст ошибки по ключу.
  */
 export function getProfileErrorMessage(errorKey?: string): string {
-  if (!errorKey) return '';
+  if (!errorKey) {
+    return '';
+  }
+
   return PROFILE_ERROR_MESSAGES[errorKey] || errorKey;
 }
 
@@ -46,8 +40,7 @@ export function validateProfileField(
   rawValue: string,
   allValues: ProfileFormValues,
 ): string | null {
-  const isPasswordField =
-    field === 'old_password' || field === 'new_password' || field === 'confirm_password';
+  const isPasswordField = (PASSWORD_FIELDS as readonly string[]).includes(field);
   const value = isPasswordField ? rawValue : rawValue.trim();
 
   if (field === 'last_name' && !value) {
@@ -68,10 +61,13 @@ export function validateProfileField(
   switch (field) {
     case 'first_name': {
       const charCount = Array.from(value).length;
-      if (charCount < MIN_NAME_LENGTH || charCount > MAX_NAME_LENGTH) {
+      if (
+        charCount < PROFILE_LIMITS.MIN_NAME_LENGTH ||
+        charCount > PROFILE_LIMITS.MAX_NAME_LENGTH
+      ) {
         return 'first_name_length';
       }
-      if (!NAME_NO_DIGITS_REGEX.test(value)) {
+      if (!PROFILE_REGEXES.NAME_NO_DIGITS.test(value)) {
         return 'first_name_no_digits';
       }
       return null;
@@ -79,27 +75,33 @@ export function validateProfileField(
 
     case 'last_name': {
       const charCount = Array.from(value).length;
-      if (charCount < MIN_NAME_LENGTH || charCount > MAX_NAME_LENGTH) {
+      if (
+        charCount < PROFILE_LIMITS.MIN_NAME_LENGTH ||
+        charCount > PROFILE_LIMITS.MAX_NAME_LENGTH
+      ) {
         return 'last_name_length';
       }
-      if (!NAME_NO_DIGITS_REGEX.test(value)) {
+      if (!PROFILE_REGEXES.NAME_NO_DIGITS.test(value)) {
         return 'last_name_no_digits';
       }
       return null;
     }
 
     case 'nickname': {
-      if (value.length < MIN_NICKNAME_LENGTH || value.length > MAX_NICKNAME_LENGTH) {
+      if (
+        value.length < PROFILE_LIMITS.MIN_NICKNAME_LENGTH ||
+        value.length > PROFILE_LIMITS.MAX_NICKNAME_LENGTH
+      ) {
         return 'nickname_length';
       }
-      if (!NICKNAME_REGEX.test(value)) {
+      if (!PROFILE_REGEXES.NICKNAME.test(value)) {
         return 'nickname_invalid_format';
       }
       return null;
     }
 
     case 'email': {
-      if (value.length > MAX_EMAIL_LENGTH) {
+      if (value.length > PROFILE_LIMITS.MAX_EMAIL_LENGTH) {
         return 'email_max_length';
       }
       if (!EMAIL_REGEX.test(value)) {
@@ -109,7 +111,7 @@ export function validateProfileField(
     }
 
     case 'phone': {
-      if (!PHONE_REGEX.test(value)) {
+      if (!PROFILE_REGEXES.PHONE.test(value)) {
         return 'phone_invalid_format';
       }
       return null;
@@ -151,7 +153,7 @@ export function validateProfileTab(
   tab: Exclude<ProfileTab, 'security'>,
   values: ProfileFormValues,
 ): { isValid: boolean; fieldErrors: ProfileFieldErrors } {
-  const fields = TAB_FIELDS[tab];
+  const fields = PROFILE_TAB_FIELDS[tab];
   const fieldErrors: ProfileFieldErrors = {};
 
   for (const field of fields) {
@@ -177,60 +179,56 @@ export function normalizeProfileBackendReason(field: ProfileField, reason: strin
     return 'required';
   }
 
-  if (field === 'nickname') {
-    if (normalized.includes('already exists') || normalized.includes('taken')) {
-      return 'nickname_already_exists';
-    }
-    if (normalized === 'invalid_length' || normalized.includes('length')) {
-      return 'nickname_length';
-    }
-    return 'nickname_invalid_format';
-  }
+  switch (field) {
+    case 'nickname':
+      if (normalized.includes('already exists') || normalized.includes('taken')) {
+        return 'nickname_already_exists';
+      }
+      if (normalized === 'invalid_length' || normalized.includes('length')) {
+        return 'nickname_length';
+      }
+      return 'nickname_invalid_format';
 
-  if (field === 'email') {
-    if (normalized.includes('already exists') || normalized.includes('taken')) {
-      return 'email_already_exists';
-    }
-    if (normalized === 'too_long' || normalized.includes('length')) {
-      return 'email_max_length';
-    }
-    return 'email_invalid_format';
-  }
+    case 'email':
+      if (normalized.includes('already exists') || normalized.includes('taken')) {
+        return 'email_already_exists';
+      }
+      if (normalized === 'too_long' || normalized.includes('length')) {
+        return 'email_max_length';
+      }
+      return 'email_invalid_format';
 
-  if (field === 'phone') {
-    if (normalized.includes('already exists') || normalized.includes('taken')) {
-      return 'phone_already_exists';
-    }
-    return 'phone_invalid_format';
-  }
+    case 'phone':
+      if (normalized.includes('already exists') || normalized.includes('taken')) {
+        return 'phone_already_exists';
+      }
+      return 'phone_invalid_format';
 
-  if (field === 'first_name') {
-    if (normalized === 'contains_digits' || normalized.includes('digit')) {
-      return 'first_name_no_digits';
-    }
-    return 'first_name_length';
-  }
+    case 'first_name':
+      if (normalized === 'contains_digits' || normalized.includes('digit')) {
+        return 'first_name_no_digits';
+      }
+      return 'first_name_length';
 
-  if (field === 'last_name') {
-    if (normalized === 'contains_digits' || normalized.includes('digit')) {
-      return 'last_name_no_digits';
-    }
-    return 'last_name_length';
-  }
+    case 'last_name':
+      if (normalized === 'contains_digits' || normalized.includes('digit')) {
+        return 'last_name_no_digits';
+      }
+      return 'last_name_length';
 
-  if (field === 'old_password') {
-    if (normalized === 'invalid_length' || normalized.includes('length')) {
-      return 'password_length';
-    }
-    return 'invalid_old_password';
-  }
+    case 'old_password':
+      if (normalized === 'invalid_length' || normalized.includes('length')) {
+        return 'password_length';
+      }
+      return 'invalid_old_password';
 
-  if (field === 'new_password') {
-    if (normalized === 'invalid_length' || normalized.includes('length')) {
-      return 'password_length';
-    }
-    return 'invalid_format';
-  }
+    case 'new_password':
+      if (normalized === 'invalid_length' || normalized.includes('length')) {
+        return 'password_length';
+      }
+      return 'invalid_format';
 
-  return 'invalid_format';
+    default:
+      return 'invalid_format';
+  }
 }

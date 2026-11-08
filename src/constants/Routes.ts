@@ -2,6 +2,7 @@ type Route =
   | 'HOME'
   | 'LOGIN'
   | 'REGISTER'
+  | 'CONTACTS'
   | 'PROFILE'
   | 'PROFILE_PUBLIC'
   | 'PROFILE_SECURITY'
@@ -14,6 +15,7 @@ const PROFILE = '/profile';
 
 export const ROUTES = {
   HOME: '/chats',
+  CONTACTS: '/contacts',
   LOGIN: '/login',
   REGISTER: '/register',
   PROFILE,

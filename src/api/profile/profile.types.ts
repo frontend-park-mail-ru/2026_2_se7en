@@ -24,14 +24,12 @@ export interface UpdatePasswordData {
   new_password: string;
 }
 
-export interface ProfileFormValues {
+export interface ProfileFormValues extends UpdatePasswordData {
   first_name: string;
   last_name: string;
   nickname: string;
   phone: string;
   email: string;
-  old_password: string;
-  new_password: string;
   confirm_password: string;
 }
 

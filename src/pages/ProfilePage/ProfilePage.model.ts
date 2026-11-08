@@ -14,12 +14,12 @@ import type {
   ProfileFieldErrors,
   ProfileFormValues,
   UpdateProfileData,
-} from '@/api/profile/profile.types';
+} from '@/api/profile/Profile.types';
 import {
   normalizeProfileBackendReason,
   validateProfileField,
   validateProfileTab,
-} from './profile.helpers';
+} from './Profile.helpers';
 
 export const VALID_TABS: ProfileTab[] = ['public', 'security', 'email', 'phone', 'password'];
 
@@ -235,12 +235,15 @@ export class ProfilePageModel {
 
     if (Array.isArray(error.details)) {
       for (const detail of error.details) {
-        const mappedField: ProfileField =
-          detail.field === 'phone_number'
-            ? 'phone'
-            : detail.field === 'password'
-              ? 'new_password'
-              : (detail.field as ProfileField);
+        let mappedField: ProfileField;
+
+        if (detail.field === 'phone_number') {
+          mappedField = 'phone';
+        } else if (detail.field === 'password') {
+          mappedField = 'new_password';
+        } else {
+          mappedField = detail.field as ProfileField;
+        }
 
         if (mappedField in this.formValues && !nextErrors[mappedField]) {
           nextErrors[mappedField] = normalizeProfileBackendReason(mappedField, detail.reason);
@@ -249,13 +252,17 @@ export class ProfilePageModel {
     }
 
     if (error.status === STATUSES.CONFLICT) {
-      const msg = (error.message || '').toLowerCase();
+      const upperMessage = (error.message || '').toUpperCase();
+      const conflictFields: ProfileField[] = ['email', 'nickname'];
 
-      if (error.code === 'EMAIL_TAKEN' || msg.includes('email')) {
-        nextErrors.email = 'email_already_exists';
-      } else if (error.code === 'NICKNAME_TAKEN' || msg.includes('nickname')) {
-        nextErrors.nickname = 'nickname_already_exists';
-      } else if (this.activeTab.value === 'phone' || msg.includes('phone')) {
+      conflictFields.forEach((field) => {
+        const token = field.toUpperCase();
+        if (error.code === `${token}_TAKEN` || upperMessage.includes(token)) {
+          nextErrors[field] = `${field}_already_exists`;
+        }
+      });
+
+      if (this.activeTab.value === 'phone' || upperMessage.includes('PHONE')) {
         nextErrors.phone = 'phone_already_exists';
       }
     }

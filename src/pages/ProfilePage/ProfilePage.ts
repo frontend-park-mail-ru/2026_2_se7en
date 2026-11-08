@@ -2,12 +2,12 @@ import './ProfilePage.scss';
 import { DefaultLayout } from '@/layouts/DefaultLayout';
 import { Page } from '@/pages/Page';
 import { ProfileContent } from '@/components/profile/ProfileContent';
-import type { ProfileField } from '@/api/profile/profile.types';
+import type { ProfileField } from '@/api/profile/Profile.types';
 import type { ProfileTab } from '@/components/profile/Profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { bindPasswordToggles } from '@/helpers/PasswordToggle';
 import { eventBus } from '@/helpers/EventBus';
-import { getProfileErrorMessage } from './profile.helpers';
+import { getProfileErrorMessage } from './Profile.helpers';
 import { renderFieldError } from '@/helpers/FieldError';
 import { renderProfileFormError } from '@/components/profile/ProfileForm';
 import { router } from '@/helpers/Router';
@@ -66,7 +66,7 @@ export class ProfilePage extends Page {
     const tab = segments[1];
 
     if (!tab || !VALID_TABS.includes(tab as ProfileTab)) {
-      window.history.replaceState({}, '', ROUTES.PROFILE_SECURITY);
+      router.replaceState(ROUTES.PROFILE_SECURITY);
       this.model.syncTabWithUrl();
     }
 
