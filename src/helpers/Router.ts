@@ -23,22 +23,6 @@ export interface NavigateOptions {
 
 /**
  * SPA-роутер.
- *
- * Отвечает за навигацию, URL и монтирование страниц.
- *
- * Задачи:
- * - Регистрирование маршрутов с мета-информацией (`requiresAuth`, `guestOnly`).
- * - Переключение страницы без полной перезагрузки.
- * - Перехватывание кликов по внутренним ссылкам (`<a href="/...">`).
- * - Работа с кнопками «Назад/Вперёд» браузера (`popstate`).
- *
- * @example
- *   router
- *     .use('/chats', ChatsPage, { requiresAuth: true })
- *     .use('/login', LoginPage, { guestOnly: true });
- *
- *   router.setAuthCheck(() => user.isAuth);
- *   router.start();
  */
 export class Router {
   private static instance: Router;
@@ -52,11 +36,18 @@ export class Router {
   }
 
   /**
+   * Проверяет, что текущая страница — экземпляр указанного класса.
+   * Вынесено в метод, чтобы избежать type-narrowing при `instanceof`.
+   */
+  private isCurrentPageOfType(page: PageConstructor): boolean {
+    return this.currentPage instanceof page;
+  }
+
+  /**
    * Устанавливает функцию проверки авторизации.
-   * Используется `requiresAuth` и `guestOnly` при навигации.
    *
-   * @param checkFn Функция, возвращающая текущий статус авторизации.
-   * @returns Текущий экземпляр роутера (для чейнинга).
+   * @param checkFn Функция, возвращающая `true`, если пользователь авторизован.
+   * @returns Экземпляр роутера для чейнинга.
    */
   setAuthCheck(checkFn: () => boolean): this {
     this.checkAuth = checkFn;
@@ -66,13 +57,10 @@ export class Router {
   /**
    * Регистрирует маршрут.
    *
-   * @param path URL-путь или регулярное выражение.
-   * @param page Класс страницы-наследника `Page`.
-   * @param meta Мета-данные маршрута: `guestOnly` или `requiresAuth`.
-   * @returns Текущий экземпляр роутера (для чейнинга).
-   *
-   * @example
-   *   router.use('/login', LoginPage, { guestOnly: true });
+   * @param path Путь или регулярное выражение.
+   * @param page Класс страницы.
+   * @param meta Опции доступа (`guestOnly` / `requiresAuth`).
+   * @returns Экземпляр роутера для чейнинга.
    */
   use(
     path: string | RegExp,
@@ -84,19 +72,19 @@ export class Router {
   }
 
   /**
-   * Переходит на указанный путь.
+   * Заменяет текущую запись в истории без перерисовки страницы.
    *
-   * Логика:
-   * 1. Если путь `/` — редиректит на `/chats` (авторизован) или `/login` (гость).
-   * 2. Проверяет: если `requiresAuth` и не авторизован → на `/login`;
-   *    если `guestOnly` и авторизован → на `/chats`.
-   * 3. Если маршрут не найден → на `/chats` (или `/login`, если гость).
-   * 4. Если уже на этом маршруте и та же страница — ничего не делает.
-   * 5. Размонтирует текущую страницу, создаёт и монтирует новую.
+   * @param pathname Новый URL-путь.
+   */
+  replaceState(pathname: string): void {
+    window.history.replaceState({}, '', pathname);
+  }
+
+  /**
+   * Выполняет навигацию на указанный путь.
    *
-   * @param pathname Целевой путь (например, `/login`).
+   * @param pathname Целевой путь.
    * @param options Опции навигации (`replace`).
-   * @returns Промис, который резолвится после монтирования страницы.
    */
   async goTo(pathname: string, options: NavigateOptions = {}): Promise<void> {
     const isAuth = this.checkAuth();
@@ -119,7 +107,7 @@ export class Router {
       return this.goTo(ROUTES.HOME, { replace: true });
     }
 
-    if (window.location.pathname === targetPath && this.currentPage instanceof route.page) {
+    if (window.location.pathname === targetPath && this.isCurrentPageOfType(route.page)) {
       return;
     }
 
@@ -127,6 +115,11 @@ export class Router {
       window.history.replaceState({}, '', targetPath);
     } else {
       window.history.pushState({}, '', targetPath);
+    }
+
+    if (this.isCurrentPageOfType(route.page)) {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return;
     }
 
     if (this.currentPage) {
@@ -139,16 +132,8 @@ export class Router {
   }
 
   /**
-   * Запускает роутер.
-   *
-   * Устанавливает глобальные слушатели:
-   * - `popstate` — кнопки «Назад/Вперёд» в браузере.
-   * - `click` на `document` — перехват кликов по внутренним ссылкам `<a href="/...">`.
-   *
-   * Внешние ссылки (начинающиеся с `http://`, `https://`, `//`) и якоря (`#`)
-   * не перехватываются.
-   *
-   * После установки слушателей выполняет первичную навигацию на текущий URL.
+   * Запускает роутер: слушает `popstate`, клики по ссылкам и делает
+   * первоначальную навигацию по текущему URL.
    */
   start(): void {
     window.addEventListener('popstate', () => {
@@ -174,8 +159,4 @@ export class Router {
   }
 }
 
-/**
- * Единственный экземпляр роутера на всё приложение.
- * Импортировать его.
- */
 export const router = new Router();

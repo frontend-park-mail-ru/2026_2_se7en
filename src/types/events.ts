@@ -1,3 +1,4 @@
+import type { ProfileField } from '@/api/profile/Profile.types.ts';
 import type { LoginField, RegisterField } from '@/api/auth/auth.types.ts';
 
 /** Тип уведомления для Snackbar. */
@@ -66,8 +67,25 @@ type ContactsEvents = {
   'contacts:search': { query: string };
 };
 
+/** События страницы профиля. */
+type ProfileEvents = {
+  /** View: отправка активной формы профиля. */
+  'profile:submit': void;
+
+  /** View: пользователь ввёл текст в поле профиля. */
+  'profile:field-change': { field: ProfileField; value: string };
+
+  /** View: пользователь покинул поле профиля. */
+  'profile:field-blur': { field: ProfileField };
+};
+
 /** Общая карта всех событий приложения. */
-export type EventMap = BaseEvents & RegisterEvents & LoginEvents & ChatsEvents & ContactsEvents;
+export type EventMap = BaseEvents &
+  RegisterEvents &
+  LoginEvents &
+  ChatsEvents &
+  ContactsEvents &
+  ProfileEvents;
 
 /** Имя любого события. */
 export type EventName = keyof EventMap;
