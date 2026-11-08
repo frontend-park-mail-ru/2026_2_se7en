@@ -24,6 +24,7 @@ export class ChatsPage extends Page {
   private deleteConfirmOpen = false;
   private chatFilter: ChatFilter = 'all';
   private chatSearch = '';
+  private messageDraft = '';
   private actionPending = false;
 
   constructor() {
@@ -34,10 +35,14 @@ export class ChatsPage extends Page {
         this.model.activeChat,
         this.model.role,
         this.model.messages,
+        this.model.members,
+        this.model.typingUsers,
         this.model.isLoading,
         this.model.hasNetworkError,
         this.model.messagesLoading,
         this.model.messagesError,
+        this.model.sendError,
+        this.model.sending,
         this.model.hasMoreMessages,
       ],
       () => this.update(),
@@ -48,6 +53,23 @@ export class ChatsPage extends Page {
     const chat = this.model.activeChat.value;
     const chats = this.model.chats.value;
     const loading = this.model.isLoading.value;
+    const typingUsers = this.model.typingUsers.value;
+    const typingMember = this.model.members.value.find(
+      (member) => member.user_id === typingUsers[0],
+    );
+    const typingName = typingMember
+      ? [typingMember.profile.first_name, typingMember.profile.last_name]
+          .filter(Boolean)
+          .join(' ') || typingMember.profile.nickname
+      : 'Кто-то';
+    const typingLabel =
+      typingUsers.length > 1
+        ? 'Несколько печатают…'
+        : typingUsers.length === 1
+          ? chat?.type === 'group'
+            ? `${typingName} печатает…`
+            : 'Собеседник печатает…'
+          : '';
     const messages: Message[] = this.model.messages.value.map((message) => ({
       id: message.id,
       text: message.content ?? '',
@@ -68,7 +90,11 @@ export class ChatsPage extends Page {
         messages,
         messagesLoading: this.model.messagesLoading.value,
         messagesError: this.model.messagesError.value,
+        sendError: this.model.sendError.value,
+        sending: this.model.sending.value,
         hasMoreMessages: this.model.hasMoreMessages.value,
+        draft: this.messageDraft,
+        typingLabel,
         canDeleteGroup: this.model.role.value === 'creator',
         menuOpen: this.dialogMenuOpen,
         deleteConfirmOpen: this.deleteConfirmOpen,
@@ -80,8 +106,25 @@ export class ChatsPage extends Page {
 
   private update(): void {
     if (!this.container) return;
+    const focusedInput = document.activeElement?.matches('[data-message-input]')
+      ? (document.activeElement as HTMLInputElement)
+      : null;
+    const selectionStart = focusedInput?.selectionStart;
+    const selectionEnd = focusedInput?.selectionEnd;
     this.container.innerHTML = this.render();
     this.bindEvents();
+    if (focusedInput) {
+      const nextInput = this.container.querySelector<HTMLInputElement>('[data-message-input]');
+      nextInput?.focus();
+      if (
+        selectionStart !== null &&
+        selectionStart !== undefined &&
+        selectionEnd !== null &&
+        selectionEnd !== undefined
+      ) {
+        nextInput?.setSelectionRange(selectionStart, selectionEnd);
+      }
+    }
   }
 
   bindEvents(): void {
@@ -94,6 +137,7 @@ export class ChatsPage extends Page {
     const chatId = target.closest<HTMLElement>('[data-chat-id]')?.dataset.chatId;
     if (chatId) {
       this.view = 'chat';
+      this.messageDraft = '';
       this.dialogMenuOpen = false;
       this.createMenuOpen = false;
       eventBus.emit('chats:select', { id: chatId });
@@ -137,6 +181,7 @@ export class ChatsPage extends Page {
       return;
     }
     if (target.closest('[data-chat-back]')) {
+      this.model.stopTyping();
       this.view = 'list';
       this.update();
       return;
@@ -160,7 +205,15 @@ export class ChatsPage extends Page {
 
   private readonly handleContainerInput = (event: Event): void => {
     const input = event.target as HTMLInputElement | null;
-    if (!input?.matches('[data-chat-list-search]')) return;
+    if (!input) return;
+    if (input.matches('[data-message-input]')) {
+      this.messageDraft = input.value;
+      this.model.updateTyping(input.value);
+      const sendButton = this.container?.querySelector<HTMLButtonElement>('.chat-area__send');
+      if (sendButton) sendButton.disabled = !input.value.trim();
+      return;
+    }
+    if (!input.matches('[data-chat-list-search]')) return;
     this.chatSearch = input.value;
     const cursor = input.selectionStart;
     this.update();
@@ -171,7 +224,16 @@ export class ChatsPage extends Page {
 
   private readonly handleContainerSubmit = (event: SubmitEvent): void => {
     const form = event.target as HTMLFormElement | null;
-    if (form?.matches('[data-message-form]')) event.preventDefault();
+    if (!form?.matches('[data-message-form]')) return;
+    event.preventDefault();
+    const text = this.messageDraft.trim();
+    if (!text || this.model.sending.value) return;
+    void this.model.sendMessage(text).then((sent) => {
+      if (sent) {
+        this.messageDraft = '';
+        this.update();
+      }
+    });
   };
 
   async afterMount(): Promise<void> {

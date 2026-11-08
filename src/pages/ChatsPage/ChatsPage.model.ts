@@ -16,12 +16,16 @@ import type {
 } from '@/api/chats/chats.types.ts';
 import { sortChatsByLastMessage, toDisplayChat } from '@/helpers/chat.ts';
 
+const TYPING_IDLE_MS = 2000;
+const REMOTE_TYPING_TIMEOUT_MS = 6000;
+
 export class ChatsPageModel {
   readonly chats = new Signal<DisplayChat[]>([]);
   readonly activeChat = new Signal<DisplayChat | null>(null);
   readonly role = new Signal<'creator' | 'admin' | 'member' | null>(null);
   readonly messages = new Signal<ChatMessage[]>([]);
   readonly members = new Signal<ChatMember[]>([]);
+  readonly typingUsers = new Signal<string[]>([]);
   readonly isLoading = new Signal(true);
   readonly hasNetworkError = new Signal(false);
   readonly messagesLoading = new Signal(false);
@@ -38,6 +42,9 @@ export class ChatsPageModel {
   private pendingChatsRefresh = false;
   private catchUpAfterMessageLoad = false;
   private unreadRefreshVersion = 0;
+  private localTypingChatId: string | null = null;
+  private localTypingTimer: number | null = null;
+  private readonly remoteTypingTimers = new Map<string, number>();
 
   private readonly socket = new WebSocketApi(
     (event) => this.handleSocketEvent(event),
@@ -68,6 +75,8 @@ export class ChatsPageModel {
 
   destroy(): void {
     this.unreadRefreshVersion += 1;
+    this.stopTyping();
+    this.clearRemoteTyping();
     this.offLoad();
     this.offSelect();
     this.socket.disconnect();
@@ -134,6 +143,10 @@ export class ChatsPageModel {
   }
 
   async selectChat(id: string): Promise<void> {
+    if (this.selectedChatId !== id) {
+      this.stopTyping();
+      this.clearRemoteTyping();
+    }
     this.selectedChatId = id;
     const version = ++this.selectionVersion;
     this.setUnreadCount(id, 0);
@@ -299,6 +312,72 @@ export class ChatsPageModel {
     }
   }
 
+  async sendMessage(content: string): Promise<boolean> {
+    const id = this.selectedChatId;
+    const text = content.trim();
+
+    if (!id || !text || this.sending.value) return false;
+
+    this.stopTyping();
+    this.sending.value = true;
+    this.sendError.value = '';
+
+    const result = await ChatsApi.sendMessage(id, text);
+    this.sending.value = false;
+
+    if (result instanceof ApiError) {
+      this.sendError.value = result.message;
+      return false;
+    }
+
+    if (result.data) this.acceptMessage(result.data);
+    return true;
+  }
+
+  updateTyping(value: string): void {
+    const chatId = this.selectedChatId;
+    if (!chatId || !value.trim()) {
+      this.stopTyping();
+      return;
+    }
+
+    if (this.localTypingChatId !== chatId) {
+      this.stopTyping();
+      if (this.socket.send({ type: 'typing.start', chat_id: chatId })) {
+        this.localTypingChatId = chatId;
+      }
+    }
+
+    if (this.localTypingTimer !== null) window.clearTimeout(this.localTypingTimer);
+    this.localTypingTimer = window.setTimeout(() => this.stopTyping(), TYPING_IDLE_MS);
+  }
+
+  stopTyping(): void {
+    if (this.localTypingTimer !== null) {
+      window.clearTimeout(this.localTypingTimer);
+      this.localTypingTimer = null;
+    }
+
+    const chatId = this.localTypingChatId;
+    this.localTypingChatId = null;
+    if (chatId) this.socket.send({ type: 'typing.stop', chat_id: chatId });
+  }
+
+  private removeRemoteTypingUser(userId: string): void {
+    const timer = this.remoteTypingTimers.get(userId);
+    if (timer === undefined) return;
+
+    window.clearTimeout(timer);
+    this.remoteTypingTimers.delete(userId);
+    this.typingUsers.value = this.typingUsers.value.filter((id) => id !== userId);
+  }
+
+  private clearRemoteTyping(): void {
+    for (const timer of this.remoteTypingTimers.values()) window.clearTimeout(timer);
+    this.remoteTypingTimers.clear();
+    if (this.typingUsers.value.length > 0) this.typingUsers.value = [];
+  }
+
   async createGroup(
     name: string,
     description: string,
@@ -369,6 +448,8 @@ export class ChatsPageModel {
   }
 
   private removeCurrentChat(): void {
+    this.stopTyping();
+    this.clearRemoteTyping();
     const id = this.selectedChatId;
     if (id) {
       this.socket.unsubscribe(id);
@@ -462,7 +543,128 @@ export class ChatsPageModel {
     if (changed) this.chats.value = updated;
   }
 
+  private acceptMessage(message: ChatMessage): void {
+    const id = message.chat_id;
+
+    if (this.selectedChatId === id) {
+      this.removeRemoteTypingUser(message.user_id);
+      const exists = this.messages.value.some((item) => item.id === message.id);
+      if (!exists) {
+        this.messages.value = [...this.messages.value, message];
+      }
+      this.markMessagesRead(id, [message]);
+    }
+
+    const updated = this.chats.value.map((chat) => {
+      if (chat.id !== id) return chat;
+
+      const updatedChat = toDisplayChat({
+        ...chat,
+        last_message: {
+          id: message.id,
+          content: message.content,
+          type: message.type,
+          created_at: message.created_at,
+        },
+      });
+      updatedChat.unreadCount =
+        chat.unreadCount +
+        (this.selectedChatId !== id &&
+        message.user_id !== user.getId() &&
+        chat.last_message?.id !== message.id
+          ? 1
+          : 0);
+      return updatedChat;
+    });
+
+    this.chats.value = sortChatsByLastMessage(updated);
+
+    if (this.activeChat.value?.id === id) {
+      this.activeChat.value =
+        this.chats.value.find((chat) => chat.id === id) ?? this.activeChat.value;
+    }
+  }
+
   private handleSocketEvent(event: WsServerEvent): void {
+    if (event.type === 'typing.started' || event.type === 'typing.stopped') {
+      const payload = event.payload;
+      if (
+        !payload ||
+        typeof payload !== 'object' ||
+        !('chat_id' in payload) ||
+        !('user_id' in payload) ||
+        typeof payload.chat_id !== 'string' ||
+        typeof payload.user_id !== 'string' ||
+        payload.chat_id !== this.selectedChatId ||
+        payload.user_id === user.getId()
+      )
+        return;
+
+      const typingUserId = payload.user_id;
+      if (event.type === 'typing.stopped') {
+        this.removeRemoteTypingUser(typingUserId);
+        return;
+      }
+
+      const previousTimer = this.remoteTypingTimers.get(typingUserId);
+      if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+      const timer = window.setTimeout(
+        () => this.removeRemoteTypingUser(typingUserId),
+        REMOTE_TYPING_TIMEOUT_MS,
+      );
+      this.remoteTypingTimers.set(typingUserId, timer);
+      if (!this.typingUsers.value.includes(typingUserId)) {
+        this.typingUsers.value = [...this.typingUsers.value, typingUserId];
+      }
+      return;
+    }
+
+    if (event.type === 'message.created') {
+      const payload = event.payload;
+      if (
+        payload &&
+        typeof payload === 'object' &&
+        'id' in payload &&
+        'chat_id' in payload &&
+        typeof payload.id === 'string' &&
+        typeof payload.chat_id === 'string'
+      ) {
+        this.acceptMessage(payload as ChatMessage);
+      }
+      return;
+    }
+
+    if (event.type === 'message.read') {
+      const payload = event.payload;
+      if (
+        payload &&
+        typeof payload === 'object' &&
+        'chat_id' in payload &&
+        'message_id' in payload &&
+        'user_id' in payload &&
+        typeof payload.chat_id === 'string' &&
+        typeof payload.message_id === 'string' &&
+        typeof payload.user_id === 'string'
+      ) {
+        if (payload.chat_id === this.selectedChatId && payload.user_id !== user.getId()) {
+          const message = this.messages.value.find((item) => item.id === payload.message_id);
+          if (message?.user_id === user.getId() && !message.is_read) {
+            this.messages.value = this.messages.value.map((item) =>
+              item.id === payload.message_id ? { ...item, is_read: true } : item,
+            );
+          }
+        }
+
+        if (payload.user_id === user.getId()) {
+          const chat = this.chats.value.find((item) => item.id === payload.chat_id);
+          if (chat && chat.unreadCount > 0) {
+            this.setUnreadCount(payload.chat_id, chat.unreadCount - 1);
+          }
+        }
+      }
+      return;
+    }
+
     if (event.type === 'chat.created' || event.type === 'chat.deleted') {
       void this.loadChats(false);
       return;
