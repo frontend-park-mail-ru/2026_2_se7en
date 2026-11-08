@@ -1,167 +1,142 @@
 import './ChatList.scss';
 import './Skeleton.scss';
-import { Button } from '@/components/core/Button.js';
-import type { DisplayChat } from '@/api/chats/chats.types';
-import { Input } from '@/components/core/Input.js';
-import { SearchIcon } from '@/components/core/Icons.js';
+import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
-import { renderChatListLoading } from './ChatListLoading.js';
 
-/**
- * Компонент списка чатов
- */
+const asset = (name: string): string => `/design-assets/${name}`;
+
+export type ChatFilter = 'all' | 'unread' | 'dialog' | 'group';
+
 export class ChatList {
-  /**
-   * Рендерит один элемент чата
-   */
   renderChatItem(chat: DisplayChat, activeChatId: string | null): string {
     const isActive = activeChatId === chat.id;
-    const chatId = chat.id ?? '';
-    const onlineIndicator = chat.isOnline ? '<div class="chat-item__online"></div>' : '';
     const unreadBadge = chat.unreadCount
-      ? `
-        <span class="chat-item__unread">
-          ${chat.unreadCount}
-        </span>
-      `
+      ? `<span class="chat-item__unread">${chat.unreadCount}</span>`
       : '';
 
     return `
-    <div data-chat-id="${escapeHtml(chatId)}" class="chat-item${isActive ? ' chat-item_active' : ''}">
-      <div class="chat-item__inner">
-        <div class="chat-item__avatar-box">
-          <div class="chat-item__avatar">
-            <span class="chat-item__avatar-initials">${escapeHtml(chat.initials)}</span>
-          </div>
-          ${onlineIndicator}
-        </div>
-
-        <div class="chat-item__body">
-          <div class="chat-item__top">
-            <h3 class="chat-item__name">${escapeHtml(chat.name)}</h3>
-            <div class="chat-item__meta">
-              <span class="chat-item__time">${escapeHtml(chat.time)}</span>
-              ${unreadBadge}
-            </div>
-          </div>
-          <p class="chat-item__message">${escapeHtml(chat.lastMessage)}</p>
-        </div>
-      </div>
-    </div>
-  `;
+      <button
+        type="button"
+        data-chat-id="${escapeHtml(chat.id ?? '')}"
+        class="chat-item${isActive ? ' chat-item_active' : ''}"
+      >
+        <span class="chat-item__avatar-box">
+          <span class="chat-item__avatar">${chat.icon_url ? `<img class="chat-item__avatar-image" src="${escapeHtml(chat.icon_url)}" alt="">` : escapeHtml(chat.initials)}</span>
+          ${chat.isOnline ? '<span class="chat-item__online"></span>' : ''}
+        </span>
+        <span class="chat-item__body">
+          <span class="chat-item__name">${escapeHtml(chat.name)}</span>
+          <span class="chat-item__message">${escapeHtml(chat.lastMessage)}</span>
+        </span>
+        <span class="chat-item__meta">
+          <span class="chat-item__time">${escapeHtml(chat.time)}</span>
+          ${unreadBadge}
+        </span>
+      </button>
+    `;
   }
 
-  /**
-   * Состояние загрузки
-   */
-  renderLoadingState(): string {
-    return renderChatListLoading();
-  }
-
-  /**
-   * Пустое состояние
-   */
-  renderEmptyState(): string {
-    const searchInput = Input({
-      placeholder: 'Поиск по сообщениям',
-      icon: SearchIcon,
-    });
-
+  private renderHeader(isCreateMenuOpen: boolean): string {
     return `
-      <div class="chat-panel">
-        <div class="chat-panel__header">
+      <div class="chat-panel__header">
+        <div>
           <h2 class="chat-panel__title">Чаты</h2>
           <p class="chat-panel__status">В сети</p>
         </div>
+        <button
+          id="new-chat-button"
+          type="button"
+          class="chat-panel__new"
+          aria-label="Создать чат"
+          aria-haspopup="menu"
+          aria-expanded="${isCreateMenuOpen}"
+        >
+          <img src="${asset('f1f87.svg')}" alt="" width="19" height="19">
+        </button>
+      </div>
+    `;
+  }
 
-        <div class="chat-panel__search">
-          ${searchInput}
-        </div>
-
-        <div class="chat-panel__empty">
-          <div class="chat-panel__empty-inner">
-            <svg class="icon icon_4xl chat-panel__empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-            </svg>
-            <p class="chat-panel__empty-title">Список пока пуст</p>
-            <p class="chat-panel__empty-hint">Новые диалоги появятся здесь</p>
-          </div>
+  private renderSearch(query: string, activeFilter: ChatFilter): string {
+    return `
+      <div class="chat-panel__tools">
+        <label class="chat-panel__search">
+          <img src="${asset('7c7b6.svg')}" alt="" width="17" height="17">
+          <input type="search" name="chat-search" value="${escapeHtml(query)}" placeholder="Поиск по сообщениям" aria-label="Поиск по сообщениям" data-chat-list-search>
+        </label>
+        <div class="chat-panel__filters" role="group" aria-label="Фильтр чатов">
+          <button type="button" class="chat-panel__filter${activeFilter === 'all' ? ' chat-panel__filter_active' : ''}" data-chat-filter="all" aria-pressed="${activeFilter === 'all'}">Все</button>
+          <button type="button" class="chat-panel__filter${activeFilter === 'unread' ? ' chat-panel__filter_active' : ''}" data-chat-filter="unread" aria-pressed="${activeFilter === 'unread'}">Непрочитанные</button>
+          <button type="button" class="chat-panel__filter${activeFilter === 'dialog' ? ' chat-panel__filter_active' : ''}" data-chat-filter="dialog" aria-pressed="${activeFilter === 'dialog'}">Диалоги</button>
+          <button type="button" class="chat-panel__filter${activeFilter === 'group' ? ' chat-panel__filter_active' : ''}" data-chat-filter="group" aria-pressed="${activeFilter === 'group'}">Группы</button>
         </div>
       </div>
     `;
   }
 
-  /**
-   * Стандартное состояние со списком чатов
-   */
-  renderDefaultState(chats: DisplayChat[], activeChatId: string | null): string {
-    const searchInput = Input({
-      placeholder: 'Поиск по сообщениям',
-      icon: SearchIcon,
-    });
-
-    const filterButtonClass = 'button_chip';
-
-    const allChatsButton = Button({
-      text: 'Все',
-      className: filterButtonClass,
-    });
-    const notReadButton = Button({
-      text: 'Непрочитанные',
-      className: filterButtonClass,
-    });
-    const privateChatsButton = Button({
-      text: 'Личные',
-      className: filterButtonClass,
-    });
-
-    const chatItems = chats.map((chat) => this.renderChatItem(chat, activeChatId)).join('');
+  private renderCreateMenu(isOpen: boolean): string {
+    if (!isOpen) return '';
 
     return `
-      <div class="chat-panel">
-        <div class="chat-panel__header">
-          <h2 class="chat-panel__title">Чаты</h2>
-          <p class="chat-panel__status">В сети</p>
-        </div>
+      <div class="chat-panel__create-menu" role="menu" aria-label="Создать чат">
+        <button type="button" role="menuitem" data-create-dialog>Новый диалог</button>
+        <button type="button" role="menuitem" data-create-group>Новая группа</button>
+        <button type="button" role="menuitem" data-create-channel>Новый канал</button>
+      </div>
+    `;
+  }
 
-        <div class="chat-panel__search">
-          ${searchInput}
-        </div>
+  render(
+    chats: DisplayChat[],
+    activeChat: DisplayChat | null,
+    isLoading: boolean,
+    isCreateMenuOpen = false,
+    options: { query?: string; filter?: ChatFilter } = {},
+  ): string {
+    const filter = options.filter ?? 'all';
+    const query = (options.query ?? '').trim().toLocaleLowerCase('ru-RU');
+    const visibleChats = chats.filter((chat) => {
+      if (filter === 'unread' && chat.unreadCount === 0) return false;
+      if (filter === 'dialog' && chat.type !== 'dialog') return false;
+      if (filter === 'group' && chat.type !== 'group') return false;
+      if (!query) return true;
 
-        <div class="chat-panel__filters">
-          <div class="chat-panel__filter-row">
-            ${allChatsButton}
-            ${notReadButton}
-            ${privateChatsButton}
+      return `${chat.name ?? ''} ${chat.lastMessage}`.toLocaleLowerCase('ru-RU').includes(query);
+    });
+
+    const list = isLoading
+      ? Array.from(
+          { length: 6 },
+          () => `
+          <div class="chat-panel__loading-item">
+            <span class="skeleton skeleton_circle"></span>
+            <span class="chat-panel__loading-lines">
+              <span class="skeleton"></span>
+              <span class="skeleton"></span>
+            </span>
           </div>
-        </div>
+        `,
+        ).join('')
+      : visibleChats.length
+        ? visibleChats.map((chat) => this.renderChatItem(chat, activeChat?.id ?? null)).join('')
+        : `
+          <div class="chat-panel__empty">
+            <p>${chats.length ? 'Ничего не найдено' : 'Список пока пуст'}</p>
+            <span>${chats.length ? 'Попробуйте другой фильтр или запрос' : 'Новые диалоги появятся здесь'}</span>
+          </div>
+        `;
 
-        <div class="chat-panel__list">
-          ${chatItems}
-        </div>
-
+    return `
+      <section class="chat-panel" aria-label="Список чатов">
+        ${this.renderHeader(isCreateMenuOpen)}
+        ${this.renderSearch(options.query ?? '', options.filter ?? 'all')}
+        <div class="chat-panel__list" aria-busy="${isLoading}">${list}</div>
         <div class="chat-panel__footer">
-          <div class="chat-panel__footer-row">
-            <span>сVяZь Web</span>
-            <span>v 2.8.1</span>
-          </div>
+          <span>Связь Web</span>
+          <span>v 2.8.1</span>
         </div>
-      </div>
+        ${this.renderCreateMenu(isCreateMenuOpen)}
+      </section>
     `;
-  }
-
-  /**
-   * Основной метод рендеринга
-   */
-  render(chats: DisplayChat[], activeChat: DisplayChat | null, isLoading: boolean): string {
-    if (isLoading) {
-      return this.renderLoadingState();
-    }
-
-    if (chats.length === 0) {
-      return this.renderEmptyState();
-    }
-
-    return this.renderDefaultState(chats, activeChat?.id ?? null);
   }
 }
