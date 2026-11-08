@@ -237,12 +237,16 @@ export class ProfilePageModel {
       for (const detail of error.details) {
         let mappedField: ProfileField;
 
-        if (detail.field === 'phone_number') {
-          mappedField = 'phone';
-        } else if (detail.field === 'password') {
-          mappedField = 'new_password';
-        } else {
-          mappedField = detail.field as ProfileField;
+        switch (detail.field) {
+          case 'phone_number':
+            mappedField = 'phone';
+            break;
+          case 'password':
+            mappedField = 'new_password';
+            break;
+          default:
+            mappedField = detail.field as ProfileField;
+            break;
         }
 
         if (mappedField in this.formValues && !nextErrors[mappedField]) {
