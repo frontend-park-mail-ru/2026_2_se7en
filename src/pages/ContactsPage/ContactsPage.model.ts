@@ -7,7 +7,7 @@ import { Signal } from '@/reactive/Signal.ts';
 import { debugError } from '@/helpers/DebugError.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 import { toDisplayContact } from '@/helpers/contact.ts';
-import { toRuLowerCase } from '@/helpers/contact.ts';
+import { toRuLowerCase } from '@/helpers/stringRu';
 
 /**
  * Модель страницы контактов.
@@ -51,7 +51,7 @@ export class ContactsPageModel {
     if (!query) return this.contacts.value;
 
     return this.contacts.value.filter((contact) =>
-      contact.searchText.toLocaleLowerCase('ru-RU').includes(query),
+      toRuLowerCase(contact.searchText).includes(query),
     );
   }
 

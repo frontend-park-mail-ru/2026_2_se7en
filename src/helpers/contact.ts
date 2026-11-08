@@ -1,14 +1,5 @@
+import { toRuUpperCase } from './stringRu';
 import type { Contact, DisplayContact } from '@/api/contacts/contacts.types.ts';
-
-/**Приводит строку к нижнему регистру */
-export function toRuLowerCase(str: string): string {
-  return str.toLocaleLowerCase('ru-RU');
-}
-
-/** Приводит строку к верхнему регистру */
-export function toRuUpperCase(str: string): string {
-  return str.toLocaleUpperCase('ru-RU');
-}
 
 /** Возвращает псевдоним контакта или его имя и фамилию. */
 function getContactName(contact: Contact): string {
@@ -34,9 +25,11 @@ function getContactSearchText(contact: Contact, displayName: string): string {
 function getInitials(name: string): string {
   const words = name.trim().split(/\s+/);
 
-  return words.length > 1
-    ? toRuUpperCase(`${Array.from(words[0])[0]}${Array.from(words[1])[0]}`)
-    : toRuUpperCase(Array.from(name).slice(0, 2).join(''));
+  const initials =
+    words.length > 1
+      ? `${Array.from(words[0])[0]}${Array.from(words[1])[0]}`
+      : Array.from(name).slice(0, 2).join('');
+  return toRuUpperCase(initials);
 }
 
 /** Преобразует backend DTO контакта в формат отображения страницы. */
