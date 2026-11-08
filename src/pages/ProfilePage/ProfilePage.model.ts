@@ -2,7 +2,7 @@ import { ApiSuccess } from '@/api/ApiResponse';
 import { DEFAULT_ERROR_MESSAGE } from '@/api/error.constants';
 import { ProfileApi } from '@/api/profile/ProfileApi';
 import type { ProfileData } from '@/api/profile/profile.types';
-import type { ProfileTab } from '@/components/profile/profile.types';
+import type { ProfileTab } from '@/components/profile/Profile.types';
 import { Signal } from '@/reactive/Signal';
 
 export const VALID_TABS: ProfileTab[] = ['public', 'security', 'email', 'phone', 'password'];

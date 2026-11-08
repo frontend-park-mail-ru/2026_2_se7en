@@ -1,6 +1,6 @@
 import './ProfileMenu.scss';
 import { PROFILE_TEXTS } from '@/constants/Profile';
-import type { ProfileTab } from './profile.types';
+import type { ProfileTab } from './Profile.types';
 
 const MENU_ITEMS: Array<{ tab: ProfileTab; label: string }> = [
   { tab: 'public', label: PROFILE_TEXTS.MENU_PUBLIC },

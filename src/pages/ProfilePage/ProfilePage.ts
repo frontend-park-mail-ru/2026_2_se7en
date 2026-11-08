@@ -2,7 +2,7 @@ import './ProfilePage.scss';
 import { DefaultLayout } from '@/layouts/DefaultLayout';
 import { Page } from '@/pages/Page';
 import { ProfileContent } from '@/components/profile/ProfileContent';
-import type { ProfileTab } from '@/components/profile/profile.types';
+import type { ProfileTab } from '@/components/profile/Profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { bindPasswordToggles } from '@/helpers/PasswordToggle';
 import { router } from '@/helpers/Router';

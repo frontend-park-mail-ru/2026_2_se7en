@@ -1,7 +1,7 @@
 import './ProfileSecurity.scss';
 import { PROFILE_TEXTS } from '@/constants/Profile';
 import { escapeHtml } from '@/helpers/EscapeHtml';
-import type { ProfileSecurityParams, SecurityRow } from './profile.types';
+import type { ProfileSecurityParams, SecurityRow } from './Profile.types';
 
 /**
  * Компонент для отображения данных безопасности.

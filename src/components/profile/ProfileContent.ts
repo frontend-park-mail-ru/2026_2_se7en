@@ -6,7 +6,7 @@ import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileMenu } from '@/components/profile/ProfileMenu';
 import { ProfileSecurity } from '@/components/profile/ProfileSecurity';
 import { escapeHtml } from '@/helpers/EscapeHtml';
-import type { FormFieldParams, ProfileContentParams } from './profile.types';
+import type { FormFieldParams, ProfileContentParams } from './Profile.types';
 
 /**
  * Генерирует HTML разметку формы публичного профиля.
