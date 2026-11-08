@@ -1,7 +1,10 @@
-export const WS_PATH = '/api/v1/ws';
+import { BASE_URL } from '@/api/api.constants.ts';
+import { MS_IN_SECOND } from '@/constants/Time.ts';
 
-export const WS_RECONNECT_BASE_DELAY_MS = 1000;
-export const WS_RECONNECT_MAX_DELAY_MS = 30000;
+export const WS_PATH = `${BASE_URL}/ws`;
+
+export const WS_RECONNECT_BASE_DELAY_MS = MS_IN_SECOND;
+export const WS_RECONNECT_MAX_DELAY_MS = 30 * MS_IN_SECOND;
 
 /**
  * Превращает адрес текущей страницы в адрес WebSocket.

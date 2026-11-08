@@ -3,12 +3,15 @@ import {
   WS_RECONNECT_MAX_DELAY_MS,
   getWebSocketUrl,
 } from './ws.constants.ts';
-import type { WsClientAction, WsServerEvent } from './ws.types.ts';
+import type {
+  WsClientAction,
+  WsConnectedHandler,
+  WsErrorHandler,
+  WsEventHandler,
+  WsServerEvent,
+} from './ws.types.ts';
 
-type EventHandler = (event: WsServerEvent) => void;
-type ErrorHandler = (error: Event | Error) => void;
-type ConnectedHandler = (reconnected: boolean) => void;
-
+/** Управляет WebSocket-соединением, подписками и повторным подключением. */
 export class WebSocketApi {
   private socket: WebSocket | null = null;
   private reconnectTimer: number | null = null;
@@ -18,11 +21,12 @@ export class WebSocketApi {
   private readonly subscriptions = new Set<string>();
 
   constructor(
-    private readonly onEvent: EventHandler,
-    private readonly onError: ErrorHandler,
-    private readonly onConnected?: ConnectedHandler,
+    private readonly onEvent: WsEventHandler,
+    private readonly onError: WsErrorHandler,
+    private readonly onConnected?: WsConnectedHandler,
   ) {}
 
+  /** Открывает соединение, если оно ещё не открыто и не открывается. */
   connect(): void {
     this.stopped = false;
 
@@ -33,17 +37,17 @@ export class WebSocketApi {
       return;
     }
 
-    if (this.reconnectTimer !== null) {
-      window.clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
+    window.clearTimeout(this.reconnectTimer ?? undefined);
+    this.reconnectTimer = null;
 
     try {
       const socket = new WebSocket(getWebSocketUrl());
       this.socket = socket;
 
       socket.addEventListener('open', () => {
-        if (this.socket !== socket) return;
+        if (this.socket !== socket) {
+          return;
+        }
 
         const reconnected = this.hasConnected || this.reconnectAttempt > 0;
         this.hasConnected = true;
@@ -79,48 +83,63 @@ export class WebSocketApi {
       });
 
       socket.addEventListener('error', (event) => {
-        if (this.socket === socket) this.onError?.(event);
+        if (this.socket === socket) {
+          this.onError?.(event);
+        }
       });
 
       socket.addEventListener('close', () => {
-        if (this.socket !== socket) return;
+        if (this.socket !== socket) {
+          return;
+        }
 
         this.socket = null;
-        if (!this.stopped) this.scheduleReconnect();
+        if (!this.stopped) {
+          this.scheduleReconnect();
+        }
       });
     } catch (error) {
       this.onError?.(error instanceof Error ? error : new Error('WebSocket connection failed'));
       this.scheduleReconnect();
     }
   }
+
+  /** Подписывает соединение на события указанного чата. */
   subscribe(chatId: string): void {
-    if (this.subscriptions.has(chatId)) return;
+    if (this.subscriptions.has(chatId)) {
+      return;
+    }
 
     this.subscriptions.add(chatId);
     this.send({ type: 'subscribe', chat_id: chatId });
   }
 
+  /** Удаляет подписку на события указанного чата. */
   unsubscribe(chatId: string): void {
-    if (!this.subscriptions.delete(chatId)) return;
+    if (!this.subscriptions.delete(chatId)) {
+      return;
+    }
 
     this.send({ type: 'unsubscribe', chat_id: chatId });
   }
 
+  /** Отправляет действие серверу, если соединение открыто. */
   send(action: WsClientAction): boolean {
-    if (this.socket?.readyState !== WebSocket.OPEN) return false;
+    if (this.socket?.readyState !== WebSocket.OPEN) {
+      return false;
+    }
 
     this.socket.send(JSON.stringify(action));
     return true;
   }
 
+  /** Останавливает соединение и отменяет повторное подключение. */
   disconnect(): void {
     this.stopped = true;
     this.hasConnected = false;
 
-    if (this.reconnectTimer !== null) {
-      window.clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
+    window.clearTimeout(this.reconnectTimer ?? undefined);
+    this.reconnectTimer = null;
 
     const socket = this.socket;
     this.socket = null;
@@ -128,8 +147,11 @@ export class WebSocketApi {
     this.subscriptions.clear();
   }
 
+  /** Планирует повторное подключение с увеличивающейся задержкой. */
   private scheduleReconnect(): void {
-    if (this.stopped || this.reconnectTimer != null) return;
+    if (this.stopped || this.reconnectTimer != null) {
+      return;
+    }
 
     const delay = Math.min(
       WS_RECONNECT_BASE_DELAY_MS * 2 ** this.reconnectAttempt,

@@ -84,3 +84,12 @@ export interface WsMessageReadPayload {
 export interface WsErrorPayload {
   code: string;
 }
+
+/** Обработчик события, полученного от сервера. */
+export type WsEventHandler = (event: WsServerEvent) => void;
+
+/** Обработчик ошибки соединения или разбора сообщения. */
+export type WsErrorHandler = (error: Event | Error) => void;
+
+/** Обработчик открытия соединения с признаком повторного подключения. */
+export type WsConnectedHandler = (reconnected: boolean) => void;
