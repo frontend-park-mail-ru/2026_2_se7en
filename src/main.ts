@@ -20,6 +20,11 @@ router
 async function initApp() {
   await user.updateCurrentUser();
   router.start();
+
+  // Service Worker в продакшене
+  if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    navigator.serviceWorker.register('/sw.js');
+  }
 }
 
 void initApp();
