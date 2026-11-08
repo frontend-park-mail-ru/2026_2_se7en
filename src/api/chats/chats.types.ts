@@ -23,6 +23,7 @@ export interface Chat {
   members_count?: number;
   last_message?: MessagePreview | null;
   created_at?: string;
+  updated_at?: string;
 }
 
 /**
@@ -41,6 +42,55 @@ export interface GetChatsParams {
   type?: ChatType;
 }
 
+export interface ChatDetailResponse {
+  chat: Chat;
+  role: 'creator' | 'admin' | 'member';
+}
+
+export interface ChatMember {
+  user_id: string;
+  role: 'creator' | 'admin' | 'member';
+  profile: {
+    id: string;
+    user_id: string;
+    nickname: string;
+    first_name: string;
+    last_name?: string | null;
+    icon_id?: string | null;
+  };
+}
+
+export interface ListMembersResponse {
+  items: ChatMember[];
+}
+
+export interface ChatMessage {
+  id: string;
+  user_id: string;
+  chat_id: string;
+  content?: string | null;
+  type: MessageType;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ListMessagesResponse {
+  items: ChatMessage[];
+}
+
+export interface CreateGroupRequest {
+  name: string;
+  description?: string;
+  members: string[];
+}
+
+export interface UpdateGroupRequest {
+  name: string;
+  description: string | null;
+  set_description: true;
+}
+
 /**
  * Чат, подготовленный для отображения в интерфейсе.
  */
@@ -56,8 +106,9 @@ export interface DisplayChat extends Chat {
  * Параметры одного сообщения.
  */
 export interface Message {
-  id: number;
+  id: string | number;
   text: string;
   isOutgoing: boolean;
+  isRead?: boolean;
   time: string;
 }

@@ -17,9 +17,9 @@ export class DefaultLayout {
    * @param contentHtml HTML-строка контента конкретной страницы.
    * @returns Итоговая разметка страницы в лейауте.
    */
-  render(contentHtml: string): string {
+  render(contentHtml: string, modifier = ''): string {
     return `
-      <div class="layout">
+      <div class="layout${modifier ? ` ${modifier}` : ''}">
         ${this.sidebar.render()}
         ${contentHtml}
       </div>

@@ -1,102 +1,179 @@
 import './ChatArea.scss';
-import { Button } from '@/components/core/Button.js';
-import { ChatSkeleton } from './ChatSkeleton.js';
-import type { DisplayChat } from '@/api/chats/chats.types';
+import { ChatSkeleton } from './ChatSkeleton.ts';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import type { DisplayChat, Message } from '@/api/chats/chats.types.ts';
+import type { ChatAreaOptions } from './chat.types.ts';
+import { Button } from '@/components/core/Button.ts';
+import { EditGroupIcon, MessageReadIcon, MessageSentIcon } from '@/components/core/Icons.ts';
 
-/**
- * Компонент области чата
- */
+const asset = (name: string): string => `/design-assets/${name}`;
+
+/** Отображает выбранный диалог, сообщения и форму отправки. */
 export class ChatArea {
-  renderChatAreaLoading(): string {
-    return ChatSkeleton.render();
-  }
-
-  renderEmptyChatArea(): string {
-    const newChatButton = Button({
-      text: 'Новый чат',
-      iconBefore:
-        '<svg class="icon icon_md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>',
-      mode: 'primary',
-    });
-
+  private renderMessage(message: Message): string {
     return `
-      <div class="chat-area">
-        <div class="chat-area__placeholder">
-          <div class="chat-area__icon-wrap">
-            <svg class="icon icon_2xl chat-area__icon chat-area__icon_accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-          </div>
-          <h2 class="chat-area__title">Начните первый разговор</h2>
-          <p class="chat-area__text chat-area__text_spaced">Выберите контакт или создайте новый чат — сообщения будут доступны на всех ваших устройствах.</p>
-          ${newChatButton}
+      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" data-message-id="${escapeHtml(String(message.id))}">
+        <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
+          <span class="chat-area__message-text">${escapeHtml(message.text)}</span>
+          <span class="chat-area__message-meta">
+            ${escapeHtml(message.time)}
+            ${message.isOutgoing ? (message.isRead ? MessageReadIcon : MessageSentIcon) : ''}
+          </span>
         </div>
       </div>
     `;
   }
 
-  renderSelectChatPrompt(): string {
+  private renderDeleteConfirm(name: string, isGroup: boolean): string {
     return `
-      <div class="chat-area">
-        <div class="chat-area__placeholder chat-area__placeholder_plain">
-          <div class="chat-area__icon-wrap chat-area__icon-wrap_lg">
-            <svg class="icon icon_3xl chat-area__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9"></path>
-            </svg>
+      <div class="chat-area__modal-backdrop" role="presentation">
+        <div class="chat-area__modal" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title">
+          <h2 id="delete-dialog-title">${isGroup ? `Удалить группу "${escapeHtml(name)}"?` : 'Удалить диалог?'}</h2>
+          <p>${
+            isGroup
+              ? 'Группа и вся переписка будут удалены для всех участников. Это действие нельзя отменить.'
+              : 'Переписка будет удалена у всех. Это действие нельзя отменить.'
+          }</p>
+          <div class="chat-area__modal-actions">
+            ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-cancel-delete': '' } })}
+            ${Button({ text: 'Удалить', mode: 'unstyled', className: 'chat-area__modal-danger', attrs: { 'data-confirm-delete': '' } })}
           </div>
-          <h2 class="chat-area__title">Выберите чат</h2>
-          <p class="chat-area__text">Выберите любой чат слева — переписка появится здесь.</p>
         </div>
       </div>
     `;
   }
 
-  renderNoInternetState(): string {
-    const retryButton = Button({
-      text: 'Попробовать ещё раз',
-      id: 'retry-connection-btn',
-      mode: 'primary',
-    });
+  private renderConversation(chat: DisplayChat, options: ChatAreaOptions): string {
+    const isGroup = chat.type === 'group';
+    const messages = options.messages ?? [];
+    const hasMessages = messages.length > 0;
+    const draft = options.draft ?? '';
 
     return `
-      <div class="chat-area">
-        <div class="chat-area__placeholder">
-          <div class="chat-area__icon-wrap chat-area__icon-wrap_lg">
-            <svg class="icon icon_3xl chat-area__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9"></path>
-            </svg>
+      <section class="chat-area chat-area_open" aria-label="Переписка">
+        <header class="chat-area__header">
+          ${Button({ text: `<img src="${asset('63b18.svg')}" alt="" width="20" height="20">`, mode: 'unstyled', className: 'chat-area__back', ariaLabel: 'Назад к чатам', attrs: { 'data-chat-back': '' } })}
+          ${Button({
+            text: `
+            <span class="chat-area__avatar">
+              ${chat.icon_url ? `<img class="chat-area__avatar-image" src="${escapeHtml(chat.icon_url)}" alt="">` : escapeHtml(chat.initials)}
+              ${chat.isOnline ? '<span class="chat-area__online"></span>' : ''}
+            </span>
+            <span class="chat-area__identity-text">
+              <strong>${escapeHtml(chat.name)}</strong>
+              <small>${isGroup ? `${chat.members_count ?? 0} участников` : chat.isOnline ? 'в сети' : ''}</small>
+            </span>
+`,
+            mode: 'unstyled',
+            className: 'chat-area__identity',
+            ariaLabel: isGroup ? 'Открыть информацию о группе' : 'Информация о собеседнике',
+            attrs: isGroup ? { 'data-open-group-info': '' } : {},
+          })}
+          <div class="chat-area__actions">
+            ${Button({ text: `<img src="${asset('3a6d7.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__icon-button', ariaLabel: 'Поиск в диалоге', attrs: { 'data-chat-search': '' } })}
+            ${Button({ text: `<img src="${asset('d4d19.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: `chat-area__icon-button${options.menuOpen ? ' chat-area__icon-button_active' : ''}`, ariaLabel: 'Меню диалога', attrs: { 'aria-haspopup': 'menu', 'aria-expanded': String(Boolean(options.menuOpen)), 'data-dialog-menu-toggle': '' } })}
           </div>
-          <h2 class="chat-area__title">Нет подключения к интернету</h2>
-          <p class="chat-area__text chat-area__text_spaced">Проверьте Wi-Fi или мобильную сеть и попробуйте ещё раз.</p>
-          ${retryButton}
+          ${
+            options.menuOpen
+              ? `
+            <div class="chat-area__menu" role="menu">
+              ${
+                isGroup && options.canEditGroup
+                  ? `
+                ${Button({ text: `${EditGroupIcon} Изменить группу`, mode: 'unstyled', attrs: { role: 'menuitem', 'data-open-group-edit': '' } })}
+              `
+                  : ''
+              }
+              ${isGroup && !options.canEditGroup ? Button({ text: 'Информация о группе', mode: 'unstyled', attrs: { role: 'menuitem', 'data-open-group-info': '' } }) : ''}
+              ${
+                !isGroup || options.canDeleteGroup
+                  ? Button({
+                      text: `<img src="${asset('59372.svg')}" alt="" width="18" height="19"> ${isGroup ? 'Удалить группу' : 'Удалить диалог'}`,
+                      mode: 'unstyled',
+                      className: 'chat-area__menu-danger',
+                      attrs: { role: 'menuitem', 'data-dialog-delete': '' },
+                    })
+                  : ''
+              }
+              ${isGroup && !options.canDeleteGroup ? Button({ text: 'Выйти из группы', mode: 'unstyled', className: 'chat-area__menu-danger', attrs: { role: 'menuitem', 'data-group-leave': '' } }) : ''}
+            </div>
+          `
+              : ''
+          }
+        </header>
+
+        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history>
+          ${
+            options.messagesLoading
+              ? '<p class="chat-area__history-status" role="status">Загрузка сообщений…</p>'
+              : options.messagesError
+                ? `<div class="chat-area__history-status" role="alert"><p>${escapeHtml(options.messagesError)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-messages-retry': '' } })}</div>`
+                : hasMessages
+                  ? `
+            ${options.hasMoreMessages ? Button({ text: 'Загрузить предыдущие сообщения', mode: 'unstyled', className: 'chat-area__load-more', attrs: { 'data-messages-more': '' } }) : ''}
+            ${options.dateLabel ? `<span class="chat-area__date">${escapeHtml(options.dateLabel)}</span>` : ''}
+            <div class="chat-area__messages">
+              ${messages.map((message) => this.renderMessage(message)).join('')}
+            </div>
+          `
+                  : `
+            <p class="chat-area__empty-conversation">
+              Напишите первое сообщение в диалоге
+            </p>
+          `
+          }
+          ${options.typingLabel ? `<p class="chat-area__typing" role="status">${escapeHtml(options.typingLabel)}</p>` : ''}
         </div>
-      </div>
+
+        <form class="chat-area__composer" data-message-form>
+          ${Button({ text: `<img src="${asset('f4e99.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__attach', ariaLabel: 'Прикрепить файл', attrs: { 'data-message-attach': '' } })}
+          <div class="chat-area__input-wrap">
+            <input name="message" type="text" maxlength="4096" value="${escapeHtml(draft)}" placeholder="Напишите сообщение…" autocomplete="off" aria-label="Сообщение" data-message-input>
+            ${Button({ text: `<img src="${asset('5a40e.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__emoji', ariaLabel: 'Добавить эмодзи', attrs: { 'data-message-emoji': '' } })}
+          </div>
+          ${Button({ text: `<img src="${asset('1dc80.svg')}" alt="" width="20" height="20">`, type: 'submit', mode: 'unstyled', className: 'chat-area__send', ariaLabel: 'Отправить сообщение', disabled: !draft.trim() || Boolean(options.sending) })}
+        </form>
+        ${options.sendError ? `<p class="chat-area__send-error" role="alert">${escapeHtml(options.sendError)}</p>` : ''}
+        ${options.deleteConfirmOpen ? this.renderDeleteConfirm(chat.name ?? '', isGroup) : ''}
+      </section>
     `;
   }
 
-  /**
-   * Основной метод рендеринга
-   */
+  /** Возвращает переписку либо состояние загрузки, ошибки или пустого списка. */
   render(
     activeChat: DisplayChat | null,
     chats: DisplayChat[],
     isLoading: boolean,
     hasNetworkError: boolean,
+    options: ChatAreaOptions = {},
   ): string {
     if (isLoading) {
-      return this.renderChatAreaLoading();
+      return ChatSkeleton.render();
     }
 
     if (hasNetworkError) {
-      return this.renderNoInternetState();
+      return `
+        <section class="chat-area chat-area_placeholder">
+          <div>
+            <h2>Нет подключения к интернету</h2>
+            <p>Проверьте подключение и попробуйте ещё раз.</p>
+            ${Button({ text: 'Попробовать ещё раз', id: 'retry-connection-btn', mode: 'unstyled' })}
+          </div>
+        </section>
+      `;
     }
 
-    if (!activeChat && chats.length === 0) {
-      return this.renderEmptyChatArea();
+    if (activeChat) {
+      return this.renderConversation(activeChat, options);
     }
 
-    return this.renderSelectChatPrompt();
+    return `
+      <section class="chat-area chat-area_placeholder">
+        <div>
+          <h2>${chats.length ? 'Выберите чат' : 'Начните первый разговор'}</h2>
+          <p>${chats.length ? 'Выберите любой чат слева — переписка появится здесь.' : 'Создайте новый чат, чтобы начать общение.'}</p>
+        </div>
+      </section>
+    `;
   }
 }

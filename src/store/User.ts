@@ -14,11 +14,12 @@ class User {
   private _isAuth = false;
 
   /** Данные текущего пользователя. */
-  private _data: CurrentUser = { name: '' };
+  private _data: CurrentUser = { id: '', name: '' };
 
   constructor() {
     eventBus.on('auth:unauthorized', () => {
       this._isAuth = false;
+      this._data.id = '';
       this._data.name = '';
 
       const currentPath = window.location.pathname;
@@ -36,6 +37,10 @@ class User {
     return this._data.name;
   }
 
+  getId(): string {
+    return this._data.id;
+  }
+
   /**
    * Выполняет вход пользователя через API и обновляет статус.
    *
@@ -46,6 +51,7 @@ class User {
 
     if (result.success) {
       this._isAuth = true;
+      this._data.id = result.data.id;
       this._data.name = result.data.profile?.nickname || '';
     }
 
@@ -60,6 +66,7 @@ class User {
 
     if (result.success || result.status === STATUSES.UNAUTHORIZED) {
       this._isAuth = false;
+      this._data.id = '';
       this._data.name = '';
     }
 
@@ -74,9 +81,11 @@ class User {
 
     if (response.success) {
       this._isAuth = true;
+      this._data.id = response.data.id;
       this._data.name = response.data?.profile?.nickname || '';
     } else {
       this._isAuth = false;
+      this._data.id = '';
       this._data.name = '';
     }
 
