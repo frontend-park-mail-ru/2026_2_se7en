@@ -1,22 +1,22 @@
-import type { ProfileTab } from '@/components/profile/Profile.types.ts';
+import type { ProfileTab } from '@/components/profile/profile.types.ts';
 import { validateForbiddenChars } from '@/helpers/Validation.ts';
-import {
-  PROFILE_ERROR_MESSAGES,
-  PROFILE_LIMITS,
-  PROFILE_REGEXES,
-  PROFILE_TAB_FIELDS,
-} from '@/constants/Profile.ts';
 import {
   EMAIL_REGEX,
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   VALIDATION_MESSAGES,
 } from '@/constants/Validation.ts';
+import {
+  PROFILE_ERROR_MESSAGES,
+  PROFILE_LIMITS,
+  PROFILE_REGEXES,
+  PROFILE_TAB_FIELDS,
+} from '@/constants/Profile.ts';
 import type {
   ProfileField,
   ProfileFieldErrors,
   ProfileFormValues,
-} from '@/api/profile/Profile.types.ts';
+} from '@/api/profile/profile.types.ts';
 
 /** Поля, для которых не применяется trim при валидации. */
 const PASSWORD_FIELDS = ['old_password', 'new_password', 'confirm_password'] as const;

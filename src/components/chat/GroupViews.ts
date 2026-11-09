@@ -1,10 +1,10 @@
 import './GroupViews.scss';
+import { Button } from '@/components/core/Button.ts';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import { Input } from '@/components/core/Input.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { user } from '@/store/User.ts';
-import { Button } from '@/components/core/Button.ts';
-import { Input } from '@/components/core/Input.ts';
-import type { GroupMemberView, GroupFormView, GroupMembersView } from './chat.types.ts';
+import type { GroupFormView, GroupMemberView, GroupMembersView } from './chat.types.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
 
@@ -112,7 +112,6 @@ export function renderGroupCreateMembers(
     error?: string;
     membersError?: string;
     mode?: 'create' | 'add';
-    query?: string;
   } = {},
 ): string {
   const count = selectedIds.size + 1;
@@ -125,10 +124,6 @@ export function renderGroupCreateMembers(
         <h2>${adding ? 'Добавить участников' : 'Новая группа'}</h2>
       </header>
       <p class="group-create-panel__count">${adding ? `${selectedIds.size} выбрано` : `${count} из 100 участников`}</p>
-      <label class="group-create-panel__search">
-        <img src="${asset('9e868.svg')}" alt="" width="17" height="17">
-        ${Input({ type: 'search', name: 'member-search', value: options.query, placeholder: 'Поиск по имени или никнейму', unstyled: true, attrs: { 'aria-label': 'Поиск участников', 'data-member-search': '' } })}
-      </label>
       <div class="group-create-panel__members" aria-busy="${Boolean(options.loading)}">
         ${
           options.loading
@@ -297,10 +292,6 @@ export function renderGroupEdit(
           <strong>Участники</strong>
           <span>${chat.members_count ?? members.length} из 100 участников</span>
         </div>
-        <label class="group-view__search">
-          <img src="${asset('9e868.svg')}" alt="" width="17" height="17">
-          ${Input({ type: 'search', name: 'member-search', value: options.query, placeholder: 'Поиск участников', unstyled: true, attrs: { 'aria-label': 'Поиск участников', 'data-member-search': '' } })}
-        </label>
         <div class="group-view__members" aria-busy="${Boolean(options.loading)}">
           ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-group-retry': '' } })}</div>` : members.length ? members.map((member) => memberRow(member, { showMenu: true, menuOpen: options.openMemberMenuId === member.id })).join('') : '<p class="group-view__empty">Участники пока не загружены</p>'}
         </div>

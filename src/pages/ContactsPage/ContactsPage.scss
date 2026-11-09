@@ -7,9 +7,41 @@
   overflow: hidden;
 }
 
+.layout_contacts {
+  .contacts-list {
+    flex: 0 0 402px;
+    width: 402px;
+    min-width: 0;
+    border-right-color: #ecf2f7;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      height: 76px;
+      padding: 0 24px;
+      border-bottom: 0;
+    }
+
+    &__title {
+      color: #142033;
+      font-size: 25px;
+      line-height: 30px;
+    }
+
+    &__status {
+      margin-top: 4px;
+      color: #31b77a;
+      font-size: 11px;
+      line-height: 14px;
+      font-weight: 500;
+    }
+  }
+}
+
 // Адаптация панелей для узких экранов.
 @media (max-width: 42rem) {
-  .contacts-list {
+  .layout_contacts .contacts-list {
+    flex: 0 0 min(45%, 17.0625rem);
     width: min(45%, 17.0625rem);
   }
 

@@ -1,4 +1,4 @@
-import type { ProfileField } from '@/api/profile/Profile.types.ts';
+import type { ProfileField } from '@/api/profile/profile.types.ts';
 import type { LoginField, RegisterField } from '@/api/auth/auth.types.ts';
 
 /** Тип уведомления для Snackbar. */
@@ -62,9 +62,6 @@ type ContactsEvents = {
 
   /** View: пользователь выбрал контакт. */
   'contacts:select': { id: string };
-
-  /** View: пользователь изменил поисковый запрос. */
-  'contacts:search': { query: string };
 };
 
 /** События страницы профиля. */

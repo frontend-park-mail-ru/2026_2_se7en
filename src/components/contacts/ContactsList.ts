@@ -1,8 +1,7 @@
 import './ContactsList.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { DisplayContact } from '@/api/contacts/contacts.types.ts';
-import { Input } from '@/components/core/Input.ts';
-import { SearchIcon } from '@/components/core/Icons.ts';
+import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 
 /**
@@ -31,7 +30,7 @@ export class ContactsList {
     return Button({
       text: `
         <span class="contact-item__avatar-box">
-          <span class="contact-item__avatar">${escapeHtml(contact.initials)}</span>
+          <span class="contact-item__avatar">${contact.avatarUrl ? `<img src="${escapeHtml(contact.avatarUrl)}" alt="">` : escapeHtml(contact.initials)}</span>
           ${contact.isOnline ? '<span class="contact-item__online"></span>' : ''}
         </span>
         <span class="contact-item__details">
@@ -59,6 +58,7 @@ export class ContactsList {
     isLoading: boolean,
     hasError: boolean,
     totalCount: number,
+    query = '',
   ): string {
     if (isLoading) {
       return '<p class="contacts-list__message">Загружаем контакты…</p>';
@@ -73,11 +73,11 @@ export class ContactsList {
       `;
     }
 
-    if (totalCount === 0) {
+    if (totalCount === 0 && !query.trim()) {
       return `
         <div class="contacts-list__empty">
           <h3>Пока нет контактов</h3>
-          <p>Найдите человека по имени или никнейму, чтобы начать общение.</p>
+          <p>Добавьте пользователя в контакты, чтобы начать общение.</p>
         </div>
       `;
     }
@@ -97,33 +97,21 @@ export class ContactsList {
     activeContactId: string | null,
     isLoading: boolean,
     hasError: boolean,
-    searchQuery: string,
     totalCount: number,
+    query = '',
   ): string {
-    const search = Input({
-      id: 'contacts-search',
-      placeholder: 'Поиск по имени или никнейму',
-      value: searchQuery,
-      icon: SearchIcon,
-    });
-
-    const showSearch = !isLoading && !hasError && totalCount > 0;
-
     return `
       <section class="contacts-list" aria-label="Список контактов">
         <header class="contacts-list__header">
-          <h2 class="contacts-list__title">Контакты</h2>
+          <div>
+            <h2 class="contacts-list__title">Контакты</h2>
+            <p class="contacts-list__status">В сети</p>
+          </div>
         </header>
-        ${
-          showSearch
-            ? `
-              <div class="contacts-list__search">${search}</div>
-              <p class="contacts-list__count">${getContactCount(totalCount)}</p>
-            `
-            : ''
-        }
+        <div class="contacts-list__search">${PanelSearch({ label: 'Поиск контактов', placeholder: 'Поиск контактов', value: query, name: 'contact-search' })}</div>
+        ${!isLoading && !hasError && totalCount > 0 ? `<p class="contacts-list__count">${getContactCount(totalCount)}</p>` : ''}
         <div class="contacts-list__items" data-contact-list>
-          ${this.renderItems(contacts, activeContactId, isLoading, hasError, totalCount)}
+          ${this.renderItems(contacts, activeContactId, isLoading, hasError, totalCount, query)}
         </div>
       </section>
     `;

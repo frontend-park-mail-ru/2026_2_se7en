@@ -2,7 +2,7 @@ import type {
   ProfileData,
   ProfileFieldErrors,
   ProfileFormValues,
-} from '@/api/profile/Profile.types';
+} from '@/api/profile/profile.types';
 
 export type ProfileTab = 'public' | 'security' | 'email' | 'phone' | 'password';
 

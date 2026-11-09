@@ -9,10 +9,6 @@ export function renderChatListLoading(): string {
         <div class="skeleton chat-panel__skel-subtitle"></div>
       </div>
 
-      <div class="chat-panel__search">
-        <div class="skeleton skeleton_light skeleton_pill chat-panel__skel-search"></div>
-      </div>
-
       <div class="chat-panel__list">
         ${Array(6)
           .fill(

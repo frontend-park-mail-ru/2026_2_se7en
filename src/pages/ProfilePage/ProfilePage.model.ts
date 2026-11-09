@@ -1,6 +1,6 @@
 import { DEFAULT_ERROR_MESSAGE } from '@/api/error.constants';
 import { ProfileApi } from '@/api/profile/ProfileApi';
-import type { ProfileTab } from '@/components/profile/Profile.types';
+import type { ProfileTab } from '@/components/profile/profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { STATUSES } from '@/constants/Statuses';
 import { Signal } from '@/reactive/Signal';
@@ -14,12 +14,12 @@ import type {
   ProfileFieldErrors,
   ProfileFormValues,
   UpdateProfileData,
-} from '@/api/profile/Profile.types';
+} from '@/api/profile/profile.types';
 import {
   normalizeProfileBackendReason,
   validateProfileField,
   validateProfileTab,
-} from './Profile.helpers';
+} from './profile.helpers';
 
 export const VALID_TABS: ProfileTab[] = ['public', 'security', 'email', 'phone', 'password'];
 

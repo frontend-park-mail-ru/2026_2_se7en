@@ -29,29 +29,6 @@
     }
   }
 
-  &__search {
-    @include flex-align-center;
-    gap: 8px;
-    height: 42px;
-    margin: 0 16px 8px;
-    padding: 0 12px;
-    background: #f5faff;
-    border-radius: 14px;
-
-    input {
-      width: 100%;
-      min-width: 0;
-      outline: 0;
-      color: #142033;
-      background: transparent;
-      font-size: 13px;
-
-      &::placeholder {
-        color: #9aa8ba;
-      }
-    }
-  }
-
   &__list {
     flex: 1;
     overflow-y: auto;

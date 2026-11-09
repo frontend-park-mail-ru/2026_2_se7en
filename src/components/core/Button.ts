@@ -1,4 +1,5 @@
 import './Button.scss';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { renderAttrs } from '@/helpers/RenderAttrs.ts';
 
 export interface ButtonParams {
@@ -38,10 +39,10 @@ export function Button({
     unstyled: '',
   };
 
-  const modeClass = modeClasses[mode] || modeClasses.primary;
-  const idAttr = id ? `id="${id}"` : '';
-  const ariaLabelAttr = ariaLabel ? `aria-label="${ariaLabel}"` : '';
-  const titleAttr = title ? `title="${title}"` : '';
+  const modeClass = modeClasses[mode] ?? modeClasses.primary;
+  const idAttr = id ? `id="${escapeHtml(id)}"` : '';
+  const ariaLabelAttr = ariaLabel ? `aria-label="${escapeHtml(ariaLabel)}"` : '';
+  const titleAttr = title ? `title="${escapeHtml(title)}"` : '';
   const disabledAttr = disabled ? 'disabled' : '';
   const attrsHtml = renderAttrs(attrs);
   const iconBeforeHtml = iconBefore ? `<span class="button__icon">${iconBefore}</span>` : '';
@@ -49,7 +50,7 @@ export function Button({
   const finalClasses = `${mode === 'unstyled' ? '' : 'button'} ${modeClass} ${className}`.trim();
 
   return `
-    <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${attrsHtml} ${disabledAttr} type="${type}" class="${finalClasses}">
+    <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${attrsHtml} ${disabledAttr} type="${type}" class="${escapeHtml(finalClasses)}">
       ${iconBeforeHtml}${text}${iconAfterHtml}
     </button>
   `;

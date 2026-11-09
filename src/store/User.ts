@@ -4,7 +4,7 @@ import { STATUSES } from '@/constants/Statuses.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 import { isAuthPath } from '@/helpers/Navigation.ts';
 import { router } from '@/helpers/Router.ts';
-import type { CurrentUser, LoginData } from '@/api/auth/auth.types.ts';
+import type { User as AuthUser, CurrentUser, LoginData } from '@/api/auth/auth.types.ts';
 
 /**
  * Сервис управления состоянием текущего пользователя и авторизации.
@@ -41,6 +41,12 @@ class User {
     return this._data.id;
   }
 
+  setAuthenticatedUser(account: AuthUser): void {
+    this._isAuth = true;
+    this._data.id = account.id;
+    this._data.name = account.profile?.nickname || '';
+  }
+
   /**
    * Выполняет вход пользователя через API и обновляет статус.
    *
@@ -50,9 +56,7 @@ class User {
     const result = await AuthApi.login(loginData);
 
     if (result.success) {
-      this._isAuth = true;
-      this._data.id = result.data.id;
-      this._data.name = result.data.profile?.nickname || '';
+      this.setAuthenticatedUser(result.data);
     }
 
     return result;

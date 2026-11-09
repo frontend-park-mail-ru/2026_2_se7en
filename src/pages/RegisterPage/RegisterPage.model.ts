@@ -3,6 +3,7 @@ import { AuthApi } from '@/api/auth/AuthApi.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
 import { Signal } from '@/reactive/Signal.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
+import { user } from '@/store/User.ts';
 import type {
   RegisterField,
   RegisterFieldErrors,
@@ -127,6 +128,7 @@ export class RegisterPageModel {
     this.isSubmitting.value = false;
 
     if (result.success) {
+      user.setAuthenticatedUser(result.data);
       eventBus.emit('register:success');
       return;
     }

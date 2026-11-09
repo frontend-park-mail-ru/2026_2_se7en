@@ -32,7 +32,6 @@ export interface ContactPreview {
 export interface ContactPickerView {
   loading?: boolean;
   error?: string;
-  query?: string;
 }
 
 export interface GroupMemberView {
@@ -64,5 +63,4 @@ export interface GroupMembersView {
   removeMemberId?: string | null;
   canManage?: boolean;
   leaveConfirmOpen?: boolean;
-  query?: string;
 }

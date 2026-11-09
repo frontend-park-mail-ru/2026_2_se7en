@@ -256,27 +256,6 @@
     }
   }
 
-  &__search {
-    @include flex-align-center;
-    gap: 8px;
-    height: 42px;
-    padding: 0 12px;
-    background: #f5faff;
-    border-radius: 12px;
-
-    input {
-      flex: 1;
-      min-width: 0;
-      outline: 0;
-      background: transparent;
-      font-size: 14px;
-
-      &::placeholder {
-        color: #9aa8ba;
-      }
-    }
-  }
-
   &__members {
     @include flex-column;
     gap: 4px;
@@ -523,10 +502,6 @@
     margin: 0 16px 8px;
     color: #6c7b91;
     font-size: 11px;
-  }
-
-  &__search {
-    margin: 0 16px;
   }
 
   &__members {

@@ -1,7 +1,7 @@
 import './ProfileForm.scss';
 import { Button } from '@/components/core/Button';
 import { Input } from '@/components/core/Input';
-import type { ProfileFormParams } from './Profile.types';
+import type { ProfileFormParams } from './profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { escapeHtml } from '@/helpers/EscapeHtml';
 import { renderFieldError } from '@/helpers/FieldError';

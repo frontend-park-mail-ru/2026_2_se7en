@@ -1,5 +1,5 @@
-import type { ProfileField } from '@/api/profile/Profile.types';
-import type { ProfileTab } from '@/components/profile/Profile.types';
+import type { ProfileField } from '@/api/profile/profile.types';
+import type { ProfileTab } from '@/components/profile/profile.types';
 
 export const PROFILE_FORM_ID = 'profile-form';
 export const PROFILE_SUBMIT_ID = 'profile-submit';

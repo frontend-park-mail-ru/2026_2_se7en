@@ -1,9 +1,9 @@
 import './ChatArea.scss';
+import { Button } from '@/components/core/Button.ts';
+import type { ChatAreaOptions } from './chat.types.ts';
 import { ChatSkeleton } from './ChatSkeleton.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import type { DisplayChat, Message } from '@/api/chats/chats.types.ts';
-import type { ChatAreaOptions } from './chat.types.ts';
-import { Button } from '@/components/core/Button.ts';
 import { EditGroupIcon, MessageReadIcon, MessageSentIcon } from '@/components/core/Icons.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
@@ -70,7 +70,6 @@ export class ChatArea {
             attrs: isGroup ? { 'data-open-group-info': '' } : {},
           })}
           <div class="chat-area__actions">
-            ${Button({ text: `<img src="${asset('3a6d7.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__icon-button', ariaLabel: 'Поиск в диалоге', attrs: { 'data-chat-search': '' } })}
             ${Button({ text: `<img src="${asset('d4d19.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: `chat-area__icon-button${options.menuOpen ? ' chat-area__icon-button_active' : ''}`, ariaLabel: 'Меню диалога', attrs: { 'aria-haspopup': 'menu', 'aria-expanded': String(Boolean(options.menuOpen)), 'data-dialog-menu-toggle': '' } })}
           </div>
           ${

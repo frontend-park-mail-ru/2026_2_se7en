@@ -1,14 +1,24 @@
 import './ChatsPage.scss';
 import { ApiError } from '@/api/ApiResponse.ts';
-import type { ChatMember, Message } from '@/api/chats/chats.types.ts';
 import { ChatArea } from '@/components/chat/ChatArea.ts';
-import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
+import { ChatsPageModel } from './ChatsPage.model.ts';
+import type { ChatsView } from './ChatsPage.types.ts';
+import type { Contact } from '@/api/contacts/contacts.types.ts';
+import { ContactsApi } from '@/api/contacts/ContactsApi.ts';
+import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
+import { Page } from '@/pages/Page.ts';
+import { ROUTES } from '@/constants/Routes.ts';
+import { eventBus } from '@/helpers/EventBus.ts';
 import { renderContactPicker } from '@/components/chat/ContactPicker.ts';
+import { user } from '@/store/User.ts';
+import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
+import type { ChatMember, Message } from '@/api/chats/chats.types.ts';
 import type {
   ContactPreview,
   GroupFormView,
   GroupMemberView,
 } from '@/components/chat/chat.types.ts';
+import { formatMessageTime, getChatInitials } from '@/helpers/chat.ts';
 import {
   renderGroupCreateDetails,
   renderGroupCreateMembers,
@@ -16,14 +26,6 @@ import {
   renderGroupInfo,
 } from '@/components/chat/GroupViews.ts';
 import { validateAvatar, validateGroupForm } from '@/components/chat/GroupValidation.ts';
-import { ROUTES } from '@/constants/Routes.ts';
-import { eventBus } from '@/helpers/EventBus.ts';
-import { formatMessageTime, getChatInitials } from '@/helpers/chat.ts';
-import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
-import { Page } from '@/pages/Page.ts';
-import { user } from '@/store/User.ts';
-import { ChatsPageModel } from './ChatsPage.model.ts';
-import type { ChatsView } from './ChatsPage.types.ts';
 
 /** Преобразует участника из ответа API для отображения. */
 function toGroupMemberView(member: ChatMember): GroupMemberView {
@@ -35,7 +37,8 @@ function toGroupMemberView(member: ChatMember): GroupMemberView {
     id: member.user_id,
     name,
     initials,
-    status: member.profile.nickname,
+    status: member.is_online ? 'в сети' : member.profile.nickname,
+    avatarUrl: member.profile.icon_url ?? undefined,
     role: member.role,
   };
 }
@@ -59,9 +62,6 @@ export class ChatsPage extends Page {
   private openMemberMenuId: string | null = null;
   private removeMemberId: string | null = null;
   private chatFilter: ChatFilter = 'all';
-  private chatSearch = '';
-  private contactSearch = '';
-  private memberSearch = '';
   private messageDraft = '';
   private actionPending = false;
   private createForm: GroupFormView = {};
@@ -70,8 +70,12 @@ export class ChatsPage extends Page {
   private editAvatarFile: File | null = null;
   private createAvatarObjectUrl: string | null = null;
   private editAvatarObjectUrl: string | null = null;
-  private readonly contacts: ContactPreview[] = [];
-  private readonly groupContacts: GroupMemberView[] = [];
+  private contacts: ContactPreview[] = [];
+  private groupContacts: GroupMemberView[] = [];
+  private contactsLoading = false;
+  private contactsError = '';
+  private chatsLoadStarted = false;
+  private contactRequestVersion = 0;
   private readonly selectedMemberIds = new Set<string>();
   private readonly selectedAdditionalMemberIds = new Set<string>();
 
@@ -95,9 +99,25 @@ export class ChatsPage extends Page {
         this.model.sendError,
         this.model.sending,
         this.model.hasMoreMessages,
+        this.model.hasMoreChats,
       ],
       () => this.update(),
     );
+  }
+
+  async mount(): Promise<boolean> {
+    if (document.querySelector('.layout_contacts')) {
+      this.chatsLoadStarted = true;
+      let timer: number | undefined;
+      await Promise.race([
+        this.model.loadChats(),
+        new Promise<void>((resolve) => {
+          timer = window.setTimeout(resolve, 200);
+        }),
+      ]);
+      window.clearTimeout(timer);
+    }
+    return super.mount();
   }
 
   render(): string {
@@ -153,7 +173,9 @@ export class ChatsPage extends Page {
               this.groupContacts,
               {
                 mode: this.view === 'group-add-members' ? 'add' : 'create',
-                query: this.memberSearch,
+                loading: this.contactsLoading,
+                error: this.contactsError,
+                membersError: this.createForm.membersError,
               },
             );
 
@@ -165,14 +187,14 @@ export class ChatsPage extends Page {
 
     if (this.view === 'contact-picker') {
       return this.layout.render(
-        `${renderContactPicker(this.contacts, { query: this.contactSearch })}${chatContent}`,
+        `${renderContactPicker(this.contacts, { loading: this.contactsLoading, error: this.contactsError })}${chatContent}`,
         'layout_messenger layout_contact-picker',
       );
     }
 
     const leftPanel = this.chatList.render(chats, chat, loading, this.createMenuOpen, {
-      query: this.chatSearch,
       filter: this.chatFilter,
+      hasMore: this.model.hasMoreChats.value,
     });
 
     if (chat && (['group-info', 'group-edit'] as ChatsView[]).includes(this.view)) {
@@ -187,7 +209,6 @@ export class ChatsPage extends Page {
           : renderGroupEdit(chat, groupMembers, this.editForm, {
               openMemberMenuId: this.openMemberMenuId,
               removeMemberId: this.removeMemberId,
-              query: this.memberSearch,
               loading: this.model.membersLoading.value,
               error: this.model.membersError.value,
             });
@@ -267,6 +288,11 @@ export class ChatsPage extends Page {
       return;
     }
 
+    if (target.closest('[data-chats-more]')) {
+      void this.model.loadMoreChats();
+      return;
+    }
+
     if (target.closest('[data-messages-more]')) {
       void this.model.loadOlderMessages();
       return;
@@ -285,9 +311,48 @@ export class ChatsPage extends Page {
 
     if (target.closest('[data-create-dialog]')) {
       this.createMenuOpen = false;
-      this.contactSearch = '';
       this.view = 'contact-picker';
+      void this.loadContacts();
       this.update();
+      return;
+    }
+
+    if (target.closest('[data-contacts-retry]')) {
+      void this.loadContacts();
+      return;
+    }
+    const contactId = target.closest<HTMLElement>('[data-contact-id]')?.dataset.contactId;
+    if (contactId) {
+      if (this.actionPending) return;
+      this.actionPending = true;
+      void this.model.createDialog(contactId).then((result) => {
+        this.actionPending = false;
+        if (result instanceof ApiError) {
+          this.contactsError = result.message;
+        } else {
+          this.view = 'chat';
+          this.contactsError = '';
+        }
+        this.update();
+      });
+      return;
+    }
+    if (target.closest('[data-group-add-submit]')) {
+      if (this.actionPending) return;
+      const ids = [...this.selectedAdditionalMemberIds];
+      if (!ids.length) return;
+      this.actionPending = true;
+      void this.model.addMembers(ids).then((errors) => {
+        this.actionPending = false;
+        this.selectedAdditionalMemberIds.clear();
+        if (errors.length) {
+          this.createForm.membersError = errors.join('; ');
+        } else {
+          this.createForm.membersError = '';
+          this.view = 'group-info';
+        }
+        this.update();
+      });
       return;
     }
 
@@ -299,7 +364,6 @@ export class ChatsPage extends Page {
 
     if (target.closest('[data-create-group]')) {
       this.createMenuOpen = false;
-      this.memberSearch = '';
       if (this.createAvatarObjectUrl) {
         URL.revokeObjectURL(this.createAvatarObjectUrl);
       }
@@ -308,6 +372,7 @@ export class ChatsPage extends Page {
       this.createForm = {};
       this.selectedMemberIds.clear();
       this.view = 'group-members';
+      void this.loadContacts();
       this.update();
       return;
     }
@@ -322,6 +387,13 @@ export class ChatsPage extends Page {
         this.view === 'group-add-members'
           ? this.selectedAdditionalMemberIds
           : this.selectedMemberIds;
+      const total = this.view === 'group-add-members' ? this.model.members.value.length : 1;
+      if (!selection.has(id) && total + selection.size >= 100) {
+        this.createForm.membersError = 'В группе может быть не больше 100 участников.';
+        this.update();
+        return;
+      }
+      this.createForm.membersError = '';
       if (selection.has(id)) {
         selection.delete(id);
       } else {
@@ -386,6 +458,7 @@ export class ChatsPage extends Page {
     if (target.closest('[data-group-add]')) {
       this.selectedAdditionalMemberIds.clear();
       this.view = 'group-add-members';
+      void this.loadContacts();
       this.update();
       return;
     }
@@ -535,24 +608,6 @@ export class ChatsPage extends Page {
       return;
     }
 
-    if (input.matches('[data-chat-list-search]')) {
-      this.chatSearch = input.value;
-      const cursor = input.selectionStart;
-      this.update();
-      const search = this.container?.querySelector<HTMLInputElement>('[data-chat-list-search]');
-      search?.focus();
-      if (cursor !== null) {
-        search?.setSelectionRange(cursor, cursor);
-      }
-      return;
-    }
-    if (input.matches('[data-contact-search]')) {
-      this.contactSearch = input.value;
-    }
-    if (input.matches('[data-member-search]')) {
-      this.memberSearch = input.value;
-    }
-
     const form = input.closest<HTMLFormElement>('[data-group-create-form], [data-group-edit-form]');
     if (!form) {
       return;
@@ -645,7 +700,20 @@ export class ChatsPage extends Page {
         .createGroup(this.createForm.name!.trim(), (this.createForm.description ?? '').trim(), [
           ...this.selectedMemberIds,
         ])
-        .then((result) => {
+        .then(async (result) => {
+          if (!(result instanceof ApiError) && this.createAvatarFile) {
+            const upload = await this.model.uploadGroupAvatar(this.createAvatarFile);
+            if (upload instanceof ApiError) {
+              eventBus.emit('snackbar:show', {
+                text: `Группа создана, но фото не загружено: ${upload.message}`,
+                type: 'error',
+              });
+              this.createForm.submitting = false;
+              this.view = 'group-info';
+              this.update();
+              return;
+            }
+          }
           this.createForm.submitting = false;
 
           if (result instanceof ApiError) {
@@ -684,7 +752,16 @@ export class ChatsPage extends Page {
 
       void this.model
         .updateGroup(this.editForm.name!.trim(), (this.editForm.description ?? '').trim())
-        .then((result) => {
+        .then(async (result) => {
+          if (!(result instanceof ApiError) && this.editAvatarFile) {
+            const upload = await this.model.uploadGroupAvatar(this.editAvatarFile);
+            if (upload instanceof ApiError) {
+              this.editForm.submitError = upload.message;
+              this.editForm.submitting = false;
+              this.update();
+              return;
+            }
+          }
           this.editForm.submitting = false;
 
           if (result instanceof ApiError) {
@@ -699,12 +776,65 @@ export class ChatsPage extends Page {
     }
   };
 
+  private async loadContacts(): Promise<void> {
+    const version = ++this.contactRequestVersion;
+    this.contactsLoading = true;
+    this.contactsError = '';
+    this.update();
+
+    const contacts: ContactPreview[] = [];
+    let offset = 0;
+    while (true) {
+      const result = await ContactsApi.getContacts({ limit: 20, offset });
+      if (version !== this.contactRequestVersion) return;
+      if (result instanceof ApiError) {
+        this.contactsError = result.message;
+        break;
+      }
+      const page = result.data ?? [];
+      contacts.push(
+        ...page.map((contact: Contact): ContactPreview => {
+          const name =
+            contact.pseudonym ||
+            [contact.first_name, contact.last_name].filter(Boolean).join(' ') ||
+            contact.nickname;
+          return {
+            id: contact.contact_user_id,
+            name,
+            nickname: contact.nickname,
+            initials: getChatInitials(name),
+            avatarUrl: contact.icon_url ?? undefined,
+            online: contact.is_online,
+          };
+        }),
+      );
+      if (page.length < 20) break;
+      offset += page.length;
+    }
+
+    if (!this.contactsError) {
+      this.contacts = contacts;
+      const memberIds = new Set(this.model.members.value.map((member) => member.user_id));
+      this.groupContacts = contacts
+        .filter((contact) => this.view !== 'group-add-members' || !memberIds.has(contact.id))
+        .map((contact) => ({
+          id: contact.id,
+          name: contact.name,
+          initials: contact.initials,
+          avatarUrl: contact.avatarUrl,
+          status: contact.online ? 'в сети' : contact.nickname,
+        }));
+    }
+    this.contactsLoading = false;
+    this.update();
+  }
+
   async afterMount(): Promise<void> {
     this.container?.addEventListener('click', this.handleContainerClick);
     this.container?.addEventListener('input', this.handleContainerInput);
     this.container?.addEventListener('change', this.handleContainerChange);
     this.container?.addEventListener('submit', this.handleContainerSubmit);
-    this.model.start();
+    this.model.start(!this.chatsLoadStarted);
   }
 
   unmount(): void {

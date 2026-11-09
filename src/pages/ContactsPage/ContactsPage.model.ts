@@ -7,7 +7,6 @@ import { Signal } from '@/reactive/Signal.ts';
 import { debugError } from '@/helpers/DebugError.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 import { toDisplayContact } from '@/helpers/contact.ts';
-import { toRuLowerCase } from '@/helpers/stringRu';
 
 /**
  * Модель страницы контактов.
@@ -17,13 +16,13 @@ export class ContactsPageModel {
   readonly activeContact = new Signal<DisplayContact | null>(null);
   readonly isLoading = new Signal<boolean>(true);
   readonly hasError = new Signal<boolean>(false);
+  query = '';
 
-  searchQuery = '';
   private isFetching = false;
+  private requestVersion = 0;
 
   private readonly offLoad: () => void;
   private readonly offSelect: () => void;
-  private readonly offSearch: () => void;
 
   constructor() {
     this.offLoad = eventBus.on('contacts:load', () => {
@@ -33,52 +32,41 @@ export class ContactsPageModel {
     this.offSelect = eventBus.on('contacts:select', ({ id }) => {
       this.activeContact.value = this.contacts.value.find((contact) => contact.id === id) ?? null;
     });
-
-    this.offSearch = eventBus.on('contacts:search', ({ query }) => {
-      this.searchQuery = query;
-    });
   }
 
   destroy(): void {
+    this.requestVersion += 1;
     this.offLoad();
     this.offSelect();
-    this.offSearch();
   }
 
-  get filteredContacts(): DisplayContact[] {
-    const query = toRuLowerCase(this.searchQuery.trim());
-
-    if (!query) return this.contacts.value;
-
-    return this.contacts.value.filter((contact) =>
-      toRuLowerCase(contact.searchText).includes(query),
-    );
-  }
-
-  private async loadContacts(): Promise<void> {
-    if (this.isFetching) return;
-
+  async loadContacts(): Promise<void> {
+    const version = ++this.requestVersion;
+    const query = this.query.trim();
     this.isFetching = true;
     this.isLoading.value = true;
     this.hasError.value = false;
 
-    const response = await ContactsApi.getContacts();
-
-    if (response instanceof ApiError) {
-      if (response.status !== STATUSES.UNAUTHORIZED) {
-        this.hasError.value = true;
-
-        if (response.code !== ERROR_CODES.NETWORK_ERROR) {
-          debugError(response.message);
+    const contacts: DisplayContact[] = [];
+    let offset = 0;
+    while (true) {
+      const response = await ContactsApi.getContacts({ q: query || undefined, limit: 20, offset });
+      if (version !== this.requestVersion) return;
+      if (response instanceof ApiError) {
+        if (response.status !== STATUSES.UNAUTHORIZED) {
+          this.hasError.value = true;
+          if (response.code !== ERROR_CODES.NETWORK_ERROR) debugError(response.message);
         }
+        break;
       }
-
-      this.contacts.value = [];
-    } else {
-      this.contacts.value = (response.data?.items ?? []).map(toDisplayContact);
+      const page = response.data ?? [];
+      contacts.push(...page.map(toDisplayContact));
+      if (page.length < 20) break;
+      offset += page.length;
     }
-    this.activeContact.value = null;
 
+    if (!this.hasError.value) this.contacts.value = contacts;
+    this.activeContact.value = null;
     this.isLoading.value = false;
     this.isFetching = false;
   }

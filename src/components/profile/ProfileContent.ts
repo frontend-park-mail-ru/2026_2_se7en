@@ -6,8 +6,8 @@ import { ProfileMenu } from '@/components/profile/ProfileMenu';
 import { ProfileSecurity } from '@/components/profile/ProfileSecurity';
 import { ROUTES } from '@/constants/Routes';
 import { escapeHtml } from '@/helpers/EscapeHtml';
-import { getProfileErrorMessage } from '@/pages/ProfilePage/Profile.helpers';
-import type { FormFieldParams, FormRenderOptions, ProfileContentParams } from './Profile.types';
+import { getProfileErrorMessage } from '@/pages/ProfilePage/profile.helpers';
+import type { FormFieldParams, FormRenderOptions, ProfileContentParams } from './profile.types';
 
 /**
  * Генерирует HTML разметку формы публичного профиля.

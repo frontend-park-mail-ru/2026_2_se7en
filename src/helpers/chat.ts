@@ -79,10 +79,10 @@ export function toDisplayChat(chat: Chat): DisplayChat {
   return {
     ...chat,
     initials,
-    isOnline: false,
+    isOnline: chat.is_online ?? false,
     time: formatMessageTime(messageDate),
     lastMessage: chat.last_message?.content ?? '',
-    unreadCount: 0,
+    unreadCount: chat.unread_count ?? 0,
   };
 }
 

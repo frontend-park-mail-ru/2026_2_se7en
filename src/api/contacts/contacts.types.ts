@@ -7,21 +7,20 @@ export interface Contact {
   first_name: string;
   last_name?: string | null;
   icon_id?: string | null;
+  icon_url?: string | null;
   is_online: boolean;
   created_at: string;
   updated_at: string;
 }
 
 /** Ответ GET /api/v1/contacts. */
-export interface ContactsResponse {
-  items: Contact[];
-}
+export type ContactsResponse = Contact[];
 
 /** Контакт, подготовленный для отображения. */
 export interface DisplayContact {
   id: string;
   name: string;
-  searchText: string;
   initials: string;
   isOnline: boolean;
+  avatarUrl?: string;
 }

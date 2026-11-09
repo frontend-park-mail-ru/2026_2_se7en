@@ -10,7 +10,7 @@ import type {
   ProfileData,
   UpdatePasswordData,
   UpdateProfileData,
-} from '@/api/profile/Profile.types';
+} from '@/api/profile/profile.types';
 import {
   mockGetProfile,
   mockUpdatePassword,
