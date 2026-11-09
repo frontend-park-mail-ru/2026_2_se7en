@@ -1,0 +1,216 @@
+// Список контактов.
+.contacts-list {
+  @include flex-column;
+  width: 17.0625rem;
+  flex-shrink: 0;
+  background-color: $white;
+  border-right: 1px solid $gray-100;
+
+  &__header {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid $gray-100;
+  }
+
+  &__title {
+    color: $gray-900;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+  }
+
+  &__count {
+    padding: 0.375rem 0.75rem 0;
+    color: $gray-400;
+    font-size: 0.6875rem;
+    line-height: 1rem;
+  }
+
+  &__search {
+    padding: 0 16px 12px;
+  }
+
+  &__items {
+    @include flex-column;
+    flex: 1;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    overflow-y: auto;
+  }
+
+  &__message {
+    margin: auto;
+    padding: 1rem;
+    color: $gray-400;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    text-align: center;
+  }
+
+  &__empty {
+    @include flex-center;
+    flex: 1;
+    flex-direction: column;
+    padding: 1.5rem;
+    text-align: center;
+
+    h3 {
+      color: $gray-900;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      font-weight: 600;
+    }
+
+    p {
+      margin-top: 0.25rem;
+      color: $gray-400;
+      font-size: 0.75rem;
+      line-height: 1.25rem;
+    }
+  }
+}
+
+// Строка контакта в списке.
+.contact-item-row {
+  position: relative;
+  @include flex-align-center;
+  width: 100%;
+  border-radius: $radius-md;
+  background: transparent;
+  transition:
+    background-color $transition-fast $transition-easing,
+    color $transition-fast $transition-easing;
+
+  &:hover {
+    background-color: $gray-50;
+  }
+
+  &_active {
+    background-color: $blue-50;
+  }
+}
+
+.contact-item {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  text-align: left;
+
+  &:hover {
+    background: transparent;
+  }
+
+  &__avatar-box {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  &__avatar {
+    @include flex-center;
+    @include size(2.5rem);
+    border-radius: $radius-full;
+    background-color: $blue-100;
+    color: $gray-900;
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  &__online {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    @include size(0.625rem);
+    border: 2px solid $white;
+    border-radius: $radius-full;
+    background-color: $green-500;
+  }
+
+  &__details {
+    @include flex-column;
+    min-width: 0;
+  }
+
+  &__name {
+    @include truncate;
+    color: $gray-900;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+  }
+
+  &__status {
+    color: $gray-400;
+    font-size: 0.625rem;
+    line-height: 0.875rem;
+
+    &_online {
+      color: $green-600;
+    }
+  }
+
+  &__menu-toggle {
+    display: grid;
+    flex: 0 0 32px;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin-right: 4px;
+    color: $gray-500;
+    border-radius: $radius-md;
+    font-size: 20px;
+    line-height: 1;
+
+    &:hover,
+    &_active {
+      color: $gray-900;
+      background: $blue-50;
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% - 2px);
+    right: 4px;
+    min-width: 168px;
+    padding: 6px;
+    background: $white;
+    border: 1px solid $gray-100;
+    border-radius: $radius-md;
+    box-shadow: 0 8px 24px rgba(20, 32, 51, 0.14);
+  }
+
+  &__menu-danger {
+    width: 100%;
+    min-height: 36px;
+    padding: 0 10px;
+    color: $red-500;
+    border-radius: $radius-sm;
+    font-size: 0.75rem;
+    text-align: left;
+
+    &:hover {
+      background: $red-50;
+    }
+  }
+}
+.contacts-list__demo {
+  padding: 1rem;
+  border-top: 1px solid $gray-200;
+  h3 {
+    font-size: 0.875rem;
+  }
+  p {
+    color: $gray-500;
+    font-size: 0.75rem;
+    margin: 0.25rem 0 0.75rem;
+  }
+  a {
+    display: block;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    color: $blue-600;
+  }
+}

@@ -1,0 +1,159 @@
+// Общая боковая панель приложения: одинаковая геометрия на всех страницах.
+.sidebar {
+  @include flex;
+  flex: 0 0 92px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 92px;
+  min-height: 0;
+  padding: 16px 0 24px;
+  background-color: $white;
+  border-right: 1px solid #ecf2f7;
+
+  &__logo {
+    @include flex-center;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    background-color: $black;
+    border-radius: 15px;
+
+    &-box {
+      @include flex-justify-center;
+      flex: 0 0 auto;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    &-img {
+      @include size(100%);
+      border-radius: 15px;
+      object-fit: cover;
+    }
+  }
+
+  &__nav {
+    @include flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    &-item {
+      @include flex-column;
+      flex: 0 0 64px;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      width: 70px;
+      height: 64px;
+      padding: 0;
+      border: none;
+      border-radius: 14px;
+      color: #9aa8ba;
+      text-align: center;
+
+      &:hover {
+        color: #142033;
+        background-color: #eaf5ff;
+      }
+
+      &_active {
+        background-color: #eaf5ff;
+        color: #142033;
+
+        &:hover {
+          background-color: #eaf5ff;
+        }
+      }
+
+      .icon {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    &-label {
+      margin-top: 0;
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 500;
+    }
+  }
+
+  &__bottom {
+    @include flex-column;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #logout-button {
+    position: static;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    opacity: 1;
+    pointer-events: auto;
+    color: #6c7b91;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: none;
+
+    &:hover {
+      color: #142033;
+      background: #f5faff;
+      box-shadow: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #b9d8f5;
+      outline-offset: 2px;
+      box-shadow: none;
+    }
+  }
+
+  &__avatar {
+    @include flex;
+    flex: 0 0 50px;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: #e8f3ff url('/design-assets/69aeb.svg') center / 50px 50px no-repeat;
+    border-radius: 50%;
+
+    &-box {
+      position: relative;
+      flex: 0 0 50px;
+      width: 50px;
+      height: 50px;
+      margin: 0 auto;
+    }
+
+    &-letter {
+      color: #142033;
+      font-size: 17px;
+      line-height: 24px;
+      font-weight: 500;
+    }
+  }
+
+  &__status {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 11px;
+    height: 11px;
+    background: url('/design-assets/d4a6f.svg') center / contain no-repeat;
+  }
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    display: none;
+  }
+}

@@ -1,0 +1,82 @@
+.profile-page {
+  @include flex;
+  flex: 1;
+  padding: 1.5rem;
+  gap: 1.5rem;
+  background-color: $gray-50;
+  height: 100%;
+  overflow: hidden;
+
+  &__sidebar {
+    width: 15rem;
+    flex-shrink: 0;
+    background-color: $white;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-card;
+    height: fit-content;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+    @include flex-column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
+    overflow-y: auto;
+  }
+
+  &__header {
+    width: min(100%, 36rem);
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $gray-900;
+  }
+
+  &__content {
+    width: min(100%, 36rem);
+    background-color: $white;
+    border-radius: $radius-xl;
+    padding: 2rem;
+    box-shadow: $shadow-card;
+  }
+
+  &__error {
+    @include flex-align-center;
+    gap: 0.75rem;
+    padding: 1rem;
+    color: $red-500;
+    background-color: $red-50;
+    border: 1px solid $red-200;
+    border-radius: $radius-md;
+  }
+
+  &__loading {
+    width: min(100%, 36rem);
+    padding: 2rem;
+    color: $gray-500;
+  }
+}
+
+@media (max-width: 900px) {
+  .profile-page {
+    flex-direction: column;
+    padding: 1rem;
+    overflow-y: auto;
+
+    &__sidebar {
+      width: 100%;
+    }
+    &__main {
+      flex: none;
+      overflow-y: visible;
+    }
+    &__content {
+      padding: 1.25rem;
+    }
+  }
+}

@@ -1,0 +1,78 @@
+.profile-card {
+  @include flex-align-center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  &__avatar {
+    @include flex-center;
+    @include size(4rem);
+    overflow: hidden;
+    background-color: $blue-50;
+    color: $gray-900;
+    border-radius: $radius-full;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    &_button {
+      position: relative;
+      padding: 0;
+      border: 0;
+      font: inherit;
+      cursor: pointer;
+
+      &:focus-visible {
+        outline: 3px solid $blue-500;
+        outline-offset: 3px;
+      }
+
+      &:hover .profile-card__avatar-overlay,
+      &:focus-visible .profile-card__avatar-overlay,
+      &.profile-card__avatar_uploading .profile-card__avatar-overlay {
+        opacity: 1;
+      }
+
+      &:disabled {
+        cursor: wait;
+      }
+    }
+
+    &-overlay {
+      position: absolute;
+      inset: 0;
+      @include flex-center;
+      color: $white;
+      background: rgba(20, 32, 51, 0.58);
+      font-size: 0.625rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 140ms ease;
+
+      .icon {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    &-input {
+      display: none;
+    }
+  }
+
+  &__name {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $gray-900;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $gray-900;
+    margin-top: 0.25rem;
+  }
+}

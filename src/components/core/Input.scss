@@ -1,0 +1,42 @@
+// Поле ввода с опциональной иконкой слева или справа.
+
+.input {
+  position: relative;
+
+  &__field {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: $radius-sm;
+    background-color: $gray-50;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+
+    &:focus {
+      @include focus-outline-none;
+      @include focus-ring($blue-500);
+    }
+
+    &_icon-left {
+      padding-left: 2.5rem;
+    }
+
+    &_icon-right {
+      padding-right: 2.5rem;
+    }
+  }
+
+  &__icon {
+    position: absolute;
+    top: 0.625rem;
+    color: $gray-400;
+
+    &_left {
+      left: 0.75rem;
+    }
+
+    &_right {
+      right: 0.75rem;
+    }
+  }
+}

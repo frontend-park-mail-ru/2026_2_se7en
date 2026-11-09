@@ -1,0 +1,57 @@
+import './Button.scss';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { renderAttrs } from '@/helpers/RenderAttrs.ts';
+
+export interface ButtonParams {
+  text: string;
+  id?: string;
+  mode?: 'primary' | 'secondary' | 'ghost' | 'unstyled';
+  className?: string;
+  iconBefore?: string;
+  iconAfter?: string;
+  type?: 'button' | 'submit' | 'reset';
+  ariaLabel?: string;
+  title?: string;
+  disabled?: boolean;
+  attrs?: Record<string, string>;
+}
+
+/**
+ * Генерирует HTML-разметку для кнопки.
+ */
+export function Button({
+  text,
+  id,
+  mode = 'primary',
+  className = '',
+  iconBefore = '',
+  iconAfter = '',
+  type = 'button',
+  ariaLabel = '',
+  title = '',
+  disabled = false,
+  attrs = {},
+}: ButtonParams): string {
+  const modeClasses: Record<NonNullable<ButtonParams['mode']>, string> = {
+    primary: 'button_primary',
+    secondary: 'button_secondary',
+    ghost: 'button_ghost',
+    unstyled: '',
+  };
+
+  const modeClass = modeClasses[mode] ?? modeClasses.primary;
+  const idAttr = id ? `id="${escapeHtml(id)}"` : '';
+  const ariaLabelAttr = ariaLabel ? `aria-label="${escapeHtml(ariaLabel)}"` : '';
+  const titleAttr = title ? `title="${escapeHtml(title)}"` : '';
+  const disabledAttr = disabled ? 'disabled' : '';
+  const attrsHtml = renderAttrs(attrs);
+  const iconBeforeHtml = iconBefore ? `<span class="button__icon">${iconBefore}</span>` : '';
+  const iconAfterHtml = iconAfter ? `<span class="button__icon">${iconAfter}</span>` : '';
+  const finalClasses = `${mode === 'unstyled' ? '' : 'button'} ${modeClass} ${className}`.trim();
+
+  return `
+    <button ${idAttr} ${ariaLabelAttr} ${titleAttr} ${attrsHtml} ${disabledAttr} type="${type}" class="${escapeHtml(finalClasses)}">
+      ${iconBeforeHtml}${text}${iconAfterHtml}
+    </button>
+  `;
+}
