@@ -1,16 +1,19 @@
 import type { ApiResult } from '@/api/ApiResponse.ts';
 import { ServerApi } from '@/api/ServerApi.ts';
 import { USING_MOCK } from '@/api/api.constants.ts';
+import { mockGetUserProfile } from '@/api/contacts/contacts.mock';
 import {
   PROFILE_AVATAR_URL,
   PROFILE_PASSWORD_URL,
   PROFILE_URL,
+  PUBLIC_PROFILE_URL,
 } from '@/api/profile/profile.constants.ts';
 import type {
   ProfileData,
+  PublicProfileData,
   UpdatePasswordData,
   UpdateProfileData,
-} from '@/api/profile/Profile.types';
+} from '@/api/profile/profile.types';
 import {
   mockGetProfile,
   mockUpdatePassword,
@@ -21,6 +24,11 @@ import {
  * API для работы с профилем пользователя.
  */
 export class ProfileApi extends ServerApi {
+  static async getUserProfile(id: string): Promise<ApiResult<PublicProfileData>> {
+    if (USING_MOCK.CONTACTS) return mockGetUserProfile(id);
+    return this._request<PublicProfileData>(`${PUBLIC_PROFILE_URL}/${encodeURIComponent(id)}`);
+  }
+
   /**
    * Получение данных профиля пользователя (GET /api/v1/profile).
    */

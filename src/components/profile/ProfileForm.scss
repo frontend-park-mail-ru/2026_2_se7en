@@ -25,6 +25,10 @@
 }
 
 .profile-field {
+  textarea.input__field {
+    min-height: 7rem;
+    resize: vertical;
+  }
   &__label {
     @include flex;
     justify-content: space-between;

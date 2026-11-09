@@ -1,4 +1,4 @@
-import type { ProfileField } from '@/api/profile/Profile.types.ts';
+import type { ProfileField } from '@/api/profile/profile.types.ts';
 import type { LoginField, RegisterField } from '@/api/auth/auth.types.ts';
 
 /** Тип уведомления для Snackbar. */

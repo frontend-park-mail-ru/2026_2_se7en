@@ -1,6 +1,7 @@
 import './ContactDialog.scss';
 import type { DisplayContact } from '@/api/contacts/contacts.types.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { getUserProfileHref } from '@/constants/Routes';
 
 /**
  * Компонент диалога с контактом.
@@ -17,12 +18,12 @@ export class ContactDialog {
                   <span class="contact-dialog__avatar">${escapeHtml(activeContact.initials)}</span>
                   ${activeContact.isOnline ? '<span class="contact-dialog__online"></span>' : ''}
                 </span>
-                <div class="contact-dialog__identity">
+                <a href="${getUserProfileHref(activeContact.id)}" class="contact-dialog__identity" aria-label="Открыть профиль ${escapeHtml(activeContact.name)}">
                   <h2 class="contact-dialog__name">${escapeHtml(activeContact.name)}</h2>
                   <p class="contact-dialog__status${activeContact.isOnline ? ' contact-dialog__status_online' : ''}">
                     ${activeContact.isOnline ? 'в сети' : 'был недавно'}
                   </p>
-                </div>
+                </a>
               </header>
               <div class="contact-dialog__body" aria-live="polite">
                 <p class="contact-dialog__text">Заглушка переписки</p>

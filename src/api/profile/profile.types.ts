@@ -1,13 +1,16 @@
-export interface ProfileData {
+export interface PublicProfileData {
   id: string;
-  email: string;
   first_name: string;
-  last_name: string | null;
+  last_name?: string | null;
   nickname: string;
   bio?: string | null;
-  phone_number?: string | null;
   icon_id?: string | null;
   icon_url?: string | null;
+}
+
+export interface ProfileData extends PublicProfileData {
+  email: string;
+  phone_number?: string | null;
 }
 
 export interface UpdateProfileData {
@@ -25,6 +28,7 @@ export interface UpdatePasswordData {
 }
 
 export interface ProfileFormValues extends UpdatePasswordData {
+  bio: string;
   first_name: string;
   last_name: string;
   nickname: string;

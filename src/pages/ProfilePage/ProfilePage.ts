@@ -2,12 +2,12 @@ import './ProfilePage.scss';
 import { DefaultLayout } from '@/layouts/DefaultLayout';
 import { Page } from '@/pages/Page';
 import { ProfileContent } from '@/components/profile/ProfileContent';
-import type { ProfileField } from '@/api/profile/Profile.types';
-import type { ProfileTab } from '@/components/profile/Profile.types';
+import type { ProfileField } from '@/api/profile/profile.types';
+import type { ProfileTab } from '@/components/profile/profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { bindPasswordToggles } from '@/helpers/PasswordToggle';
 import { eventBus } from '@/helpers/EventBus';
-import { getProfileErrorMessage } from './Profile.helpers';
+import { getProfileErrorMessage } from './profile.helpers';
 import { renderFieldError } from '@/helpers/FieldError';
 import { renderProfileFormError } from '@/components/profile/ProfileForm';
 import { router } from '@/helpers/Router';
@@ -15,6 +15,7 @@ import { PROFILE_FORM_ID, PROFILE_SUBMIT_ID, PROFILE_TEXTS } from '@/constants/P
 import { ProfilePageModel, VALID_TABS } from './ProfilePage.model';
 
 const ALL_PROFILE_FIELDS: ProfileField[] = [
+  'bio',
   'first_name',
   'last_name',
   'nickname',
@@ -65,8 +66,8 @@ export class ProfilePage extends Page {
     const segments = window.location.pathname.split('/').filter(Boolean);
     const tab = segments[1];
 
-    if (!tab || !VALID_TABS.includes(tab as ProfileTab)) {
-      router.replaceState(ROUTES.PROFILE_SECURITY);
+    if (tab && !VALID_TABS.includes(tab as ProfileTab)) {
+      router.replaceState(ROUTES.PROFILE);
       this.model.syncTabWithUrl();
     }
 
@@ -76,6 +77,14 @@ export class ProfilePage extends Page {
   bindEvents(): void {
     this.layout.bindEvents();
 
+    const avatar = this.container?.querySelector<HTMLImageElement>('[data-profile-avatar]');
+    avatar?.addEventListener('error', () => avatar.remove(), { once: true });
+    if (avatar?.complete && !avatar.naturalWidth) avatar.remove();
+
+    this.container?.querySelector('[data-profile-retry]')?.addEventListener('click', () => {
+      void this.model.loadProfile();
+    });
+
     const form = document.getElementById(PROFILE_FORM_ID);
     form?.addEventListener('submit', (event: SubmitEvent) => {
       event.preventDefault();
@@ -84,7 +93,7 @@ export class ProfilePage extends Page {
 
     ALL_PROFILE_FIELDS.forEach((field) => {
       const input = document.getElementById(field);
-      if (!(input instanceof HTMLInputElement)) return;
+      if (!(input instanceof HTMLInputElement) && !(input instanceof HTMLTextAreaElement)) return;
 
       input.addEventListener('input', () => {
         eventBus.emit('profile:field-change', { field, value: input.value });
@@ -105,8 +114,8 @@ export class ProfilePage extends Page {
       const segments = window.location.pathname.split('/').filter(Boolean);
       const tab = segments[1] as ProfileTab | undefined;
 
-      if (!tab || !VALID_TABS.includes(tab)) {
-        void router.goTo(ROUTES.PROFILE_SECURITY, { replace: true });
+      if (tab && !VALID_TABS.includes(tab)) {
+        void router.goTo(ROUTES.PROFILE, { replace: true });
         return;
       }
 

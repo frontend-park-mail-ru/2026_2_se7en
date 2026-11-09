@@ -144,3 +144,21 @@
     }
   }
 }
+.contacts-list__demo {
+  padding: 1rem;
+  border-top: 1px solid $gray-200;
+  h3 {
+    font-size: 0.875rem;
+  }
+  p {
+    color: $gray-500;
+    font-size: 0.75rem;
+    margin: 0.25rem 0 0.75rem;
+  }
+  a {
+    display: block;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+    color: $blue-600;
+  }
+}

@@ -1,22 +1,22 @@
-import type { ProfileTab } from '@/components/profile/Profile.types.ts';
+import type { ProfileTab } from '@/components/profile/profile.types.ts';
 import { validateForbiddenChars } from '@/helpers/Validation.ts';
-import {
-  PROFILE_ERROR_MESSAGES,
-  PROFILE_LIMITS,
-  PROFILE_REGEXES,
-  PROFILE_TAB_FIELDS,
-} from '@/constants/Profile.ts';
 import {
   EMAIL_REGEX,
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   VALIDATION_MESSAGES,
 } from '@/constants/Validation.ts';
+import {
+  PROFILE_ERROR_MESSAGES,
+  PROFILE_LIMITS,
+  PROFILE_REGEXES,
+  PROFILE_TAB_FIELDS,
+} from '@/constants/Profile.ts';
 import type {
   ProfileField,
   ProfileFieldErrors,
   ProfileFormValues,
-} from '@/api/profile/Profile.types.ts';
+} from '@/api/profile/profile.types.ts';
 
 /** Поля, для которых не применяется trim при валидации. */
 const PASSWORD_FIELDS = ['old_password', 'new_password', 'confirm_password'] as const;
@@ -42,6 +42,10 @@ export function validateProfileField(
 ): string | null {
   const isPasswordField = (PASSWORD_FIELDS as readonly string[]).includes(field);
   const value = isPasswordField ? rawValue : rawValue.trim();
+
+  if (field === 'bio') {
+    return Array.from(value).length > PROFILE_LIMITS.MAX_BIO_LENGTH ? 'bio_max_length' : null;
+  }
 
   if (field === 'last_name' && !value) {
     return null;
@@ -150,7 +154,7 @@ export function validateProfileField(
  * Валидирует все поля активной вкладки профиля.
  */
 export function validateProfileTab(
-  tab: Exclude<ProfileTab, 'security'>,
+  tab: Exclude<ProfileTab, 'security' | 'overview'>,
   values: ProfileFormValues,
 ): { isValid: boolean; fieldErrors: ProfileFieldErrors } {
   const fields = PROFILE_TAB_FIELDS[tab];

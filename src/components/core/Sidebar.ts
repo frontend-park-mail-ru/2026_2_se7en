@@ -48,7 +48,7 @@ export class Sidebar {
             iconBefore: LogoutIcon,
             className: 'button_icon',
           })}
-          <a href="${ROUTES.PROFILE_SECURITY}" class="sidebar__avatar-box" aria-label="Профиль" title="Профиль">
+          <a href="${ROUTES.PROFILE}" class="sidebar__avatar-box" aria-label="Профиль" title="Профиль">
             <div class="sidebar__avatar">
               <span class="sidebar__avatar-letter">${safeFirstLetter}</span>
             </div>

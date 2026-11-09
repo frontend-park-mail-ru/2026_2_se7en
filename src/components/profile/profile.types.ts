@@ -2,9 +2,9 @@ import type {
   ProfileData,
   ProfileFieldErrors,
   ProfileFormValues,
-} from '@/api/profile/Profile.types';
+} from '@/api/profile/profile.types';
 
-export type ProfileTab = 'public' | 'security' | 'email' | 'phone' | 'password';
+export type ProfileTab = 'overview' | 'public' | 'security' | 'email' | 'phone' | 'password';
 
 export interface ProfileCardParams {
   name: string;
@@ -32,6 +32,7 @@ export interface FormFieldParams {
   hint?: string;
   error?: string;
   isPassword?: boolean;
+  multiline?: boolean;
 }
 
 export interface FormRenderOptions {

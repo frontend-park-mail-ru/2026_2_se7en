@@ -4,4 +4,5 @@ export const USING_MOCK = {
   AUTH: false,
   CHATS: false,
   PROFILE: false,
+  CONTACTS: false,
 };

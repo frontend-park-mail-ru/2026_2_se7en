@@ -65,6 +65,11 @@ export default defineConfig(({ mode }) => {
           ws: true,
           secure: backendUrl.startsWith('https:'),
         },
+        '/uploads': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: backendUrl.startsWith('https:'),
+        },
       },
     },
 
