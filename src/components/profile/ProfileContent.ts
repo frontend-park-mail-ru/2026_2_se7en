@@ -1,8 +1,10 @@
 import { BannerErrorIcon } from '@/components/core/Icons';
+import { Button } from '@/components/core/Button';
 import { PROFILE_TEXTS } from '@/constants/Profile';
 import { ProfileCard } from '@/components/profile/ProfileCard';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileMenu } from '@/components/profile/ProfileMenu';
+import { ProfileOverview } from './ProfileOverview';
 import { ProfileSecurity } from '@/components/profile/ProfileSecurity';
 import { ROUTES } from '@/constants/Routes';
 import { escapeHtml } from '@/helpers/EscapeHtml';
@@ -36,10 +38,19 @@ function renderPublicForm({ values, errors, isSubmitting, formError }: FormRende
       value: values.nickname,
       error: getProfileErrorMessage(errors.nickname),
     },
+    {
+      id: 'bio',
+      name: 'bio',
+      label: PROFILE_TEXTS.LABEL_BIO,
+      value: values.bio,
+      hint: PROFILE_TEXTS.HINT_BIO,
+      error: getProfileErrorMessage(errors.bio),
+      multiline: true,
+    },
   ];
   return ProfileForm({
     fields,
-    cancelHref: ROUTES.PROFILE_SECURITY,
+    cancelHref: ROUTES.PROFILE,
     isSubmitting,
     formError,
   });
@@ -160,6 +171,7 @@ export function ProfileContent({
               ${BannerErrorIcon}
               <p>${escapeHtml(errorMessage)}</p>
             </div>
+            ${Button({ text: 'Повторить загрузку', mode: 'secondary', attrs: { 'data-profile-retry': '' } })}
           </div>
         </main>
       </div>
@@ -173,7 +185,21 @@ export function ProfileContent({
           ${ProfileMenu(activeTab)}
         </aside>
         <main class="profile-page__main">
-          <div class="profile-page__loading">Загрузка…</div>
+          <div class="profile-page__loading" role="status">Загрузка…</div>
+        </main>
+      </div>
+    `;
+  }
+
+  if (activeTab === 'overview') {
+    return `
+      <div class="profile-page">
+        <aside class="profile-page__sidebar">${ProfileMenu(activeTab)}</aside>
+        <main class="profile-page__main">
+          <header class="profile-page__header">
+            <h1 class="profile-page__title">Мой профиль</h1>
+          </header>
+          ${ProfileOverview(profile)}
         </main>
       </div>
     `;

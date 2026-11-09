@@ -61,3 +61,22 @@
     color: $gray-500;
   }
 }
+
+@media (max-width: 900px) {
+  .profile-page {
+    flex-direction: column;
+    padding: 1rem;
+    overflow-y: auto;
+
+    &__sidebar {
+      width: 100%;
+    }
+    &__main {
+      flex: none;
+      overflow-y: visible;
+    }
+    &__content {
+      padding: 1.25rem;
+    }
+  }
+}

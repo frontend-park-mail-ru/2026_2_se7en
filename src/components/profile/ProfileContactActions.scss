@@ -1,0 +1,77 @@
+.profile-contact-actions {
+  &__pseudonym {
+    flex-basis: 100%;
+    color: $gray-600;
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+
+  &__status {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    color: $gray-600;
+  }
+  &__remove.button {
+    color: $red-600;
+    border-color: $red-200;
+  }
+}
+
+.profile-contact-dialog {
+  width: min(28rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 1.75rem;
+  border: 1px solid $gray-200;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-lg;
+  color: $gray-900;
+  background: $white;
+
+  &::backdrop {
+    background: rgba($gray-900, 0.45);
+  }
+  &__form {
+    @include flex-column;
+    h2 {
+      font-size: 1.25rem;
+    }
+    > p {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: $gray-500;
+    }
+    label {
+      margin: 1.5rem 0 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid $gray-200;
+      border-radius: $radius-md;
+      background: $login-bg;
+      &:focus-visible {
+        outline: 2px solid $blue-500;
+        outline-offset: 2px;
+      }
+      &[aria-invalid='true'] {
+        border-color: $red-500;
+      }
+    }
+    p.profile-contact-dialog__error {
+      color: $red-600;
+    }
+    button:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+  }
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+}

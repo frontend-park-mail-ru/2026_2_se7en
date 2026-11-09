@@ -15,6 +15,7 @@ import { ProfilePageModel, VALID_TABS } from './ProfilePage.model';
 import { getProfileErrorMessage, validateAvatarFile } from './profile.helpers';
 
 const ALL_PROFILE_FIELDS: ProfileField[] = [
+  'bio',
   'first_name',
   'last_name',
   'nickname',
@@ -66,8 +67,8 @@ export class ProfilePage extends Page {
     const segments = window.location.pathname.split('/').filter(Boolean);
     const tab = segments[1];
 
-    if (!tab || !VALID_TABS.includes(tab as ProfileTab)) {
-      router.replaceState(ROUTES.PROFILE_SECURITY);
+    if (tab && !VALID_TABS.includes(tab as ProfileTab)) {
+      router.replaceState(ROUTES.PROFILE);
       this.model.syncTabWithUrl();
     }
 
@@ -77,6 +78,14 @@ export class ProfilePage extends Page {
   bindEvents(): void {
     this.layout.bindEvents();
 
+    const avatar = this.container?.querySelector<HTMLImageElement>('[data-profile-avatar]');
+    avatar?.addEventListener('error', () => avatar.remove(), { once: true });
+    if (avatar?.complete && !avatar.naturalWidth) avatar.remove();
+
+    this.container?.querySelector('[data-profile-retry]')?.addEventListener('click', () => {
+      void this.model.loadProfile();
+    });
+
     const form = document.getElementById(PROFILE_FORM_ID);
     form?.addEventListener('submit', (event: SubmitEvent) => {
       event.preventDefault();
@@ -85,7 +94,7 @@ export class ProfilePage extends Page {
 
     ALL_PROFILE_FIELDS.forEach((field) => {
       const input = document.getElementById(field);
-      if (!(input instanceof HTMLInputElement)) return;
+      if (!(input instanceof HTMLInputElement) && !(input instanceof HTMLTextAreaElement)) return;
 
       input.addEventListener('input', () => {
         eventBus.emit('profile:field-change', { field, value: input.value });
@@ -128,8 +137,8 @@ export class ProfilePage extends Page {
       const segments = window.location.pathname.split('/').filter(Boolean);
       const tab = segments[1] as ProfileTab | undefined;
 
-      if (!tab || !VALID_TABS.includes(tab)) {
-        void router.goTo(ROUTES.PROFILE_SECURITY, { replace: true });
+      if (tab && !VALID_TABS.includes(tab)) {
+        void router.goTo(ROUTES.PROFILE, { replace: true });
         return;
       }
 

@@ -21,7 +21,14 @@ import {
   validateProfileTab,
 } from './profile.helpers';
 
-export const VALID_TABS: ProfileTab[] = ['public', 'security', 'email', 'phone', 'password'];
+export const VALID_TABS: ProfileTab[] = [
+  'overview',
+  'public',
+  'security',
+  'email',
+  'phone',
+  'password',
+];
 
 /**
  * Модель страницы профиля.
@@ -36,6 +43,7 @@ export class ProfilePageModel {
   readonly isAvatarUploading = new Signal<boolean>(false);
 
   formValues: ProfileFormValues = {
+    bio: '',
     first_name: '',
     last_name: '',
     nickname: '',
@@ -77,7 +85,7 @@ export class ProfilePageModel {
     const segments = window.location.pathname.split('/').filter(Boolean);
     const tab = segments[1] as ProfileTab | undefined;
 
-    return tab && VALID_TABS.includes(tab) ? tab : 'security';
+    return tab && VALID_TABS.includes(tab) ? tab : 'overview';
   }
 
   /**
@@ -132,6 +140,7 @@ export class ProfilePageModel {
 
   private syncFormValuesWithProfile(data: ProfileData | null = this.profile.value): void {
     this.formValues = {
+      bio: data?.bio ?? '',
       first_name: data?.first_name ?? '',
       last_name: data?.last_name ?? '',
       nickname: data?.nickname ?? '',
@@ -175,7 +184,7 @@ export class ProfilePageModel {
 
   private async submit(): Promise<void> {
     const tab = this.activeTab.value;
-    if (this.isSubmitting.value || tab === 'security') return;
+    if (this.isSubmitting.value || tab === 'security' || tab === 'overview') return;
 
     this.formError.value = null;
 
@@ -215,11 +224,7 @@ export class ProfilePageModel {
 
     if (result instanceof ApiSuccess) {
       this.touchedFields.clear();
-      const updatedProfile: ProfileData = {
-        ...this.profile.value,
-        ...result.data,
-        ...(payload.phone_number !== undefined ? { phone_number: payload.phone_number } : {}),
-      };
+      const updatedProfile = result.data;
 
       this.syncFormValuesWithProfile(updatedProfile);
       this.profile.value = updatedProfile;
@@ -237,13 +242,16 @@ export class ProfilePageModel {
     this.handleApiError(result);
   }
 
-  private buildUpdatePayload(tab: Exclude<ProfileTab, 'security' | 'password'>): UpdateProfileData {
+  private buildUpdatePayload(
+    tab: Exclude<ProfileTab, 'security' | 'password' | 'overview'>,
+  ): UpdateProfileData {
     switch (tab) {
       case 'public':
         return {
           first_name: this.formValues.first_name.trim(),
           last_name: this.formValues.last_name.trim(),
           nickname: this.formValues.nickname.trim(),
+          bio: this.formValues.bio.trim(),
         };
       case 'email':
         return {

@@ -1,8 +1,10 @@
 import './ContactsList.scss';
 import { Button } from '@/components/core/Button.ts';
+import { DEMO_PROFILES } from '@/api/contacts/contacts.mock';
 import type { DisplayContact } from '@/api/contacts/contacts.types.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { getUserProfileHref } from '@/constants/Routes';
 
 /**
  * Подпись количества контактов.
@@ -154,6 +156,17 @@ export class ContactsList {
         <div class="contacts-list__items" data-contact-list>
           ${this.renderItems(contacts, activeContactId, isLoading, hasError, totalCount, query, openMenuId, pendingDeleteId)}
         </div>
+        ${
+          USING_MOCK.CONTACTS
+            ? `
+          <div class="contacts-list__demo">
+            <h3>Профили пользователей</h3>
+            <p>Демонстрационные данные</p>
+            ${DEMO_PROFILES.map((profile) => `<a href="${getUserProfileHref(profile.id)}">${escapeHtml(`${profile.first_name} ${profile.last_name || ''}`.trim())} →</a>`).join('')}
+          </div>
+        `
+            : ''
+        }
       </section>
     `;
   }

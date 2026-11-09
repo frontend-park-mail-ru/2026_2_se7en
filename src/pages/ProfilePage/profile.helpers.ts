@@ -58,6 +58,10 @@ export function validateProfileField(
   const isPasswordField = (PASSWORD_FIELDS as readonly string[]).includes(field);
   const value = isPasswordField ? rawValue : rawValue.trim();
 
+  if (field === 'bio') {
+    return Array.from(value).length > PROFILE_LIMITS.MAX_BIO_LENGTH ? 'bio_max_length' : null;
+  }
+
   if (field === 'last_name' && !value) {
     return null;
   }
@@ -165,7 +169,7 @@ export function validateProfileField(
  * Валидирует все поля активной вкладки профиля.
  */
 export function validateProfileTab(
-  tab: Exclude<ProfileTab, 'security'>,
+  tab: Exclude<ProfileTab, 'security' | 'overview'>,
   values: ProfileFormValues,
 ): { isValid: boolean; fieldErrors: ProfileFieldErrors } {
   const fields = PROFILE_TAB_FIELDS[tab];

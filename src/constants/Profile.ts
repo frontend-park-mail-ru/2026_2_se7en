@@ -23,6 +23,7 @@ export const PROFILE_TEXTS = {
   LABEL_NAME: 'Имя',
   LABEL_SURNAME: 'Фамилия',
   LABEL_NICKNAME: 'Никнейм',
+  LABEL_BIO: 'О себе',
   LABEL_OLD_PASSWORD: 'Старый пароль',
   LABEL_NEW_PASSWORD: 'Новый пароль',
   LABEL_CONFIRM_PASSWORD: 'Подтвердите новый пароль',
@@ -34,12 +35,14 @@ export const PROFILE_TEXTS = {
 
   PASSWORD_MASK: '•••••••••••',
   HINT_OPTIONAL: 'Необязательно',
+  HINT_BIO: 'Необязательно, до 1000 символов',
   HINT_PASSWORD_LENGTH: '8–16 символов',
   FALLBACK_NAME: 'Пользователь',
 } as const;
 
 export const PROFILE_ERROR_MESSAGES: Record<string, string> = {
   required: 'Обязательное поле',
+  bio_max_length: 'Описание должно содержать не более 1000 символов',
   first_name_length: 'Имя должно содержать от 2 до 32 символов',
   first_name_no_digits: 'Имя не должно содержать цифры',
   last_name_length: 'Фамилия должна содержать от 2 до 32 символов',
@@ -64,6 +67,7 @@ export const PROFILE_ERROR_MESSAGES: Record<string, string> = {
 
 /** Лимиты длины полей профиля (синхронизированы с бэкендом). */
 export const PROFILE_LIMITS = {
+  MAX_BIO_LENGTH: 1000,
   MAX_EMAIL_LENGTH: 64,
   MIN_NAME_LENGTH: 2,
   MAX_NAME_LENGTH: 32,
@@ -79,8 +83,11 @@ export const PROFILE_REGEXES = {
 } as const;
 
 /** Поля, относящиеся к каждой вкладке профиля. */
-export const PROFILE_TAB_FIELDS: Record<Exclude<ProfileTab, 'security'>, ProfileField[]> = {
-  public: ['first_name', 'last_name', 'nickname'],
+export const PROFILE_TAB_FIELDS: Record<
+  Exclude<ProfileTab, 'security' | 'overview'>,
+  ProfileField[]
+> = {
+  public: ['first_name', 'last_name', 'nickname', 'bio'],
   phone: ['phone'],
   email: ['email'],
   password: ['old_password', 'new_password', 'confirm_password'],

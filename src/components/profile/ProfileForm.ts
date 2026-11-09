@@ -3,6 +3,7 @@ import { Button } from '@/components/core/Button';
 import { Input } from '@/components/core/Input';
 import type { ProfileFormParams } from './profile.types';
 import { ROUTES } from '@/constants/Routes';
+import { Textarea } from '@/components/core/Textarea';
 import { escapeHtml } from '@/helpers/EscapeHtml';
 import { renderFieldError } from '@/helpers/FieldError';
 import { BannerErrorIcon, EyeClosedIcon, EyeOpenIcon } from '@/components/core/Icons';
@@ -69,13 +70,22 @@ export function ProfileForm({
             ${escapeHtml(field.label)} ${hintHtml}
           </label>
           <div class="profile-field__control">
-            ${Input({
-              type: field.type || 'text',
-              id: field.id,
-              name: field.name,
-              value: field.value || '',
-              className: inputClass,
-            })}
+            ${
+              field.multiline
+                ? Textarea({
+                    id: field.id,
+                    name: field.name,
+                    value: field.value || '',
+                    className: inputClass,
+                  })
+                : Input({
+                    type: field.type || 'text',
+                    id: field.id,
+                    name: field.name,
+                    value: field.value || '',
+                    className: inputClass,
+                  })
+            }
             ${passwordToggle}
           </div>
           <div data-field-error>${renderFieldError(field.error || '', 'profile-field__error')}</div>
