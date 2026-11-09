@@ -13,9 +13,7 @@ export interface Contact {
 }
 
 /** Ответ GET /api/v1/contacts. */
-export interface ContactsResponse {
-  items: Contact[];
-}
+export type ContactsResponse = Contact[];
 
 /** Контакт, подготовленный для отображения. */
 export interface DisplayContact {

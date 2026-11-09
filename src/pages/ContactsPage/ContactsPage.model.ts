@@ -75,7 +75,7 @@ export class ContactsPageModel {
 
       this.contacts.value = [];
     } else {
-      this.contacts.value = (response.data?.items ?? []).map(toDisplayContact);
+      this.contacts.value = (response.data ?? []).map(toDisplayContact);
     }
     this.activeContact.value = null;
 

@@ -1,0 +1,132 @@
+.profile-overview {
+  &__back {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    color: $blue-600;
+    font-size: 0.875rem;
+  }
+  &__notice {
+    margin-bottom: 1rem;
+    color: $gray-500;
+    font-size: 0.875rem;
+  }
+  width: 100%;
+  max-width: 44rem;
+  background: $white;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+
+  &__cover {
+    height: 7rem;
+    background: linear-gradient(120deg, $blue-100, $login-bg);
+  }
+
+  &__body {
+    padding: 0 2rem 2rem;
+  }
+
+  &__avatar {
+    position: relative;
+    @include flex-center;
+    @include size(6rem);
+    margin-top: -3rem;
+    margin-bottom: 1rem;
+    border: 5px solid $white;
+    border-radius: $radius-full;
+    background: $blue-50;
+    color: $blue-600;
+    font-size: 2rem;
+    font-weight: 700;
+    overflow: hidden;
+
+    img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__name {
+    font-size: 1.75rem;
+    line-height: 1.3;
+    color: $gray-900;
+    overflow-wrap: anywhere;
+  }
+
+  &__nickname {
+    margin-top: 0.25rem;
+    color: $gray-500;
+    overflow-wrap: anywhere;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  &__section {
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $gray-100;
+  }
+
+  &__heading {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: $gray-900;
+  }
+  &__description {
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    color: $gray-500;
+    font-size: 0.875rem;
+  }
+
+  &__about-title {
+    margin-top: 1rem;
+  }
+
+  &__bio {
+    color: $gray-700;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  &__row {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 0.625rem 0;
+    font-size: 0.9375rem;
+    dt {
+      color: $gray-500;
+    }
+    dd {
+      color: $gray-900;
+      overflow-wrap: anywhere;
+    }
+  }
+  &__muted,
+  dd.profile-overview__muted {
+    color: $gray-400;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-overview {
+    &__body {
+      padding: 0 1rem 1.5rem;
+    }
+    &__actions {
+      flex-direction: column;
+    }
+    &__row {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+}

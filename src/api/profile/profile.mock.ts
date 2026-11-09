@@ -3,7 +3,7 @@ import { STATUSES } from '@/constants/Statuses.ts';
 import { debugError } from '@/helpers/DebugError.ts';
 import { ApiError, type ApiResult, ApiSuccess } from '@/api/ApiResponse.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
-import type { ProfileData, UpdatePasswordData, UpdateProfileData } from './Profile.types.ts';
+import type { ProfileData, UpdatePasswordData, UpdateProfileData } from './profile.types.ts';
 
 const STORAGE_PROFILE_KEY = 'mock_profile_state';
 const STORAGE_PASSWORD_KEY = 'mock_profile_password';
