@@ -20,6 +20,21 @@ import type {
 
 /** Поля, для которых не применяется trim при валидации. */
 const PASSWORD_FIELDS = ['old_password', 'new_password', 'confirm_password'] as const;
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const ALLOWED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+/** Проверяет формат и размер аватара в соответствии с ограничениями backend. */
+export function validateAvatarFile(file: File): string | null {
+  if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
+    return 'Выберите фотографию в формате PNG, JPEG или WebP.';
+  }
+
+  if (file.size > MAX_AVATAR_BYTES) {
+    return 'Размер фотографии не должен превышать 5 МиБ.';
+  }
+
+  return null;
+}
 
 /**
  * Возвращает человекочитаемый текст ошибки по ключу.

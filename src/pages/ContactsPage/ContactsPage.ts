@@ -3,15 +3,18 @@ import { ApiError } from '@/api/ApiResponse.ts';
 import { ChatArea } from '@/components/chat/ChatArea.ts';
 import { ChatsPageModel } from '@/pages/ChatsPage/ChatsPage.model.ts';
 import { ContactDialog } from '@/components/contacts/ContactDialog.ts';
+import { ContactsApi } from '@/api/contacts/ContactsApi.ts';
 import { ContactsList } from '@/components/contacts/ContactsList.ts';
 import { ContactsPageModel } from './ContactsPage.model.ts';
 import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import type { Message } from '@/api/chats/chats.types.ts';
 import { Page } from '@/pages/Page.ts';
+import { PublicProfileModal } from '@/components/profile/PublicProfileModal.ts';
+import type { PublicProfileView } from '@/components/profile/PublicProfileModal.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
-import { formatMessageTime } from '@/helpers/chat.ts';
 import { user } from '@/store/User.ts';
+import { formatMessageTime, getChatInitials } from '@/helpers/chat.ts';
 
 /**
  * View страницы контактов.
@@ -25,11 +28,13 @@ export class ContactsPage extends Page {
   private readonly contactDialog = new ContactDialog();
   private readonly chatModel = new ChatsPageModel();
   private readonly chatArea = new ChatArea();
-  private openingDialog = false;
   private searchTimer: number | null = null;
   private messageDraft = '';
   private dialogMenuOpen = false;
   private deleteConfirmOpen = false;
+  private contactMenuOpenId: string | null = null;
+  private pendingContactDeleteId: string | null = null;
+  private publicProfile: PublicProfileView | null = null;
 
   constructor() {
     super();
@@ -42,6 +47,7 @@ export class ContactsPage extends Page {
       [
         this.chatModel.activeChat,
         this.chatModel.chats,
+        this.chatModel.members,
         this.chatModel.messages,
         this.chatModel.messagesLoading,
         this.chatModel.messagesError,
@@ -59,6 +65,9 @@ export class ContactsPage extends Page {
     const hasError = this.model.hasError.value;
     const contacts = this.model.contacts.value;
     const chat = this.chatModel.activeChat.value;
+    const peerUserId = this.chatModel.members.value.find(
+      (member) => member.user_id !== user.getId(),
+    )?.user_id;
     const messages: Message[] = this.chatModel.messages.value.map((message) => ({
       id: message.id,
       text: message.content ?? '',
@@ -76,10 +85,11 @@ export class ContactsPage extends Page {
           hasMoreMessages: this.chatModel.hasMoreMessages.value,
           draft: this.messageDraft,
           typingLabel: this.chatModel.typingUsers.value.length ? 'Собеседник печатает…' : '',
+          peerUserId,
           menuOpen: this.dialogMenuOpen,
           deleteConfirmOpen: this.deleteConfirmOpen,
         })
-      : this.contactDialog.render(contacts.length > 0);
+      : this.contactDialog.render();
 
     return this.layout.render(
       `
@@ -91,9 +101,12 @@ export class ContactsPage extends Page {
           hasError,
           contacts.length,
           this.model.query,
+          this.contactMenuOpenId,
+          this.pendingContactDeleteId,
         )}
         ${rightPanel}
       </main>
+      ${PublicProfileModal(this.publicProfile)}
     `,
       'layout_messenger layout_contacts',
     );
@@ -130,12 +143,15 @@ export class ContactsPage extends Page {
       this.model.hasError.value,
       this.model.contacts.value.length,
       this.model.query,
+      this.contactMenuOpenId,
+      this.pendingContactDeleteId,
     );
   }
 
   bindEvents(): void {
     this.layout.bindEvents();
     this.container?.addEventListener('click', this.handleContainerClick);
+    this.container?.addEventListener('keydown', this.handleContainerKeydown);
     this.container?.addEventListener('input', this.handleContainerInput);
     this.container?.addEventListener('submit', this.handleContainerSubmit);
   }
@@ -158,9 +174,59 @@ export class ContactsPage extends Page {
     }, 250);
   };
 
+  private readonly handleContainerKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape' && this.publicProfile) {
+      this.closePublicProfile();
+    }
+  };
+
   private readonly handleContainerClick = (event: MouseEvent): void => {
     const target = event.target as HTMLElement | null;
     if (!target) return;
+
+    if (target.closest('[data-public-profile-close]')) {
+      this.closePublicProfile();
+      return;
+    }
+
+    const profileBackdrop = target.closest<HTMLElement>('[data-public-profile-backdrop]');
+    if (profileBackdrop && target === profileBackdrop) {
+      this.closePublicProfile();
+      return;
+    }
+
+    const profileUserId = target.closest<HTMLElement>('[data-open-user-profile]')?.dataset
+      .openUserProfile;
+    if (profileUserId) {
+      this.openPublicProfile(profileUserId);
+      return;
+    }
+
+    const addContactButton = target.closest('[data-public-profile-add-contact]');
+    if (addContactButton && this.publicProfile) {
+      void this.addPublicProfileToContacts();
+      return;
+    }
+
+    const contactMenuId = target.closest<HTMLElement>('[data-contact-menu-toggle]')?.dataset
+      .contactMenuToggle;
+    if (contactMenuId) {
+      this.contactMenuOpenId = this.contactMenuOpenId === contactMenuId ? null : contactMenuId;
+      this.updateContactItems();
+      return;
+    }
+
+    const deleteContactId =
+      target.closest<HTMLElement>('[data-contact-delete]')?.dataset.contactDelete;
+    if (deleteContactId) {
+      void this.deleteContact(deleteContactId);
+      return;
+    }
+
+    if (this.contactMenuOpenId && !target.closest('[data-contact-row]')) {
+      this.contactMenuOpenId = null;
+      this.updateContactItems();
+    }
 
     const contactItem = target.closest<HTMLElement>('[data-contact-id]');
     if (contactItem?.dataset.contactId) {
@@ -224,21 +290,92 @@ export class ContactsPage extends Page {
   };
 
   private openDialog(peerId: string): void {
-    if (this.openingDialog) return;
-    this.openingDialog = true;
     eventBus.emit('contacts:select', { id: peerId });
-    this.chatModel.activeChat.value = null;
     this.messageDraft = '';
     this.dialogMenuOpen = false;
     this.deleteConfirmOpen = false;
+    this.contactMenuOpenId = null;
     void this.chatModel.createDialog(peerId).then((result) => {
-      this.openingDialog = false;
+      if (this.model.activeContact.value?.id !== peerId) return;
       if (result instanceof ApiError) {
         eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
       } else {
         this.container?.querySelector<HTMLInputElement>('[data-message-input]')?.focus();
       }
     });
+  }
+
+  private openPublicProfile(userId: string): void {
+    const member = this.chatModel.members.value.find((candidate) => candidate.user_id === userId);
+    if (!member?.profile) return;
+
+    const profile = member.profile;
+    const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
+    const name = fullName || profile.nickname;
+    this.publicProfile = {
+      userId,
+      firstName: profile.first_name,
+      lastName: profile.last_name,
+      nickname: profile.nickname,
+      avatarUrl: profile.icon_url,
+      initials: getChatInitials(name),
+      isContact: true,
+    };
+    this.contactMenuOpenId = null;
+    this.update();
+    this.container?.querySelector<HTMLButtonElement>('[data-public-profile-close]')?.focus();
+  }
+
+  private closePublicProfile(): void {
+    this.publicProfile = null;
+    this.update();
+  }
+
+  private async addPublicProfileToContacts(): Promise<void> {
+    const profile = this.publicProfile;
+    if (!profile || profile.isContact || profile.isAddingContact) return;
+
+    profile.isAddingContact = true;
+    this.update();
+    const result = await ContactsApi.createContact({ nickname: profile.nickname });
+    if (this.publicProfile?.userId === profile.userId) {
+      this.publicProfile.isAddingContact = false;
+      if (result.success || (result instanceof ApiError && result.status === 409)) {
+        this.publicProfile.isContact = true;
+      }
+      this.update();
+    }
+    if (result.success) {
+      eventBus.emit('snackbar:show', { text: 'Контакт добавлен', type: 'success' });
+    } else if (result instanceof ApiError && result.status === 409) {
+      eventBus.emit('snackbar:show', { text: 'Пользователь уже в контактах', type: 'info' });
+    } else if (result instanceof ApiError) {
+      eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
+    }
+  }
+
+  private async deleteContact(contactId: string): Promise<void> {
+    if (this.pendingContactDeleteId) return;
+
+    this.pendingContactDeleteId = contactId;
+    this.updateContactItems();
+    const result = await ContactsApi.deleteContact({ contact_user_id: contactId });
+    this.pendingContactDeleteId = null;
+    this.contactMenuOpenId = null;
+
+    if (result instanceof ApiError) {
+      eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
+      this.updateContactItems();
+      return;
+    }
+
+    this.model.contacts.value = this.model.contacts.value.filter(
+      (contact) => contact.id !== contactId,
+    );
+    if (this.model.activeContact.value?.id === contactId) {
+      this.model.activeContact.value = null;
+    }
+    eventBus.emit('snackbar:show', { text: 'Контакт удалён', type: 'success' });
   }
 
   async afterMount(): Promise<void> {
@@ -248,6 +385,7 @@ export class ContactsPage extends Page {
 
   unmount(): void {
     this.container?.removeEventListener('click', this.handleContainerClick);
+    this.container?.removeEventListener('keydown', this.handleContainerKeydown);
     this.container?.removeEventListener('input', this.handleContainerInput);
     this.container?.removeEventListener('submit', this.handleContainerSubmit);
     if (this.searchTimer !== null) window.clearTimeout(this.searchTimer);

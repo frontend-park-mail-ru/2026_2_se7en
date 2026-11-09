@@ -27,6 +27,7 @@ export type WsServerEventType =
   | 'chat.updated'
   | 'chat.deleted'
   | 'member.added'
+  | 'member.updated'
   | 'member.deleted'
   | 'typing.started'
   | 'typing.stopped'

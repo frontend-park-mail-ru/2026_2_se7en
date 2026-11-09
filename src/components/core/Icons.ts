@@ -48,12 +48,28 @@ export const UserIcon = `
   </svg>
 `;
 
+/** Иконка камеры для смены аватара профиля. */
+export const CameraIcon = `
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+    <path d="M4 7.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 9v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z" stroke-width="1.6" stroke-linejoin="round" />
+    <circle cx="12" cy="13" r="3.5" stroke-width="1.6" />
+  </svg>
+`;
+
 /** Одна галочка: сообщение отправлено, но ещё не прочитано. */
 export const MessageSentIcon = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" role="img" aria-label="Отправлено"><path d="M10.5 3 4.5 9 1.5 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 /** Две галочки: сообщение прочитано. */
 export const MessageReadIcon =
   '<img src="/design-assets/b3d0c.svg" alt="Прочитано" width="12" height="12">';
+
+/** Иконка поиска в шапке переписки. */
+export const SearchIcon = `
+  <svg class="chat-area__search-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
+    <path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  </svg>
+`;
 
 /** Иконка редактирования в меню группы. */
 export const EditGroupIcon =

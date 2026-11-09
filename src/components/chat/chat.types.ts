@@ -11,6 +11,7 @@ export interface ChatAreaOptions {
   dateLabel?: string;
   hasMoreMessages?: boolean;
   typingLabel?: string;
+  peerUserId?: string;
   canEditGroup?: boolean;
   canDeleteGroup?: boolean;
   menuOpen?: boolean;
@@ -62,5 +63,6 @@ export interface GroupMembersView {
   openMemberMenuId?: string | null;
   removeMemberId?: string | null;
   canManage?: boolean;
+  canManageRoles?: boolean;
   leaveConfirmOpen?: boolean;
 }

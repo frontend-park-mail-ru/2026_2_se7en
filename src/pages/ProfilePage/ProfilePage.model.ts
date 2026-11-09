@@ -33,6 +33,7 @@ export class ProfilePageModel {
   readonly fieldErrors = new Signal<ProfileFieldErrors>({});
   readonly formError = new Signal<string | null>(null);
   readonly isSubmitting = new Signal<boolean>(false);
+  readonly isAvatarUploading = new Signal<boolean>(false);
 
   formValues: ProfileFormValues = {
     first_name: '',
@@ -101,6 +102,31 @@ export class ProfilePageModel {
       this.profile.value = res.data;
     } else {
       this.errorMessage.value = DEFAULT_ERROR_MESSAGE;
+    }
+  }
+
+  /** Загружает новый аватар и обновляет карточку профиля после ответа сервера. */
+  async uploadAvatar(file: File): Promise<void> {
+    if (this.isAvatarUploading.value) return;
+
+    this.isAvatarUploading.value = true;
+
+    try {
+      const result = await ProfileApi.uploadAvatar(file);
+      if (result instanceof ApiSuccess && result.data.icon_url) {
+        if (this.profile.value) {
+          this.profile.value = { ...this.profile.value, icon_url: result.data.icon_url };
+        }
+        eventBus.emit('snackbar:show', { text: 'Фотография профиля обновлена', type: 'success' });
+        return;
+      }
+
+      eventBus.emit('snackbar:show', {
+        text: result instanceof ApiError ? result.message : DEFAULT_ERROR_MESSAGE,
+        type: 'error',
+      });
+    } finally {
+      this.isAvatarUploading.value = false;
     }
   }
 

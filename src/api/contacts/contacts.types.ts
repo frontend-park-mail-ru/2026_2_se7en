@@ -16,6 +16,15 @@ export interface Contact {
 /** Ответ GET /api/v1/contacts. */
 export type ContactsResponse = Contact[];
 
+export interface CreateContactRequest {
+  nickname: string;
+  pseudonym?: string | null;
+}
+
+export interface DeleteContactRequest {
+  contact_user_id: string;
+}
+
 /** Контакт, подготовленный для отображения. */
 export interface DisplayContact {
   id: string;

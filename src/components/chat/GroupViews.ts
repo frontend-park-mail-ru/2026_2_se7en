@@ -2,6 +2,7 @@ import './GroupViews.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
 import { Input } from '@/components/core/Input.ts';
+import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { user } from '@/store/User.ts';
 import type { GroupFormView, GroupMemberView, GroupMembersView } from './chat.types.ts';
@@ -56,15 +57,33 @@ function memberRow(
     selectable?: boolean;
     selected?: boolean;
     showMenu?: boolean;
+    canManageRoles?: boolean;
     menuOpen?: boolean;
   } = {},
 ): string {
+  const memberAvatar = avatar(
+    member.initials,
+    options.selectable,
+    member.status === 'в сети',
+    member.avatarUrl,
+  );
+  const memberText = `
+    <span class="group-view__member-text">
+      <strong>${escapeHtml(member.name)}</strong>
+      <small>${escapeHtml(member.status)}</small>
+    </span>
+  `;
+  const memberIdentity = options.selectable
+    ? `${memberAvatar}${memberText}`
+    : Button({
+        text: `${memberAvatar}${memberText}`,
+        mode: 'unstyled',
+        className: 'group-view__member-profile',
+        ariaLabel: `Открыть профиль ${member.name}`,
+        attrs: { 'data-open-user-profile': member.id },
+      });
   const content = `
-      ${avatar(member.initials, options.selectable, member.status === 'в сети', member.avatarUrl)}
-      <span class="group-view__member-text">
-        <strong>${escapeHtml(member.name)}</strong>
-        <small>${escapeHtml(member.status)}</small>
-      </span>
+      ${memberIdentity}
       ${
         options.selectable
           ? `
@@ -84,7 +103,14 @@ function memberRow(
           ? `
         <span class="group-view__member-actions">
           ${Button({ text: '⋯', mode: 'unstyled', className: 'group-view__member-menu', ariaLabel: `Действия с участником ${member.name}`, attrs: { 'data-member-menu-toggle': member.id, 'aria-expanded': String(Boolean(options.menuOpen)) } })}
-          ${options.menuOpen ? `<span class="group-view__member-popover" role="menu">${Button({ text: 'Удалить из группы', mode: 'unstyled', attrs: { role: 'menuitem', 'data-member-remove': member.id } })}</span>` : ''}
+          ${
+            options.menuOpen
+              ? `<span class="group-view__member-popover" role="menu">
+            ${options.canManageRoles ? Button({ text: member.role === 'admin' ? 'Снять права администратора' : 'Назначить администратором', mode: 'unstyled', className: 'group-view__member-role-action', attrs: { role: 'menuitem', 'data-member-set-role': member.id, 'data-member-role': member.role === 'admin' ? 'member' : 'admin' } }) : ''}
+            ${Button({ text: 'Удалить из группы', mode: 'unstyled', className: 'group-view__member-remove-action', attrs: { role: 'menuitem', 'data-member-remove': member.id } })}
+          </span>`
+              : ''
+          }
         </span>
       `
           : ''
@@ -231,6 +257,9 @@ export function renderGroupInfo(
           <h3 class="group-view__section-title">Участники</h3>
           ${options.canManage ? Button({ text: 'Добавить', mode: 'unstyled', attrs: { 'data-group-add': '' } }) : ''}
         </div>
+        <div class="group-view__member-search">
+          ${PanelSearch({ label: 'Поиск участников', placeholder: 'Поиск участников', disabled: true })}
+        </div>
         <div class="group-view__members" aria-busy="${Boolean(options.loading)}">
           ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-group-retry': '' } })}</div>` : members.length ? members.map((member) => memberRow(member)).join('') : '<p class="group-view__empty">В группе пока нет участников</p>'}
         </div>
@@ -292,8 +321,11 @@ export function renderGroupEdit(
           <strong>Участники</strong>
           <span>${chat.members_count ?? members.length} из 100 участников</span>
         </div>
+        <div class="group-view__member-search">
+          ${PanelSearch({ label: 'Поиск участников', placeholder: 'Поиск участников', disabled: true })}
+        </div>
         <div class="group-view__members" aria-busy="${Boolean(options.loading)}">
-          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-group-retry': '' } })}</div>` : members.length ? members.map((member) => memberRow(member, { showMenu: true, menuOpen: options.openMemberMenuId === member.id })).join('') : '<p class="group-view__empty">Участники пока не загружены</p>'}
+          ${options.loading ? '<p class="group-view__empty" role="status">Загрузка участников…</p>' : options.error ? `<div class="group-view__empty" role="alert"><p>${escapeHtml(options.error)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-group-retry': '' } })}</div>` : members.length ? members.map((member) => memberRow(member, { showMenu: true, canManageRoles: options.canManageRoles, menuOpen: options.openMemberMenuId === member.id })).join('') : '<p class="group-view__empty">Участники пока не загружены</p>'}
         </div>
         <p class="group-view__error" role="status">${escapeHtml(form.membersError || form.submitError)}</p>
       </div>

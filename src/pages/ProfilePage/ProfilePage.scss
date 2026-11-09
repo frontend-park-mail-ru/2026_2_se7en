@@ -18,11 +18,16 @@
 
   &__main {
     flex: 1;
+    min-width: 0;
     @include flex-column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
     overflow-y: auto;
   }
 
   &__header {
+    width: min(100%, 36rem);
     margin-bottom: 1.5rem;
   }
 
@@ -33,11 +38,11 @@
   }
 
   &__content {
+    width: min(100%, 36rem);
     background-color: $white;
     border-radius: $radius-xl;
     padding: 2rem;
     box-shadow: $shadow-card;
-    max-width: 36rem;
   }
 
   &__error {
@@ -51,6 +56,7 @@
   }
 
   &__loading {
+    width: min(100%, 36rem);
     padding: 2rem;
     color: $gray-500;
   }

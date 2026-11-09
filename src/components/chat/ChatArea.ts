@@ -1,10 +1,14 @@
 import './ChatArea.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { ChatAreaOptions } from './chat.types.ts';
-import { ChatSkeleton } from './ChatSkeleton.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import type { DisplayChat, Message } from '@/api/chats/chats.types.ts';
-import { EditGroupIcon, MessageReadIcon, MessageSentIcon } from '@/components/core/Icons.ts';
+import {
+  EditGroupIcon,
+  MessageReadIcon,
+  MessageSentIcon,
+  SearchIcon,
+} from '@/components/core/Icons.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
 
@@ -66,10 +70,22 @@ export class ChatArea {
 `,
             mode: 'unstyled',
             className: 'chat-area__identity',
-            ariaLabel: isGroup ? 'Открыть информацию о группе' : 'Информация о собеседнике',
-            attrs: isGroup ? { 'data-open-group-info': '' } : {},
+            ariaLabel: isGroup ? 'Открыть информацию о группе' : 'Открыть профиль собеседника',
+            attrs: isGroup
+              ? { 'data-open-group-info': '' }
+              : options.peerUserId
+                ? { 'data-open-user-profile': options.peerUserId }
+                : {},
           })}
           <div class="chat-area__actions">
+            ${Button({
+              text: SearchIcon,
+              mode: 'unstyled',
+              className: 'chat-area__icon-button',
+              ariaLabel: 'Поиск по чату',
+              title: 'Поиск по чату',
+              attrs: { 'data-chat-search': '' },
+            })}
             ${Button({ text: `<img src="${asset('d4d19.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: `chat-area__icon-button${options.menuOpen ? ' chat-area__icon-button_active' : ''}`, ariaLabel: 'Меню диалога', attrs: { 'aria-haspopup': 'menu', 'aria-expanded': String(Boolean(options.menuOpen)), 'data-dialog-menu-toggle': '' } })}
           </div>
           ${
@@ -77,13 +93,21 @@ export class ChatArea {
               ? `
             <div class="chat-area__menu" role="menu">
               ${
+                isGroup
+                  ? Button({
+                      text: 'Информация о группе',
+                      mode: 'unstyled',
+                      attrs: { role: 'menuitem', 'data-open-group-info': '' },
+                    })
+                  : ''
+              }
+              ${
                 isGroup && options.canEditGroup
                   ? `
                 ${Button({ text: `${EditGroupIcon} Изменить группу`, mode: 'unstyled', attrs: { role: 'menuitem', 'data-open-group-edit': '' } })}
               `
                   : ''
               }
-              ${isGroup && !options.canEditGroup ? Button({ text: 'Информация о группе', mode: 'unstyled', attrs: { role: 'menuitem', 'data-open-group-info': '' } }) : ''}
               ${
                 !isGroup || options.canDeleteGroup
                   ? Button({
@@ -104,7 +128,7 @@ export class ChatArea {
         <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history>
           ${
             options.messagesLoading
-              ? '<p class="chat-area__history-status" role="status">Загрузка сообщений…</p>'
+              ? ''
               : options.messagesError
                 ? `<div class="chat-area__history-status" role="alert"><p>${escapeHtml(options.messagesError)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-messages-retry': '' } })}</div>`
                 : hasMessages
@@ -146,8 +170,8 @@ export class ChatArea {
     hasNetworkError: boolean,
     options: ChatAreaOptions = {},
   ): string {
-    if (isLoading) {
-      return ChatSkeleton.render();
+    if (isLoading && !activeChat && chats.length === 0) {
+      return '<section class="chat-area chat-area_placeholder chat-area_loading" aria-busy="true"></section>';
     }
 
     if (hasNetworkError) {

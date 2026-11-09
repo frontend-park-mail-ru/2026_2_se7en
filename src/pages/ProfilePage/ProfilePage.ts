@@ -7,12 +7,12 @@ import type { ProfileTab } from '@/components/profile/profile.types';
 import { ROUTES } from '@/constants/Routes';
 import { bindPasswordToggles } from '@/helpers/PasswordToggle';
 import { eventBus } from '@/helpers/EventBus';
-import { getProfileErrorMessage } from './profile.helpers';
 import { renderFieldError } from '@/helpers/FieldError';
 import { renderProfileFormError } from '@/components/profile/ProfileForm';
 import { router } from '@/helpers/Router';
 import { PROFILE_FORM_ID, PROFILE_SUBMIT_ID, PROFILE_TEXTS } from '@/constants/Profile';
 import { ProfilePageModel, VALID_TABS } from './ProfilePage.model';
+import { getProfileErrorMessage, validateAvatarFile } from './profile.helpers';
 
 const ALL_PROFILE_FIELDS: ProfileField[] = [
   'first_name',
@@ -55,6 +55,7 @@ export class ProfilePage extends Page {
         isSubmitting: this.model.isSubmitting.value,
         formError: this.model.formError.value,
         errorMessage: this.model.errorMessage.value,
+        isAvatarUploading: this.model.isAvatarUploading.value,
       }),
     );
   }
@@ -93,6 +94,28 @@ export class ProfilePage extends Page {
       input.addEventListener('blur', () => {
         eventBus.emit('profile:field-blur', { field });
       });
+    });
+
+    const avatarTrigger = this.container?.querySelector<HTMLButtonElement>(
+      '[data-profile-avatar-trigger]',
+    );
+    const avatarInput = this.container?.querySelector<HTMLInputElement>(
+      '[data-profile-avatar-input]',
+    );
+
+    avatarTrigger?.addEventListener('click', () => avatarInput?.click());
+    avatarInput?.addEventListener('change', () => {
+      const file = avatarInput.files?.[0];
+      avatarInput.value = '';
+      if (!file) return;
+
+      const validationError = validateAvatarFile(file);
+      if (validationError) {
+        eventBus.emit('snackbar:show', { text: validationError, type: 'error' });
+        return;
+      }
+
+      void this.model.uploadAvatar(file);
     });
 
     if (this.container) {

@@ -36,6 +36,7 @@ export class ChatsPageModel {
 
   private selectedChatId: string | null = null;
   private selectionVersion = 0;
+  private dialogRequestVersion = 0;
   private isFetching = false;
   private pendingChatsRefresh = false;
   private catchUpAfterMessageLoad = false;
@@ -78,6 +79,7 @@ export class ChatsPageModel {
   }
 
   destroy(): void {
+    this.dialogRequestVersion += 1;
     window.clearTimeout(this.activityTimer ?? undefined);
     this.stopTyping();
     this.clearRemoteTyping();
@@ -415,10 +417,13 @@ export class ChatsPageModel {
   }
 
   async createDialog(peerId: string): Promise<ApiResult<ChatDetailResponse>> {
+    const requestVersion = ++this.dialogRequestVersion;
     const result = await ChatsApi.createDialog(peerId);
-    if (result.success && result.data?.chat?.id) {
+    if (result.success && result.data?.chat?.id && requestVersion === this.dialogRequestVersion) {
       await this.loadChats(false);
-      await this.selectChat(result.data.chat.id);
+      if (requestVersion === this.dialogRequestVersion) {
+        await this.selectChat(result.data.chat.id);
+      }
     }
     return result;
   }
@@ -433,6 +438,23 @@ export class ChatsPageModel {
     }
     await Promise.all([this.loadMembers(id), this.loadChats(false)]);
     return errors;
+  }
+
+  async updateMemberRole(
+    userId: string,
+    role: 'admin' | 'member',
+  ): Promise<ApiResult<ChatMember> | null> {
+    const chatId = this.selectedChatId;
+    if (!chatId) return null;
+
+    const result = await ChatsApi.updateMemberRole(chatId, userId, role);
+    if (result.success) {
+      this.members.value = this.members.value.map((member) =>
+        member.user_id === userId ? result.data : member,
+      );
+      if (userId === user.getId()) this.role.value = role;
+    }
+    return result;
   }
 
   async uploadGroupAvatar(file: File): Promise<ApiResult<ChatDetailResponse> | null> {
@@ -759,6 +781,24 @@ export class ChatsPageModel {
       const payload = event.payload as { chat_id?: string } | undefined;
       if (payload?.chat_id === this.selectedChatId) void this.verifySelectedChat();
       this.scheduleActivityRefresh();
+      return;
+    }
+
+    if (event.type === 'member.updated') {
+      const payload = event.payload as
+        { chat_id?: string; user_id?: string; role?: string } | undefined;
+      if (
+        payload?.chat_id === this.selectedChatId &&
+        payload.user_id &&
+        (payload.role === 'admin' || payload.role === 'member')
+      ) {
+        this.members.value = this.members.value.map((member) =>
+          member.user_id === payload.user_id
+            ? { ...member, role: payload.role as 'admin' | 'member' }
+            : member,
+        );
+        if (payload.user_id === user.getId()) this.role.value = payload.role;
+      }
       return;
     }
 

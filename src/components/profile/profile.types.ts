@@ -9,6 +9,10 @@ export type ProfileTab = 'public' | 'security' | 'email' | 'phone' | 'password';
 export interface ProfileCardParams {
   name: string;
   subtitle: string;
+  avatarUrl?: string | null;
+  initials?: string;
+  canChangeAvatar?: boolean;
+  isAvatarUploading?: boolean;
 }
 
 export interface SecurityRow {
@@ -56,4 +60,5 @@ export interface ProfileContentParams {
   isSubmitting: boolean;
   formError?: string | null;
   errorMessage?: string | null;
+  isAvatarUploading?: boolean;
 }

@@ -94,6 +94,20 @@ export class ChatsApi extends ServerApi {
     });
   }
 
+  static updateMemberRole(
+    chatId: string,
+    userId: string,
+    role: 'admin' | 'member',
+  ): Promise<ApiResult<ChatMember>> {
+    return this._request<ChatMember>(
+      `${chatMembersUrl(chatId)}/${encodeURIComponent(userId)}/role`,
+      {
+        method: 'PATCH',
+        body: { role },
+      },
+    );
+  }
+
   static uploadGroupAvatar(id: string, file: File): Promise<ApiResult<ChatDetailResponse>> {
     const body = new FormData();
     body.append('file', file);

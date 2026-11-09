@@ -63,6 +63,7 @@ export interface ChatMember {
     nickname: string;
     first_name: string;
     last_name?: string | null;
+    bio?: string | null;
     icon_id?: string | null;
     icon_url?: string | null;
   };

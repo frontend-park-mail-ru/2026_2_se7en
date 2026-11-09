@@ -1,5 +1,4 @@
 import './ChatList.scss';
-import './Skeleton.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { ChatFilter } from './chat.types.ts';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
@@ -56,7 +55,7 @@ export class ChatList {
   private renderFilters(activeFilter: ChatFilter): string {
     return `
       <div class="chat-panel__tools">
-        ${PanelSearch({ label: 'Поиск по чатам пока недоступен', placeholder: 'Поиск по сообщениям', disabled: true })}
+        ${PanelSearch({ label: 'Поиск по чатам пока недоступен', placeholder: 'Поиск по чатам', disabled: true })}
         <div class="chat-panel__filters" role="group" aria-label="Фильтр чатов">
           ${Button({ text: 'Все', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'all' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'all', 'aria-pressed': String(activeFilter === 'all') } })}
           ${Button({ text: 'Непрочитанные', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'unread' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'unread', 'aria-pressed': String(activeFilter === 'unread') } })}
@@ -105,22 +104,12 @@ export class ChatList {
       return true;
     });
 
-    const list = isLoading
-      ? Array.from(
-          { length: 6 },
-          () => `
-          <div class="chat-panel__loading-item">
-            <span class="skeleton skeleton_circle"></span>
-            <span class="chat-panel__loading-lines">
-              <span class="skeleton"></span>
-              <span class="skeleton"></span>
-            </span>
-          </div>
-        `,
-        ).join('')
-      : visibleChats.length
-        ? visibleChats.map((chat) => this.renderChatItem(chat, activeChat?.id ?? null)).join('')
-        : `
+    const list =
+      isLoading && chats.length === 0
+        ? ''
+        : visibleChats.length
+          ? visibleChats.map((chat) => this.renderChatItem(chat, activeChat?.id ?? null)).join('')
+          : `
           <div class="chat-panel__empty">
             <p>${chats.length ? 'Ничего не найдено' : 'Список пока пуст'}</p>
             <span>${chats.length ? 'Попробуйте другой фильтр' : 'Новые диалоги появятся здесь'}</span>
@@ -132,10 +121,6 @@ export class ChatList {
         ${this.renderHeader(isCreateMenuOpen)}
         ${this.renderFilters(options.filter ?? 'all')}
         <div class="chat-panel__list" aria-busy="${isLoading}">${list}${options.hasMore ? Button({ text: 'Загрузить ещё', mode: 'unstyled', attrs: { 'data-chats-more': '' } }) : ''}</div>
-        <div class="chat-panel__footer">
-          <span>Связь Web</span>
-          <span>v 2.8.1</span>
-        </div>
         ${this.renderCreateMenu(isCreateMenuOpen)}
       </section>
     `;
