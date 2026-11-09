@@ -38,10 +38,5 @@ export function validateGroupForm(
 
   form.avatarError = validateAvatar(avatarFile);
 
-  if (avatarFile && !form.avatarError) {
-    form.avatarError =
-      'Сохранение фотографии станет доступно после подключения загрузки на сервер.';
-  }
-
   return !(form.nameError || form.descriptionError || form.membersError || form.avatarError);
 }

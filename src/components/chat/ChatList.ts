@@ -1,9 +1,9 @@
 import './ChatList.scss';
-import './Skeleton.scss';
-import type { DisplayChat } from '@/api/chats/chats.types.ts';
-import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { Button } from '@/components/core/Button.ts';
 import type { ChatFilter } from './chat.types.ts';
+import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import { PanelSearch } from '@/components/core/PanelSearch.ts';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 export type { ChatFilter } from './chat.types.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
@@ -52,13 +52,10 @@ export class ChatList {
     `;
   }
 
-  private renderSearch(query: string, activeFilter: ChatFilter): string {
+  private renderFilters(activeFilter: ChatFilter): string {
     return `
       <div class="chat-panel__tools">
-        <label class="chat-panel__search">
-          <img src="${asset('7c7b6.svg')}" alt="" width="17" height="17">
-          <input type="search" name="chat-search" value="${escapeHtml(query)}" placeholder="Поиск по сообщениям" aria-label="Поиск по сообщениям" data-chat-list-search>
-        </label>
+        ${PanelSearch({ label: 'Поиск по чатам пока недоступен', placeholder: 'Поиск по чатам', disabled: true })}
         <div class="chat-panel__filters" role="group" aria-label="Фильтр чатов">
           ${Button({ text: 'Все', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'all' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'all', 'aria-pressed': String(activeFilter === 'all') } })}
           ${Button({ text: 'Непрочитанные', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'unread' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'unread', 'aria-pressed': String(activeFilter === 'unread') } })}
@@ -81,16 +78,15 @@ export class ChatList {
     `;
   }
 
-  /** Применяет поиск и фильтр, затем возвращает разметку списка чатов. */
+  /** Применяет фильтр и возвращает разметку списка чатов. */
   render(
     chats: DisplayChat[],
     activeChat: DisplayChat | null,
     isLoading: boolean,
     isCreateMenuOpen = false,
-    options: { query?: string; filter?: ChatFilter } = {},
+    options: { filter?: ChatFilter; hasMore?: boolean } = {},
   ): string {
     const filter = options.filter ?? 'all';
-    const query = (options.query ?? '').trim().toLocaleLowerCase('ru-RU');
     const visibleChats = chats.filter((chat) => {
       switch (filter) {
         case 'unread':
@@ -105,42 +101,26 @@ export class ChatList {
         case 'all':
           break;
       }
-      if (!query) return true;
-
-      return `${chat.name ?? ''} ${chat.lastMessage}`.toLocaleLowerCase('ru-RU').includes(query);
+      return true;
     });
 
-    const list = isLoading
-      ? Array.from(
-          { length: 6 },
-          () => `
-          <div class="chat-panel__loading-item">
-            <span class="skeleton skeleton_circle"></span>
-            <span class="chat-panel__loading-lines">
-              <span class="skeleton"></span>
-              <span class="skeleton"></span>
-            </span>
-          </div>
-        `,
-        ).join('')
-      : visibleChats.length
-        ? visibleChats.map((chat) => this.renderChatItem(chat, activeChat?.id ?? null)).join('')
-        : `
+    const list =
+      isLoading && chats.length === 0
+        ? ''
+        : visibleChats.length
+          ? visibleChats.map((chat) => this.renderChatItem(chat, activeChat?.id ?? null)).join('')
+          : `
           <div class="chat-panel__empty">
             <p>${chats.length ? 'Ничего не найдено' : 'Список пока пуст'}</p>
-            <span>${chats.length ? 'Попробуйте другой фильтр или запрос' : 'Новые диалоги появятся здесь'}</span>
+            <span>${chats.length ? 'Попробуйте другой фильтр' : 'Новые диалоги появятся здесь'}</span>
           </div>
         `;
 
     return `
       <section class="chat-panel" aria-label="Список чатов">
         ${this.renderHeader(isCreateMenuOpen)}
-        ${this.renderSearch(options.query ?? '', options.filter ?? 'all')}
-        <div class="chat-panel__list" aria-busy="${isLoading}">${list}</div>
-        <div class="chat-panel__footer">
-          <span>Связь Web</span>
-          <span>v 2.8.1</span>
-        </div>
+        ${this.renderFilters(options.filter ?? 'all')}
+        <div class="chat-panel__list" aria-busy="${isLoading}">${list}${options.hasMore ? Button({ text: 'Загрузить ещё', mode: 'unstyled', attrs: { 'data-chats-more': '' } }) : ''}</div>
         ${this.renderCreateMenu(isCreateMenuOpen)}
       </section>
     `;

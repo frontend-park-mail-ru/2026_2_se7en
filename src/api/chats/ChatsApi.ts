@@ -3,14 +3,9 @@ import { ServerApi } from '@/api/ServerApi.ts';
 import { USING_MOCK } from '@/api/api.constants.ts';
 import { joinSearchParams } from '@/helpers/JoinSearchParams.ts';
 import { mockGetChats } from '@/api/chats/chats.mock.ts';
-import {
-  GET_CHATS_URL,
-  chatMembersUrl,
-  chatMessagesUrl,
-  chatUrl,
-} from '@/api/chats/chats.constants.ts';
 import type {
   ChatDetailResponse,
+  ChatMember,
   ChatMessage,
   ChatsResponse,
   CreateGroupRequest,
@@ -19,13 +14,19 @@ import type {
   ListMessagesResponse,
   UpdateGroupRequest,
 } from '@/api/chats/chats.types.ts';
+import {
+  GET_CHATS_URL,
+  chatMembersUrl,
+  chatMessagesUrl,
+  chatUrl,
+} from '@/api/chats/chats.constants.ts';
 
 /**
  * API чатов.
  */
 export class ChatsApi extends ServerApi {
   static async getChats(params: GetChatsParams = {}): Promise<ApiResult<ChatsResponse>> {
-    const paramsWithDefaults = { limit: 50, offset: 0, ...params };
+    const paramsWithDefaults = { limit: 50, ...params };
 
     if (USING_MOCK.CHATS) {
       return mockGetChats(paramsWithDefaults);
@@ -86,11 +87,31 @@ export class ChatsApi extends ServerApi {
     });
   }
 
-  static addMember(chatId: string, userId: string): Promise<ApiResult<ChatDetailResponse>> {
-    return this._request<ChatDetailResponse>(chatMembersUrl(chatId), {
+  static addMember(chatId: string, userId: string): Promise<ApiResult<ChatMember>> {
+    return this._request<ChatMember>(chatMembersUrl(chatId), {
       method: 'POST',
       body: { user_id: userId },
     });
+  }
+
+  static updateMemberRole(
+    chatId: string,
+    userId: string,
+    role: 'admin' | 'member',
+  ): Promise<ApiResult<ChatMember>> {
+    return this._request<ChatMember>(
+      `${chatMembersUrl(chatId)}/${encodeURIComponent(userId)}/role`,
+      {
+        method: 'PATCH',
+        body: { role },
+      },
+    );
+  }
+
+  static uploadGroupAvatar(id: string, file: File): Promise<ApiResult<ChatDetailResponse>> {
+    const body = new FormData();
+    body.append('file', file);
+    return this._request<ChatDetailResponse>(`${chatUrl(id)}/avatar`, { method: 'PUT', body });
   }
 
   static createDialog(peerId: string): Promise<ApiResult<ChatDetailResponse>> {

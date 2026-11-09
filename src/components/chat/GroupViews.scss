@@ -241,6 +241,10 @@
     margin-top: 18px;
 
     .group-view__section-title {
+      display: flex;
+      align-items: flex-end;
+      height: 36px;
+      line-height: 16px;
       margin-top: 0;
     }
   }
@@ -256,30 +260,13 @@
     }
   }
 
-  &__search {
-    @include flex-align-center;
-    gap: 8px;
-    height: 42px;
-    padding: 0 12px;
-    background: #f5faff;
-    border-radius: 12px;
-
-    input {
-      flex: 1;
-      min-width: 0;
-      outline: 0;
-      background: transparent;
-      font-size: 14px;
-
-      &::placeholder {
-        color: #9aa8ba;
-      }
-    }
-  }
-
   &__members {
     @include flex-column;
     gap: 4px;
+    margin-top: 8px;
+  }
+
+  &__member-search {
     margin-top: 8px;
   }
 
@@ -300,10 +287,12 @@
 
   &__member {
     @include flex-align-center;
+    flex: 0 0 58px;
     gap: 12px;
-    min-height: 50px;
     width: 100%;
-    padding: 4px 0;
+    height: 58px;
+    min-height: 58px;
+    padding: 4px 8px;
     color: inherit;
     text-align: left;
 
@@ -320,6 +309,25 @@
 
   &__member-actions {
     position: relative;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  &__member-profile {
+    @include flex-align-center;
+    flex: 1 1 auto;
+    gap: 12px;
+    min-width: 0;
+    height: 50px;
+    text-align: left;
+    border-radius: 10px;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: #f5faff;
+    }
   }
 
   &__member-popover {
@@ -328,7 +336,7 @@
     top: 32px;
     right: 0;
     display: block;
-    min-width: 165px;
+    min-width: 210px;
     padding: 6px;
     background: #fff;
     border: 1px solid #ecf2f7;
@@ -338,10 +346,14 @@
     button {
       width: 100%;
       padding: 8px;
-      color: #ff4b55;
+      color: #142033;
       font-size: 12px;
       text-align: left;
     }
+  }
+
+  &__member-popover &__member-remove-action {
+    color: #ff4b55;
   }
 
   &__member-text {
@@ -367,18 +379,25 @@
   }
 
   &__role {
-    min-width: 94px;
+    display: block;
+    flex: 0 0 112px;
+    width: 112px;
     padding: 3px 10px;
     color: #6c7b91;
     background: #f1f8fe;
     border-radius: 999px;
     font-size: 10px;
     text-align: center;
+    white-space: nowrap;
   }
 
   &__member-menu {
+    display: grid;
+    flex: 0 0 32px;
+    place-items: center;
     width: 32px;
     height: 32px;
+    padding: 0;
     color: #9aa8ba;
     font-size: 20px;
   }
@@ -489,6 +508,10 @@
     .group-view__members {
       margin-top: 12px;
     }
+
+    .group-view__member-search {
+      margin-top: 12px;
+    }
   }
 
   &_edit {
@@ -523,10 +546,6 @@
     margin: 0 16px 8px;
     color: #6c7b91;
     font-size: 11px;
-  }
-
-  &__search {
-    margin: 0 16px;
   }
 
   &__members {

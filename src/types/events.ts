@@ -62,9 +62,6 @@ type ContactsEvents = {
 
   /** View: пользователь выбрал контакт. */
   'contacts:select': { id: string };
-
-  /** View: пользователь изменил поисковый запрос. */
-  'contacts:search': { query: string };
 };
 
 /** События страницы профиля. */

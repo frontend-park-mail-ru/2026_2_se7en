@@ -42,13 +42,17 @@ export const SpinnerIcon = `
   </svg>
 `;
 
-export const SearchIcon = `
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-`;
-
 export const UserIcon = `
   <svg class="icon icon_3xl" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+`;
+
+/** Иконка камеры для смены аватара профиля. */
+export const CameraIcon = `
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+    <path d="M4 7.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 9v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z" stroke-width="1.6" stroke-linejoin="round" />
+    <circle cx="12" cy="13" r="3.5" stroke-width="1.6" />
   </svg>
 `;
 
@@ -58,6 +62,14 @@ export const MessageSentIcon = `<svg width="12" height="12" viewBox="0 0 12 12" 
 /** Две галочки: сообщение прочитано. */
 export const MessageReadIcon =
   '<img src="/design-assets/b3d0c.svg" alt="Прочитано" width="12" height="12">';
+
+/** Иконка поиска в шапке переписки. */
+export const SearchIcon = `
+  <svg class="chat-area__search-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
+    <path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  </svg>
+`;
 
 /** Иконка редактирования в меню группы. */
 export const EditGroupIcon =

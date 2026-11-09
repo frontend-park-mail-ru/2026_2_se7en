@@ -1,5 +1,5 @@
 import './RegisterPage.scss';
-import { LoginPage } from '@/pages/LoginPage/LoginPage.js';
+import { ChatsPage } from '@/pages/ChatsPage/ChatsPage.js';
 import { Page } from '@/pages/Page.js';
 import { ROUTES } from '@/constants/Routes.js';
 import type { RegisterField } from '@/api/auth/auth.types.js';
@@ -130,7 +130,7 @@ export class RegisterPage extends Page {
 
   async afterMount(): Promise<void> {
     this.offSuccess = eventBus.on('register:success', () => {
-      void showPage(LoginPage);
+      void showPage(ChatsPage, { replace: true });
     });
   }
 

@@ -22,10 +22,12 @@ export type WsClientAction =
 export type WsServerEventType =
   | 'subscribed'
   | 'unsubscribed'
+  | 'chat.activity'
   | 'chat.created'
   | 'chat.updated'
   | 'chat.deleted'
   | 'member.added'
+  | 'member.updated'
   | 'member.deleted'
   | 'typing.started'
   | 'typing.stopped'

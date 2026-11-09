@@ -18,7 +18,7 @@ export class AuthApi extends ServerApi {
    * Регистрация нового пользователя.
    */
   static async register(userData: RegisterData) {
-    return this._request(REGISTER_URL, {
+    return this._request<User>(REGISTER_URL, {
       method: 'POST',
       body: userData,
       skipAuthRedirect: true,

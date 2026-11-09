@@ -1,7 +1,6 @@
 import './ProfileMenu.scss';
 import { PROFILE_TEXTS } from '@/constants/Profile';
 import type { ProfileTab } from './profile.types';
-import { ROUTES } from '@/constants/Routes';
 
 const MENU_ITEMS: Array<{ tab: ProfileTab; label: string }> = [
   { tab: 'overview', label: 'Мой профиль' },

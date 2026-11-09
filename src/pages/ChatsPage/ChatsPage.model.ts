@@ -14,8 +14,8 @@ import type {
   ChatMessage,
   DisplayChat,
 } from '@/api/chats/chats.types.ts';
-import { sortChatsByLastMessage, toDisplayChat } from '@/helpers/chat.ts';
 import { REMOTE_TYPING_TIMEOUT_MS, TYPING_IDLE_MS } from './chats.constants.ts';
+import { sortChatsByLastMessage, toDisplayChat } from '@/helpers/chat.ts';
 
 export class ChatsPageModel {
   readonly chats = new Signal<DisplayChat[]>([]);
@@ -36,10 +36,15 @@ export class ChatsPageModel {
 
   private selectedChatId: string | null = null;
   private selectionVersion = 0;
+  private dialogRequestVersion = 0;
   private isFetching = false;
   private pendingChatsRefresh = false;
   private catchUpAfterMessageLoad = false;
-  private unreadRefreshVersion = 0;
+  private nextCursor: { after_time: string; after_id: string } | null = null;
+  private loadedPageCount = 1;
+  readonly hasMoreChats = new Signal(false);
+
+  private activityTimer: number | null = null;
   private localTypingChatId: string | null = null;
   private localTypingTimer: number | null = null;
   private readonly remoteTypingTimers = new Map<string, number>();
@@ -68,13 +73,14 @@ export class ChatsPageModel {
     });
   }
 
-  start(): void {
+  start(loadInitially = true): void {
     this.socket.connect();
-    void this.loadChats(true);
+    if (loadInitially) void this.loadChats(true);
   }
 
   destroy(): void {
-    this.unreadRefreshVersion += 1;
+    this.dialogRequestVersion += 1;
+    window.clearTimeout(this.activityTimer ?? undefined);
     this.stopTyping();
     this.clearRemoteTyping();
     this.offLoad();
@@ -98,46 +104,38 @@ export class ChatsPageModel {
 
     if (response instanceof ApiError) {
       if (response.status !== STATUSES.UNAUTHORIZED) {
-        if (response.code === ERROR_CODES.NETWORK_ERROR) {
-          this.hasNetworkError.value = true;
-        } else {
-          debugError(response.message);
-        }
-      }
-
-      if (showLoading) {
-        this.chats.value = [];
+        if (response.code === ERROR_CODES.NETWORK_ERROR) this.hasNetworkError.value = true;
+        else debugError(response.message);
       }
     } else {
-      const previousCounts = new Map(this.chats.value.map((chat) => [chat.id, chat.unreadCount]));
-      const next = sortChatsByLastMessage(
-        (response.data?.items ?? []).map((chat) => {
-          const displayChat = toDisplayChat(chat);
-          displayChat.unreadCount = previousCounts.get(chat.id) ?? 0;
-          return displayChat;
-        }),
-      );
-      const nextIds = new Set(next.map((chat) => chat.id).filter((id): id is string => !!id));
-
-      for (const chat of this.chats.value) {
-        if (chat.id && !nextIds.has(chat.id)) {
-          this.socket.unsubscribe(chat.id);
+      const items = [...(response.data?.items ?? [])];
+      let cursor =
+        response.data?.next_after_time && response.data?.next_after_id
+          ? { after_time: response.data.next_after_time, after_id: response.data.next_after_id }
+          : null;
+      let loaded = 1;
+      while (cursor && loaded < this.loadedPageCount) {
+        const page = await ChatsApi.getChats(cursor);
+        if (page instanceof ApiError) {
+          this.hasNetworkError.value = true;
+          break;
         }
+        items.push(...(page.data?.items ?? []));
+        cursor =
+          page.data?.next_after_time && page.data?.next_after_id
+            ? { after_time: page.data.next_after_time, after_id: page.data.next_after_id }
+            : null;
+        loaded += 1;
       }
-
-      for (const chat of next) {
-        if (chat.id) {
-          this.socket.subscribe(chat.id);
-        }
-      }
-
-      this.chats.value = next;
-      void this.refreshUnreadCounts(next);
-
-      if (this.selectedChatId) {
-        const selected = next.find((chat) => chat.id === this.selectedChatId);
-        if (selected) {
-          this.activeChat.value = selected;
+      if (!this.hasNetworkError.value) {
+        const byId = new Map(items.map((chat) => [chat.id, toDisplayChat(chat)]));
+        this.chats.value = sortChatsByLastMessage([...byId.values()]);
+        this.nextCursor = cursor;
+        this.hasMoreChats.value = Boolean(cursor);
+        this.loadedPageCount = loaded;
+        if (this.selectedChatId) {
+          const selected = this.chats.value.find((chat) => chat.id === this.selectedChatId);
+          if (selected) this.activeChat.value = selected;
         }
       }
     }
@@ -418,6 +416,55 @@ export class ChatsPageModel {
     }
   }
 
+  async createDialog(peerId: string): Promise<ApiResult<ChatDetailResponse>> {
+    const requestVersion = ++this.dialogRequestVersion;
+    const result = await ChatsApi.createDialog(peerId);
+    if (result.success && result.data?.chat?.id && requestVersion === this.dialogRequestVersion) {
+      await this.loadChats(false);
+      if (requestVersion === this.dialogRequestVersion) {
+        await this.selectChat(result.data.chat.id);
+      }
+    }
+    return result;
+  }
+
+  async addMembers(ids: string[]): Promise<string[]> {
+    const id = this.selectedChatId;
+    if (!id) return ['Чат не выбран'];
+    const errors: string[] = [];
+    for (const userId of ids) {
+      const result = await ChatsApi.addMember(id, userId);
+      if (result instanceof ApiError) errors.push(result.message);
+    }
+    await Promise.all([this.loadMembers(id), this.loadChats(false)]);
+    return errors;
+  }
+
+  async updateMemberRole(
+    userId: string,
+    role: 'admin' | 'member',
+  ): Promise<ApiResult<ChatMember> | null> {
+    const chatId = this.selectedChatId;
+    if (!chatId) return null;
+
+    const result = await ChatsApi.updateMemberRole(chatId, userId, role);
+    if (result.success) {
+      this.members.value = this.members.value.map((member) =>
+        member.user_id === userId ? result.data : member,
+      );
+      if (userId === user.getId()) this.role.value = role;
+    }
+    return result;
+  }
+
+  async uploadGroupAvatar(file: File): Promise<ApiResult<ChatDetailResponse> | null> {
+    const id = this.selectedChatId;
+    if (!id) return null;
+    const result = await ChatsApi.uploadGroupAvatar(id, file);
+    if (result.success) await this.loadChats(false);
+    return result;
+  }
+
   async createGroup(
     name: string,
     description: string,
@@ -545,78 +592,42 @@ export class ChatsPageModel {
     }
   }
 
-  private async refreshUnreadCounts(chats: DisplayChat[]): Promise<void> {
-    const currentUserId = user.getId();
-    if (!currentUserId) {
+  async loadMoreChats(): Promise<void> {
+    if (!this.nextCursor || this.isFetching) return;
+    const cursor = this.nextCursor;
+    this.isFetching = true;
+    const result = await ChatsApi.getChats(cursor);
+    this.isFetching = false;
+    if (result instanceof ApiError) {
+      this.hasNetworkError.value = true;
       return;
     }
+    const existing = new Map(this.chats.value.map((chat) => [chat.id, chat]));
+    for (const chat of result.data?.items ?? []) existing.set(chat.id, toDisplayChat(chat));
+    this.chats.value = sortChatsByLastMessage([...existing.values()]);
+    this.loadedPageCount += 1;
+    this.nextCursor =
+      result.data?.next_after_time && result.data?.next_after_id
+        ? { after_time: result.data.next_after_time, after_id: result.data.next_after_id }
+        : null;
+    this.hasMoreChats.value = Boolean(this.nextCursor);
+  }
 
-    const version = ++this.unreadRefreshVersion;
-    const queue = chats.filter((chat) => chat.id && chat.last_message);
-    const counts = new Map<string, { messageId: string | undefined; count: number }>();
-    let index = 0;
+  private async verifySelectedChat(): Promise<void> {
+    const id = this.selectedChatId;
+    if (!id) return;
+    const result = await ChatsApi.getChat(id);
+    if (id !== this.selectedChatId) return;
+    if (result instanceof ApiError && (result.status === 403 || result.status === 404))
+      this.removeCurrentChat();
+  }
 
-    const worker = async (): Promise<void> => {
-      while (index < queue.length && version === this.unreadRefreshVersion) {
-        const chat = queue[index++];
-        const chatId = chat.id;
-        if (!chatId) {
-          continue;
-        }
-
-        let before: string | undefined;
-        let unreadCount = 0;
-        let complete = false;
-
-        while (!complete && version === this.unreadRefreshVersion) {
-          const response = await ChatsApi.getMessages(chatId, before);
-          if (response instanceof ApiError) {
-            break;
-          }
-
-          const page = response.data?.items ?? [];
-          unreadCount += page.filter(
-            (message) => message.user_id !== currentUserId && !message.is_read,
-          ).length;
-          complete = page.length < 50;
-          before = page[page.length - 1]?.id;
-          if (!before) {
-            complete = true;
-          }
-        }
-
-        if (version !== this.unreadRefreshVersion || !complete) {
-          continue;
-        }
-
-        counts.set(chatId, { messageId: chat.last_message?.id, count: unreadCount });
-      }
-    };
-
-    await Promise.all(Array.from({ length: Math.min(4, queue.length) }, () => worker()));
-    if (version !== this.unreadRefreshVersion) {
-      return;
-    }
-
-    let changed = false;
-    const updated = this.chats.value.map((chat) => {
-      const result = counts.get(chat.id ?? '');
-      if (!result || chat.last_message?.id !== result.messageId) {
-        return chat;
-      }
-
-      const count = this.selectedChatId === chat.id ? 0 : result.count;
-      if (chat.unreadCount === count) {
-        return chat;
-      }
-
-      changed = true;
-      return { ...chat, unreadCount: count };
-    });
-
-    if (changed) {
-      this.chats.value = updated;
-    }
+  private scheduleActivityRefresh(): void {
+    if (this.activityTimer !== null) return;
+    this.activityTimer = window.setTimeout(() => {
+      this.activityTimer = null;
+      void this.loadChats(false);
+    }, 150);
   }
 
   private acceptMessage(message: ChatMessage): void {
@@ -639,6 +650,8 @@ export class ChatsPageModel {
       return {
         ...toDisplayChat({
           ...chat,
+          is_online: chat.isOnline,
+          unread_count: chat.unreadCount,
           last_message: {
             id: message.id,
             content: message.content,
@@ -746,6 +759,15 @@ export class ChatsPageModel {
       return;
     }
 
+    if (event.type === 'chat.deleted') {
+      const payload = event.payload as { chat_id?: string } | undefined;
+      if (payload?.chat_id === this.selectedChatId) this.removeCurrentChat();
+      else if (payload?.chat_id)
+        this.chats.value = this.chats.value.filter((chat) => chat.id !== payload.chat_id);
+      void this.loadChats(false);
+      return;
+    }
+
     if (
       event.type === 'chat.created' ||
       event.type === 'chat.updated' ||
@@ -755,7 +777,39 @@ export class ChatsPageModel {
       return;
     }
 
+    if (event.type === 'chat.activity') {
+      const payload = event.payload as { chat_id?: string } | undefined;
+      if (payload?.chat_id === this.selectedChatId) void this.verifySelectedChat();
+      this.scheduleActivityRefresh();
+      return;
+    }
+
+    if (event.type === 'member.updated') {
+      const payload = event.payload as
+        { chat_id?: string; user_id?: string; role?: string } | undefined;
+      if (
+        payload?.chat_id === this.selectedChatId &&
+        payload.user_id &&
+        (payload.role === 'admin' || payload.role === 'member')
+      ) {
+        this.members.value = this.members.value.map((member) =>
+          member.user_id === payload.user_id
+            ? { ...member, role: payload.role as 'admin' | 'member' }
+            : member,
+        );
+        if (payload.user_id === user.getId()) this.role.value = payload.role;
+      }
+      return;
+    }
+
     if (event.type === 'member.added' || event.type === 'member.deleted') {
+      const payload = event.payload as { chat_id?: string; user_id?: string } | undefined;
+      if (
+        event.type === 'member.deleted' &&
+        payload?.chat_id === this.selectedChatId &&
+        payload.user_id === user.getId()
+      )
+        this.removeCurrentChat();
       void this.loadChats(false);
       void this.loadMembers();
     }

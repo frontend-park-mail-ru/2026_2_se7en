@@ -1,8 +1,7 @@
 import './ContactPicker.scss';
-import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { Button } from '@/components/core/Button.ts';
-import { Input } from '@/components/core/Input.ts';
-import type { ContactPreview, ContactPickerView } from './chat.types.ts';
+import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import type { ContactPickerView, ContactPreview } from './chat.types.ts';
 
 /** Отображает список контактов для нового диалога. */
 export function renderContactPicker(
@@ -15,10 +14,6 @@ export function renderContactPicker(
         ${Button({ text: '<img src="/design-assets/63b18.svg" alt="" width="20" height="20">', mode: 'unstyled', ariaLabel: 'Вернуться к чатам', attrs: { 'data-contact-back': '' } })}
         <h2>Новый диалог</h2>
       </header>
-      <label class="contact-picker__search">
-        <img src="/design-assets/9e868.svg" alt="" width="17" height="17">
-        ${Input({ type: 'search', name: 'contact-search', value: view.query, placeholder: 'Поиск по имени или никнейму', unstyled: true, attrs: { 'aria-label': 'Поиск контакта', 'data-contact-search': '' } })}
-      </label>
       <div class="contact-picker__list" aria-busy="${Boolean(view.loading)}">
         ${
           view.loading

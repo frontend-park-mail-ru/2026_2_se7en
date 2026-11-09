@@ -1,90 +1,144 @@
-// Блок "боковая панель" приложения.
-
+// Общая боковая панель приложения: одинаковая геометрия на всех страницах.
 .sidebar {
-  @include flex-column;
-  width: 5rem;
+  @include flex;
+  flex: 0 0 92px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 92px;
+  min-height: 0;
+  padding: 16px 0 24px;
   background-color: $white;
-  border-right: 1px solid $gray-200;
+  border-right: 1px solid #ecf2f7;
 
   &__logo {
     @include flex-center;
-    @include size(3rem);
+    width: 56px;
+    height: 56px;
     overflow: hidden;
     background-color: $black;
-    border-radius: $radius-md;
+    border-radius: 15px;
 
     &-box {
       @include flex-justify-center;
-      padding: 0.75rem;
+      flex: 0 0 auto;
+      width: 100%;
+      margin-bottom: 24px;
     }
 
     &-img {
       @include size(100%);
-      border-radius: $radius-md;
+      border-radius: 15px;
       object-fit: cover;
     }
   }
 
   &__nav {
-    @include flex-column;
+    @include flex;
     flex: 1;
-    gap: 0.5rem;
-    padding: 0 0.5rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
 
     &-item {
-      @include flex-center;
-      flex-direction: column;
-      padding: 0.75rem;
+      @include flex-column;
+      flex: 0 0 64px;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      width: 70px;
+      height: 64px;
+      padding: 0;
       border: none;
-      border-radius: $radius-md;
-      color: $gray-400;
+      border-radius: 14px;
+      color: #9aa8ba;
       text-align: center;
 
       &:hover {
-        background-color: $gray-50;
+        color: #142033;
+        background-color: #eaf5ff;
       }
 
       &_active {
-        background-color: $blue-50;
-        color: $blue-600;
+        background-color: #eaf5ff;
+        color: #142033;
 
         &:hover {
-          background-color: $blue-50;
+          background-color: #eaf5ff;
         }
+      }
+
+      .icon {
+        width: 24px;
+        height: 24px;
       }
     }
 
     &-label {
-      margin-top: 0.25rem;
-      font-size: 0.75rem;
-      line-height: 1rem;
+      margin-top: 0;
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: 500;
     }
   }
 
   &__bottom {
     @include flex-column;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
+    gap: 8px;
+  }
+
+  #logout-button {
+    position: static;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    opacity: 1;
+    pointer-events: auto;
+    color: #6c7b91;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: none;
+
+    &:hover {
+      color: #142033;
+      background: #f5faff;
+      box-shadow: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #b9d8f5;
+      outline-offset: 2px;
+      box-shadow: none;
+    }
   }
 
   &__avatar {
-    @include flex-center;
-    @include size(2.5rem);
-    background-color: $blue-100;
-    border-radius: $radius-full;
+    @include flex;
+    flex: 0 0 50px;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: #e8f3ff url('/design-assets/69aeb.svg') center / 50px 50px no-repeat;
+    border-radius: 50%;
 
     &-box {
       position: relative;
-      @include size(2.5rem);
+      flex: 0 0 50px;
+      width: 50px;
+      height: 50px;
       margin: 0 auto;
     }
 
     &-letter {
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-      font-weight: 600;
-      color: $blue-600;
+      color: #142033;
+      font-size: 17px;
+      line-height: 24px;
+      font-weight: 500;
     }
   }
 
@@ -92,9 +146,14 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    @include size(0.75rem);
-    background-color: $green-500;
-    border: 2px solid $white;
-    border-radius: $radius-full;
+    width: 11px;
+    height: 11px;
+    background: url('/design-assets/d4a6f.svg') center / contain no-repeat;
+  }
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    display: none;
   }
 }

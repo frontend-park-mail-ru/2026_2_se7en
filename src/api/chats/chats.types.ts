@@ -20,6 +20,8 @@ export interface Chat {
   name?: string | null;
   description?: string | null;
   icon_url?: string | null;
+  is_online?: boolean;
+  unread_count?: number;
   members_count?: number;
   last_message?: MessagePreview | null;
   created_at?: string;
@@ -31,6 +33,8 @@ export interface Chat {
  */
 export interface ChatsResponse {
   items: Chat[];
+  next_after_time?: string;
+  next_after_id?: string;
 }
 
 /**
@@ -39,6 +43,8 @@ export interface ChatsResponse {
 export interface GetChatsParams {
   limit?: number;
   offset?: number;
+  after_time?: string;
+  after_id?: string;
   type?: ChatType;
 }
 
@@ -50,13 +56,16 @@ export interface ChatDetailResponse {
 export interface ChatMember {
   user_id: string;
   role: 'creator' | 'admin' | 'member';
+  is_online?: boolean;
   profile: {
     id: string;
     user_id: string;
     nickname: string;
     first_name: string;
     last_name?: string | null;
+    bio?: string | null;
     icon_id?: string | null;
+    icon_url?: string | null;
   };
 }
 

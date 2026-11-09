@@ -157,6 +157,7 @@ export function ProfileContent({
   isSubmitting,
   formError,
   errorMessage,
+  isAvatarUploading = false,
 }: ProfileContentParams): string {
   if (errorMessage) {
     return `
@@ -261,7 +262,13 @@ export function ProfileContent({
         </header>
 
         <div class="profile-page__content">
-          ${ProfileCard({ name: displayName, subtitle: cardSubtitle })}
+          ${ProfileCard({
+            name: displayName,
+            subtitle: cardSubtitle,
+            avatarUrl: profile.icon_url,
+            canChangeAvatar: true,
+            isAvatarUploading,
+          })}
           ${contentHtml}
         </div>
       </main>

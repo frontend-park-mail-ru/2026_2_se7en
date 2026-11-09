@@ -72,24 +72,24 @@ export function toDisplayChat(chat: Chat): DisplayChat {
 
   const initials = getChatInitials(name);
 
-  const createdAt = chat.last_message?.created_at ?? chat.updated_at ?? chat.created_at;
+  const createdAt = chat.last_message?.created_at ?? chat.created_at;
 
   const messageDate = createdAt ? new Date(createdAt) : null;
 
   return {
     ...chat,
     initials,
-    isOnline: false,
+    isOnline: chat.is_online ?? false,
     time: formatMessageTime(messageDate),
     lastMessage: chat.last_message?.content ?? '',
-    unreadCount: 0,
+    unreadCount: chat.unread_count ?? 0,
   };
 }
 
 export function sortChatsByLastMessage(chats: DisplayChat[]): DisplayChat[] {
   return [...chats].sort((left, right) => {
-    const leftDate = left.last_message?.created_at ?? left.updated_at ?? left.created_at ?? '';
-    const rightDate = right.last_message?.created_at ?? right.updated_at ?? right.created_at ?? '';
+    const leftDate = left.last_message?.created_at ?? left.created_at ?? '';
+    const rightDate = right.last_message?.created_at ?? right.created_at ?? '';
 
     return Date.parse(rightDate) - Date.parse(leftDate);
   });
