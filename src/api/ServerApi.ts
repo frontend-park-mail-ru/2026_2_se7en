@@ -2,7 +2,13 @@ import { BASE_URL } from '@/api/api.constants.ts';
 import { STATUSES } from '@/constants/Statuses';
 import { eventBus } from '@/helpers/EventBus';
 import { ApiError, type ApiResult, ApiSuccess, type ErrorData } from '@/api/ApiResponse.ts';
+import { CSRF_HEADER, CSRF_URL, SAFE_METHODS } from '@/api/csrf.constants.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
+import { LOGIN_URL, REGISTER_URL } from '@/api/auth/auth.constants.ts';
+
+interface CSRFTokenResponse {
+  csrf_token: string;
+}
 
 interface ApiRequestOptions extends Omit<RequestInit, 'body' | 'headers' | 'credentials'> {
   body?: unknown;
@@ -101,6 +107,22 @@ export class ServerApi {
     }
 
     try {
+      const method = (options.method ?? 'GET').toUpperCase();
+      const isPublicAuthRequest =
+        method === 'POST' && (endpoint === LOGIN_URL || endpoint === REGISTER_URL);
+      if (!SAFE_METHODS.includes(method) && !isPublicAuthRequest) {
+        const csrf = await ServerApi.getCSRFToken();
+        if (csrf.success === false) return csrf;
+        if (typeof csrf.data?.csrf_token !== 'string' || !csrf.data.csrf_token) {
+          return new ApiError(
+            ERROR_CODES.UNKNOWN_ERROR,
+            ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR],
+            csrf.status,
+          );
+        }
+        headers.set(CSRF_HEADER, csrf.data.csrf_token);
+      }
+
       const response = await fetch(url, config);
 
       let responseData: unknown = null;
