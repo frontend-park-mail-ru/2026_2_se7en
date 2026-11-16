@@ -1,4 +1,5 @@
 import { AuthApi } from '@/api/auth/AuthApi.ts';
+import { ProfileApi } from '@/api/profile/ProfileApi.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { STATUSES } from '@/constants/Statuses.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
@@ -15,6 +16,7 @@ class User {
 
   /** Данные текущего пользователя. */
   private _data: CurrentUser = { id: '', name: '' };
+  private avatarUrl = '';
 
   constructor() {
     eventBus.on('auth:unauthorized', () => {
@@ -39,6 +41,25 @@ class User {
 
   getId(): string {
     return this._data.id;
+  }
+
+  getAvatarUrl(): string {
+    return this.avatarUrl;
+  }
+
+  setAvatarUrl(url: string | null | undefined): void {
+    this.avatarUrl = url || '';
+    const avatar = document.querySelector<HTMLElement>('.sidebar__avatar');
+    if (avatar) {
+      avatar.querySelector('img')?.remove();
+      if (this.avatarUrl) {
+        const image = document.createElement('img');
+        image.src = this.avatarUrl;
+        image.alt = '';
+        image.className = 'sidebar__avatar-image';
+        avatar.append(image);
+      }
+    }
   }
 
   setAuthenticatedUser(account: AuthUser): void {
@@ -87,6 +108,8 @@ class User {
       this._isAuth = true;
       this._data.id = response.data.id;
       this._data.name = response.data?.profile?.nickname || '';
+      const profile = await ProfileApi.getProfile();
+      if (profile.success) this.setAvatarUrl(profile.data.icon_url);
     } else {
       this._isAuth = false;
       this._data.id = '';

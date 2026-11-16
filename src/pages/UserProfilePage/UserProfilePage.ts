@@ -73,8 +73,9 @@ export class UserProfilePage extends Page {
       pseudonym,
       displayName:
         [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.nickname,
-      addContact: (pseudonym) => ContactsApi.addContact(profile.nickname, pseudonym),
-      removeContact: () => ContactsApi.removeContact(profile.id),
+      addContact: (pseudonym) =>
+        ContactsApi.createContact({ nickname: profile.nickname, pseudonym }),
+      removeContact: () => ContactsApi.deleteContact({ contact_user_id: profile.id }),
     });
     this.contactActions.mount(slot);
   }

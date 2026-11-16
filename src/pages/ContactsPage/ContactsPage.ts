@@ -29,6 +29,7 @@ export class ContactsPage extends Page {
   private readonly chatModel = new ChatsPageModel();
   private readonly chatArea = new ChatArea();
   private searchTimer: number | null = null;
+  private presenceTimer: number | null = null;
   private messageDraft = '';
   private dialogMenuOpen = false;
   private deleteConfirmOpen = false;
@@ -52,7 +53,6 @@ export class ContactsPage extends Page {
         this.chatModel.messagesLoading,
         this.chatModel.messagesError,
         this.chatModel.sendError,
-        this.chatModel.sending,
         this.chatModel.hasMoreMessages,
         this.chatModel.typingUsers,
       ],
@@ -81,7 +81,6 @@ export class ContactsPage extends Page {
           messagesLoading: this.chatModel.messagesLoading.value,
           messagesError: this.chatModel.messagesError.value,
           sendError: this.chatModel.sendError.value,
-          sending: this.chatModel.sending.value,
           hasMoreMessages: this.chatModel.hasMoreMessages.value,
           draft: this.messageDraft,
           typingLabel: this.chatModel.typingUsers.value.length ? 'Собеседник печатает…' : '',
@@ -124,7 +123,32 @@ export class ContactsPage extends Page {
       : 'input[name="contact-search"]';
     const start = focusedInput?.selectionStart;
     const end = focusedInput?.selectionEnd;
+    const oldHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
+    const oldLastId = oldHistory?.querySelector<HTMLElement>('[data-message-id]:last-child')
+      ?.dataset.messageId;
+    const oldFirstId =
+      oldHistory?.querySelector<HTMLElement>('[data-message-id]')?.dataset.messageId;
+    const oldScrollTop = oldHistory?.scrollTop ?? 0;
+    const oldScrollHeight = oldHistory?.scrollHeight ?? 0;
+    const nearBottom = oldHistory
+      ? oldScrollHeight - oldScrollTop - oldHistory.clientHeight < 80
+      : true;
     this.container.innerHTML = this.render();
+    const newHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
+    if (newHistory) {
+      const newLastId = newHistory.querySelector<HTMLElement>('[data-message-id]:last-child')
+        ?.dataset.messageId;
+      const newFirstId =
+        newHistory.querySelector<HTMLElement>('[data-message-id]')?.dataset.messageId;
+      if (!oldHistory || (oldLastId !== newLastId && nearBottom))
+        newHistory.scrollTop = newHistory.scrollHeight;
+      else
+        newHistory.scrollTop =
+          oldScrollTop +
+          (oldFirstId && oldFirstId !== newFirstId
+            ? Math.max(0, newHistory.scrollHeight - oldScrollHeight)
+            : 0);
+    }
     if (focusedInput) {
       const next = this.container.querySelector<HTMLInputElement>(selector);
       next?.focus();
@@ -280,13 +304,10 @@ export class ContactsPage extends Page {
     if (!(event.target as HTMLElement).matches('[data-message-form]')) return;
     event.preventDefault();
     const text = this.messageDraft.trim();
-    if (!text || this.chatModel.sending.value) return;
-    void this.chatModel.sendMessage(text).then((sent) => {
-      if (sent) {
-        this.messageDraft = '';
-        this.update();
-      }
-    });
+    if (!text) return;
+    this.messageDraft = '';
+    this.update();
+    void this.chatModel.sendMessage(text);
   };
 
   private openDialog(peerId: string): void {
@@ -317,6 +338,7 @@ export class ContactsPage extends Page {
       firstName: profile.first_name,
       lastName: profile.last_name,
       nickname: profile.nickname,
+      bio: profile.bio,
       avatarUrl: profile.icon_url,
       initials: getChatInitials(name),
       isContact: true,
@@ -381,9 +403,13 @@ export class ContactsPage extends Page {
   async afterMount(): Promise<void> {
     this.chatModel.start(false);
     eventBus.emit('contacts:load');
+    this.presenceTimer = window.setInterval(() => {
+      if (!document.hidden) void this.model.loadContacts(true);
+    }, 10000);
   }
 
   unmount(): void {
+    window.clearInterval(this.presenceTimer ?? undefined);
     this.container?.removeEventListener('click', this.handleContainerClick);
     this.container?.removeEventListener('keydown', this.handleContainerKeydown);
     this.container?.removeEventListener('input', this.handleContainerInput);

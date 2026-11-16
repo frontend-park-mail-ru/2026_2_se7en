@@ -108,6 +108,7 @@ export class ProfilePageModel {
     if (res instanceof ApiSuccess) {
       this.syncFormValuesWithProfile(res.data);
       this.profile.value = res.data;
+      user.setAvatarUrl(res.data.icon_url);
     } else {
       this.errorMessage.value = DEFAULT_ERROR_MESSAGE;
     }
@@ -125,6 +126,7 @@ export class ProfilePageModel {
         if (this.profile.value) {
           this.profile.value = { ...this.profile.value, icon_url: result.data.icon_url };
         }
+        user.setAvatarUrl(result.data.icon_url);
         eventBus.emit('snackbar:show', { text: 'Фотография профиля обновлена', type: 'success' });
         return;
       }
@@ -229,11 +231,7 @@ export class ProfilePageModel {
       this.syncFormValuesWithProfile(updatedProfile);
       this.profile.value = updatedProfile;
 
-      if (tab !== 'public') {
-        void router.goTo(ROUTES.PROFILE_SECURITY);
-      } else {
-        eventBus.emit('snackbar:show', { text: 'Профиль обновлён', type: 'success' });
-      }
+      void router.goTo(tab === 'public' ? ROUTES.PROFILE : ROUTES.PROFILE_SECURITY);
 
       void user.updateCurrentUser();
       return;

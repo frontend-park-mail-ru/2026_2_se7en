@@ -8,6 +8,7 @@ export interface PublicProfileView {
   firstName: string;
   lastName?: string | null;
   nickname: string;
+  bio?: string | null;
   avatarUrl?: string | null;
   initials: string;
   isContact?: boolean;
@@ -43,6 +44,10 @@ export function PublicProfileModal(profile: PublicProfileView | null): string {
           <div class="public-profile-modal__field">
             <dt>Никнейм</dt>
             <dd>${valueOrFallback(profile.nickname)}</dd>
+          </div>
+          <div class="public-profile-modal__field public-profile-modal__field_about">
+            <dt>О себе</dt>
+            <dd>${valueOrFallback(profile.bio)}</dd>
           </div>
         </dl>
         <div class="public-profile-modal__actions">

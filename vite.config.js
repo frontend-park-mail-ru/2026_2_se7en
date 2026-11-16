@@ -59,7 +59,6 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       open: true,
       proxy: {
-        '/uploads': { target: backendUrl, changeOrigin: true },
         '/api/v1': {
           target: backendUrl,
           changeOrigin: true,

@@ -6,7 +6,6 @@ export interface ChatAreaOptions {
   messagesLoading?: boolean;
   messagesError?: string;
   sendError?: string;
-  sending?: boolean;
   draft?: string;
   dateLabel?: string;
   hasMoreMessages?: boolean;
