@@ -18,36 +18,46 @@ export class AuthApi extends ServerApi {
    * Регистрация нового пользователя.
    */
   static async register(userData: RegisterData) {
-    return this._request<User>(REGISTER_URL, {
+    this.clearCsrfToken();
+    const result = await this._request<User>(REGISTER_URL, {
       method: 'POST',
       body: userData,
       skipAuthRedirect: true,
+      skipCsrf: true,
     });
+    if (result.success) this.clearCsrfToken();
+    return result;
   }
 
   /**
    * Авторизация пользователя.
    */
   static async login(loginData: LoginData): Promise<ApiResult<User>> {
+    this.clearCsrfToken();
     if (USING_MOCK.AUTH) {
       return mockLogin(loginData);
     }
 
-    return this._request<User>(LOGIN_URL, {
+    const result = await this._request<User>(LOGIN_URL, {
       method: 'POST',
       body: loginData,
       skipAuthRedirect: true,
+      skipCsrf: true,
     });
+    if (result.success) this.clearCsrfToken();
+    return result;
   }
 
   /**
    * Завершение пользовательской сессии.
    */
   static async logout() {
-    return this._request(LOGOUT_URL, {
+    const result = await this._request(LOGOUT_URL, {
       method: 'POST',
       skipAuthRedirect: true,
     });
+    this.clearCsrfToken();
+    return result;
   }
 
   /**

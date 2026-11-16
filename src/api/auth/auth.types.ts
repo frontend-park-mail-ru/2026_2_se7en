@@ -6,7 +6,7 @@ export interface UserProfile {
 export interface User {
   id: string;
   email: string;
-  phoneNumber: string | null;
+  phone_number: string | null;
   profile: UserProfile;
 }
 
@@ -15,7 +15,7 @@ export interface RegisterData {
   password: string;
   nickname: string;
   first_name: string;
-  phoneNumber?: string | null;
+  phone_number?: string | null;
 }
 
 export interface LoginData {
