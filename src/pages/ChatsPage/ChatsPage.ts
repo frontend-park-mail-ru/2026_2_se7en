@@ -64,6 +64,13 @@ export class ChatsPage extends Page {
   private openMemberMenuId: string | null = null;
   private removeMemberId: string | null = null;
   private chatFilter: ChatFilter = 'all';
+  private messageSearch: {
+    chatId: string;
+    query: string;
+    currentId?: string;
+    scrollTop: number;
+  } | null = null;
+  private loadingOlderMessages = false;
   private messageDraft = '';
   private actionPending = false;
   private createForm: GroupFormView = {};
@@ -125,6 +132,7 @@ export class ChatsPage extends Page {
 
   render(): string {
     const chat = this.model.activeChat.value;
+    if (this.messageSearch && this.messageSearch.chatId !== chat?.id) this.messageSearch = null;
     const chats = this.model.chats.value;
     const loading = this.model.isLoading.value;
     const networkError = this.model.hasNetworkError.value;
@@ -155,6 +163,8 @@ export class ChatsPage extends Page {
     }));
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
+      searchQuery: this.messageSearch?.query,
+      searchMessageId: this.messageSearch?.currentId,
       messagesLoading: this.model.messagesLoading.value,
       messagesError: this.model.messagesError.value,
       sendError: this.model.sendError.value,
@@ -299,20 +309,77 @@ export class ChatsPage extends Page {
       return;
     }
 
-    const focusedInput = document.activeElement?.matches('[data-message-input]')
-      ? (document.activeElement as HTMLInputElement)
+    const focusedInput =
+      document.activeElement instanceof HTMLInputElement ? document.activeElement : null;
+    const inputSelector = focusedInput?.matches('[data-message-input], [name="message-search"]')
+      ? `input[name="${focusedInput.name}"]`
       : null;
     const selectionStart = focusedInput?.selectionStart;
     const selectionEnd = focusedInput?.selectionEnd;
+    const searchButton = document.activeElement?.closest<HTMLButtonElement>('[data-search-step]');
+    const historyScroll = this.container.querySelector('[data-message-history]')?.scrollTop;
     this.container.innerHTML = this.render();
     this.bindEvents();
-    if (focusedInput) {
-      const nextInput = this.container.querySelector<HTMLInputElement>('[data-message-input]');
-      nextInput?.focus();
+    if (inputSelector) {
+      const nextInput = this.container.querySelector<HTMLInputElement>(inputSelector);
+      nextInput?.focus({ preventScroll: true });
       if (selectionStart != null && selectionEnd != null) {
         nextInput?.setSelectionRange(selectionStart, selectionEnd);
       }
+    } else if (searchButton) {
+      this.container
+        .querySelector<HTMLButtonElement>(`[data-search-step="${searchButton.dataset.searchStep}"]`)
+        ?.focus({ preventScroll: true });
     }
+    if (this.messageSearch) {
+      const history = this.container.querySelector<HTMLElement>('[data-message-history]');
+      if (history && historyScroll !== undefined) history.scrollTop = historyScroll;
+      const current = history?.querySelector<HTMLElement>('[aria-current="true"]');
+      if (current) this.messageSearch.currentId = current.dataset.messageId;
+      if (
+        this.messageSearch.query.trim() &&
+        this.model.hasMoreMessages.value &&
+        !this.model.messagesLoading.value &&
+        !this.model.messagesError.value
+      ) {
+        void this.loadOlderMessages();
+      }
+    }
+  }
+
+  private async loadOlderMessages(): Promise<void> {
+    if (this.loadingOlderMessages) return;
+    this.loadingOlderMessages = true;
+    try {
+      await this.model.loadOlderMessages();
+    } finally {
+      this.loadingOlderMessages = false;
+    }
+    if (this.messageSearch?.query.trim()) this.update();
+  }
+
+  private closeMessageSearch(): void {
+    const scrollTop = this.messageSearch?.scrollTop ?? 0;
+    this.messageSearch = null;
+    this.update();
+    const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
+    if (history) history.scrollTop = scrollTop;
+    this.container?.querySelector<HTMLButtonElement>('[data-chat-search]')?.focus();
+  }
+
+  private moveSearchResult(step: number): void {
+    if (!this.messageSearch || !this.container) return;
+    const rows = Array.from(
+      this.container.querySelectorAll<HTMLElement>('[data-message-history] [data-message-id]'),
+    );
+    if (!rows.length) return;
+    const index = rows.findIndex((row) => row.dataset.messageId === this.messageSearch?.currentId);
+    this.messageSearch.currentId =
+      rows[(index + step + rows.length) % rows.length].dataset.messageId;
+    this.update();
+    this.container
+      .querySelector('[data-message-id][aria-current="true"]')
+      ?.scrollIntoView({ block: 'nearest' });
   }
 
   bindEvents(): void {
@@ -348,9 +415,31 @@ export class ChatsPage extends Page {
       return;
     }
 
+    if (target.closest('[data-chat-search]') && this.model.activeChat.value) {
+      this.messageSearch = {
+        chatId: this.model.activeChat.value.id,
+        query: '',
+        scrollTop: this.container?.querySelector('[data-message-history]')?.scrollTop ?? 0,
+      };
+      this.dialogMenuOpen = false;
+      this.update();
+      this.container?.querySelector<HTMLInputElement>('[name="message-search"]')?.focus();
+      return;
+    }
+    if (target.closest('[data-close-search]')) {
+      this.closeMessageSearch();
+      return;
+    }
+    const step = target.closest<HTMLElement>('[data-search-step]')?.dataset.searchStep;
+    if (step) {
+      this.moveSearchResult(Number(step));
+      return;
+    }
+
     const chatItem = target.closest<HTMLElement>('[data-chat-id]');
     if (chatItem?.dataset.chatId) {
       this.view = 'chat';
+      this.messageSearch = null;
       this.messageDraft = '';
       this.deleteConfirmOpen = false;
       this.leaveConfirmOpen = false;
@@ -387,7 +476,7 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-messages-more]')) {
-      void this.model.loadOlderMessages();
+      void this.loadOlderMessages();
       return;
     }
 
@@ -704,12 +793,31 @@ export class ChatsPage extends Page {
   private readonly handleContainerKeydown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.publicProfile) {
       this.closePublicProfile();
+    } else if (this.messageSearch && event.key === 'Escape') {
+      event.preventDefault();
+      this.closeMessageSearch();
+    } else if (
+      event.key === 'Enter' &&
+      (event.target as HTMLElement)?.matches('[name="message-search"]') &&
+      !event.isComposing
+    ) {
+      event.preventDefault();
+      this.moveSearchResult(event.shiftKey ? -1 : 1);
     }
   };
 
   private readonly handleContainerInput = (event: Event): void => {
     const input = event.target as HTMLInputElement | HTMLTextAreaElement | null;
     if (!input) {
+      return;
+    }
+
+    if (input.name === 'message-search' && this.messageSearch) {
+      this.messageSearch.query = input.value;
+      this.messageSearch.currentId = undefined;
+      this.update();
+      const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
+      if (history) history.scrollTop = 0;
       return;
     }
 

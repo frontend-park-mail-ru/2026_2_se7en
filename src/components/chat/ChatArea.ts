@@ -1,6 +1,7 @@
 import './ChatArea.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { ChatAreaOptions } from './chat.types.ts';
+import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import type { DisplayChat, Message } from '@/api/chats/chats.types.ts';
 import {
@@ -14,11 +15,20 @@ const asset = (name: string): string => `/design-assets/${name}`;
 
 /** Отображает выбранный диалог, сообщения и форму отправки. */
 export class ChatArea {
-  private renderMessage(message: Message): string {
+  private renderMessage(message: Message, pattern?: RegExp, current = false): string {
     return `
-      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" data-message-id="${escapeHtml(String(message.id))}">
+      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} data-message-id="${escapeHtml(String(message.id))}">
         <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
-          <span class="chat-area__message-text">${escapeHtml(message.text)}</span>
+          <span class="chat-area__message-text">${
+            pattern
+              ? message.text
+                  .split(pattern)
+                  .map((part, index) =>
+                    index % 2 ? `<mark>${escapeHtml(part)}</mark>` : escapeHtml(part),
+                  )
+                  .join('')
+              : escapeHtml(message.text)
+          }</span>
           <span class="chat-area__message-meta">
             ${escapeHtml(message.time)}
             ${message.isOutgoing ? (message.isRead ? MessageReadIcon : MessageSentIcon) : ''}
@@ -47,15 +57,25 @@ export class ChatArea {
     `;
   }
 
-  private renderConversation(chat: DisplayChat, options: ChatAreaOptions): string {
-    const isGroup = chat.type === 'group';
-    const messages = options.messages ?? [];
-    const hasMessages = messages.length > 0;
-    const draft = options.draft ?? '';
+  private renderSearch(query: string, index: number, count: number): string {
+    return `<div class="chat-area__search" role="search">
+      ${PanelSearch({ label: 'Поиск по сообщениям', placeholder: 'Поиск по сообщениям', value: query, name: 'message-search' })}
+      ${
+        query.trim() && count
+          ? `
+        <span role="status">${index + 1}/${count}</span>
+        ${Button({ text: '↑', mode: 'unstyled', ariaLabel: 'Предыдущее сообщение', disabled: count < 2, attrs: { 'data-search-step': '-1' } })}
+        ${Button({ text: '↓', mode: 'unstyled', ariaLabel: 'Следующее сообщение', disabled: count < 2, attrs: { 'data-search-step': '1' } })}
+      `
+          : ''
+      }
+      ${Button({ text: '×', mode: 'unstyled', ariaLabel: 'Закрыть поиск', attrs: { 'data-close-search': '' } })}
+    </div>`;
+  }
 
+  private renderHeader(chat: DisplayChat, options: ChatAreaOptions): string {
+    const isGroup = chat.type === 'group';
     return `
-      <section class="chat-area chat-area_open" aria-label="Переписка">
-        <header class="chat-area__header">
           ${Button({ text: `<img src="${asset('63b18.svg')}" alt="" width="20" height="20">`, mode: 'unstyled', className: 'chat-area__back', ariaLabel: 'Назад к чатам', attrs: { 'data-chat-back': '' } })}
           ${Button({
             text: `
@@ -123,6 +143,28 @@ export class ChatArea {
           `
               : ''
           }
+    `;
+  }
+
+  private renderConversation(chat: DisplayChat, options: ChatAreaOptions): string {
+    const isGroup = chat.type === 'group';
+    const query = options.searchQuery?.trim();
+    const pattern = query
+      ? new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'iu')
+      : undefined;
+    const history = options.messages ?? [];
+    const messages = pattern ? history.filter((message) => pattern.test(message.text)) : history;
+    const currentIndex = Math.max(
+      0,
+      messages.findIndex((message) => message.id === options.searchMessageId),
+    );
+    const hasMessages = messages.length > 0;
+    const draft = options.draft ?? '';
+
+    return `
+      <section class="chat-area chat-area_open" aria-label="Переписка">
+        <header class="chat-area__header">
+          ${options.searchQuery !== undefined ? this.renderSearch(options.searchQuery, currentIndex, messages.length) : this.renderHeader(chat, options)}
         </header>
 
         <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history>
@@ -133,15 +175,15 @@ export class ChatArea {
                 ? `<div class="chat-area__history-status" role="alert"><p>${escapeHtml(options.messagesError)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-messages-retry': '' } })}</div>`
                 : hasMessages
                   ? `
-            ${options.hasMoreMessages ? Button({ text: 'Загрузить предыдущие сообщения', mode: 'unstyled', className: 'chat-area__load-more', attrs: { 'data-messages-more': '' } }) : ''}
+            ${options.hasMoreMessages && !query ? Button({ text: 'Загрузить предыдущие сообщения', mode: 'unstyled', className: 'chat-area__load-more', attrs: { 'data-messages-more': '' } }) : ''}
             ${options.dateLabel ? `<span class="chat-area__date">${escapeHtml(options.dateLabel)}</span>` : ''}
             <div class="chat-area__messages">
-              ${messages.map((message) => this.renderMessage(message)).join('')}
+              ${messages.map((message, index) => this.renderMessage(message, pattern, Boolean(query) && index === currentIndex)).join('')}
             </div>
           `
                   : `
             <p class="chat-area__empty-conversation">
-              Напишите первое сообщение в диалоге
+              ${query ? (options.hasMoreMessages ? 'Ищем в истории…' : `По запросу «${escapeHtml(query)}» ничего не найдено`) : 'Напишите первое сообщение в диалоге'}
             </p>
           `
           }
