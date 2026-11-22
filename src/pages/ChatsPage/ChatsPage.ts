@@ -148,13 +148,21 @@ export class ChatsPage extends Page {
             : 'Собеседник печатает…'
           : '';
     const role = this.model.role.value;
-    const messages: Message[] = this.model.messages.value.map((message) => ({
-      id: message.id,
-      text: message.content ?? '',
-      isOutgoing: message.user_id === user.getId(),
-      isRead: message.is_read,
-      time: formatMessageTime(new Date(message.created_at)),
-    }));
+    const messages: Message[] = this.model.messages.value.map((message) => {
+      const isOutgoing = message.user_id === user.getId();
+      const authorName =
+        !isOutgoing && chat?.type === 'group'
+          ? groupMembers.find((member) => member.id === message.user_id)?.name
+          : undefined;
+      return {
+        id: message.id,
+        text: message.content ?? '',
+        isOutgoing,
+        isRead: message.is_read,
+        time: formatMessageTime(new Date(message.created_at)),
+        authorName,
+      };
+    });
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
       messagesLoading: this.model.messagesLoading.value,
