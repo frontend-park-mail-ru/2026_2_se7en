@@ -1,6 +1,7 @@
 import './GroupViews.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import { GROUP_MAX_MEMBERS } from '@/pages/ChatsPage/chats.constants.ts';
 import { Input } from '@/components/core/Input.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
@@ -66,7 +67,9 @@ function checkIcon(selected: boolean): string {
 
 /** Считает и формирует текст счётчика выбранных участников для панели группы. */
 export function groupSelectionCountText(selectedIds: Set<string>, adding: boolean): string {
-  return adding ? `${selectedIds.size} выбрано` : `${selectedIds.size + 1} из 100 участников`;
+  return adding
+    ? `${selectedIds.size} выбрано`
+    : `${selectedIds.size + 1} из ${GROUP_MAX_MEMBERS} участников`;
 }
 
 /** Переключает отметку выбора в строке участника без полной перерисовки списка. */
