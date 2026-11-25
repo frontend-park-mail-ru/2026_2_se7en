@@ -1,6 +1,7 @@
 import './GroupViews.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import { GROUP_MAX_MEMBERS } from '@/pages/ChatsPage/chats.constants.ts';
 import { Input } from '@/components/core/Input.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
@@ -51,6 +52,35 @@ function avatarPicker(
   `;
 }
 
+/** Иконка-галочка выбора участника: отмечена или нет. */
+function checkIcon(selected: boolean): string {
+  return `
+    <img
+      class="group-view__check"
+      src="${asset(selected ? '22ee3.svg' : '44f03.svg')}"
+      alt="${selected ? 'Выбран' : 'Не выбран'}"
+      width="22"
+      height="22"
+    >
+  `;
+}
+
+/** Считает и формирует текст счётчика выбранных участников для панели группы. */
+export function groupSelectionCountText(selectedIds: Set<string>, adding: boolean): string {
+  return adding
+    ? `${selectedIds.size} выбрано`
+    : `${selectedIds.size + 1} из ${GROUP_MAX_MEMBERS} участников`;
+}
+
+/** Переключает отметку выбора в строке участника без полной перерисовки списка. */
+export function updateMemberRowState(row: HTMLElement, selected: boolean): void {
+  row.setAttribute('aria-pressed', String(selected));
+  const icon = row.querySelector('.group-view__check');
+  if (icon) {
+    icon.outerHTML = checkIcon(selected);
+  }
+}
+
 function memberRow(
   member: GroupMemberView,
   options: {
@@ -84,19 +114,7 @@ function memberRow(
       });
   const content = `
       ${memberIdentity}
-      ${
-        options.selectable
-          ? `
-        <img
-          class="group-view__check"
-          src="${asset(options.selected ? '22ee3.svg' : '44f03.svg')}"
-          alt="${options.selected ? 'Выбран' : 'Не выбран'}"
-          width="22"
-          height="22"
-        >
-      `
-          : ''
-      }
+      ${options.selectable ? checkIcon(Boolean(options.selected)) : ''}
       ${!options.selectable && member.role ? `<span class="group-view__role">${member.role === 'creator' ? 'Создатель' : member.role === 'admin' ? 'Администратор' : 'Участник'}</span>` : ''}
       ${
         options.showMenu && member.role !== 'creator'
@@ -140,7 +158,6 @@ export function renderGroupCreateMembers(
     mode?: 'create' | 'add';
   } = {},
 ): string {
-  const count = selectedIds.size + 1;
   const adding = options.mode === 'add';
 
   return `
@@ -149,7 +166,7 @@ export function renderGroupCreateMembers(
         ${backButton()}
         <h2>${adding ? 'Добавить участников' : 'Новая группа'}</h2>
       </header>
-      <p class="group-create-panel__count">${adding ? `${selectedIds.size} выбрано` : `${count} из 100 участников`}</p>
+      <p class="group-create-panel__count" data-group-selected-count>${groupSelectionCountText(selectedIds, adding)}</p>
       <div class="group-create-panel__members" aria-busy="${Boolean(options.loading)}">
         ${
           options.loading
@@ -167,7 +184,7 @@ export function renderGroupCreateMembers(
       </div>
       <p class="group-create-panel__selection-error group-view__error" role="status">${escapeHtml(options.membersError)}</p>
       <footer class="group-create-panel__footer">
-        <span>${adding ? `${selectedIds.size} выбрано` : `${count} из 100 участников`}</span>
+        <span data-group-selected-count>${groupSelectionCountText(selectedIds, adding)}</span>
         ${Button({ text: adding ? 'Добавить' : 'Продолжить', mode: 'unstyled', attrs: { [adding ? 'data-group-add-submit' : 'data-group-next']: '' } })}
       </footer>
     </section>

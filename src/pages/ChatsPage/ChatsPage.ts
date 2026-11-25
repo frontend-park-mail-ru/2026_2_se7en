@@ -22,10 +22,12 @@ import type {
 } from '@/components/chat/chat.types.ts';
 import { formatMessageTime, getChatInitials } from '@/helpers/chat.ts';
 import {
+  groupSelectionCountText,
   renderGroupCreateDetails,
   renderGroupCreateMembers,
   renderGroupEdit,
   renderGroupInfo,
+  updateMemberRowState,
 } from '@/components/chat/GroupViews.ts';
 import { validateAvatar, validateGroupForm } from '@/components/chat/GroupValidation.ts';
 
@@ -471,28 +473,44 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-group-member]')) {
-      const id = target.closest<HTMLElement>('[data-group-member]')?.dataset.groupMember;
-      if (!id) {
+      const row = target.closest<HTMLElement>('[data-group-member]');
+      const id = row?.dataset.groupMember;
+      if (!row || !id) {
         return;
       }
 
-      const selection =
-        this.view === 'group-add-members'
-          ? this.selectedAdditionalMemberIds
-          : this.selectedMemberIds;
-      const total = this.view === 'group-add-members' ? this.model.members.value.length : 1;
+      const adding = this.view === 'group-add-members';
+      const selection = adding ? this.selectedAdditionalMemberIds : this.selectedMemberIds;
+      const total = adding ? this.model.members.value.length : 1;
+      const selectionError = this.container?.querySelector<HTMLElement>(
+        '.group-create-panel__selection-error',
+      );
+
       if (!selection.has(id) && total + selection.size >= 100) {
         this.createForm.membersError = 'В группе может быть не больше 100 участников.';
-        this.update();
+        if (selectionError) {
+          selectionError.textContent = this.createForm.membersError;
+        }
         return;
       }
       this.createForm.membersError = '';
-      if (selection.has(id)) {
-        selection.delete(id);
-      } else {
-        selection.add(id);
+      if (selectionError) {
+        selectionError.textContent = '';
       }
-      this.update();
+
+      const selected = !selection.has(id);
+      if (selected) {
+        selection.add(id);
+      } else {
+        selection.delete(id);
+      }
+
+      updateMemberRowState(row, selected);
+      const countText = groupSelectionCountText(selection, adding);
+      const counters = this.container?.querySelectorAll<HTMLElement>('[data-group-selected-count]');
+      for (const counter of counters ?? []) {
+        counter.textContent = countText;
+      }
       return;
     }
 

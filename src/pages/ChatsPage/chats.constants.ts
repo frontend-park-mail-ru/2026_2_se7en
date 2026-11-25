@@ -5,3 +5,6 @@ export const TYPING_IDLE_MS = 2 * MS_IN_SECOND;
 
 /** Максимальное время показа удалённого статуса набора без новых событий. */
 export const REMOTE_TYPING_TIMEOUT_MS = 6 * MS_IN_SECOND;
+
+/** Максимальное количество участников в группе, включая создателя. */
+export const GROUP_MAX_MEMBERS = 100;
