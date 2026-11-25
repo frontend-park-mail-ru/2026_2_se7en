@@ -506,14 +506,14 @@ export class ChatsPage extends Page {
         selectionError.textContent = '';
       }
 
-      const selected = !selection.has(id);
-      if (selected) {
-        selection.add(id);
-      } else {
+      if (selection.has(id)) {
         selection.delete(id);
+      } else {
+        selection.add(id);
       }
 
-      updateMemberRowState(row, selected);
+      // Обновляем только строку и счётчики, чтобы не сбрасывать скролл списка.
+      updateMemberRowState(row, selection.has(id));
       const countText = groupSelectionCountText(selection, adding);
       const counters = this.container?.querySelectorAll<HTMLElement>('[data-group-selected-count]');
       for (const counter of counters ?? []) {
