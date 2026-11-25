@@ -16,7 +16,7 @@ const asset = (name: string): string => `/design-assets/${name}`;
 export class ChatArea {
   private renderMessage(message: Message): string {
     return `
-      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" data-message-id="${escapeHtml(String(message.id))}">
+      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" tabindex="-1" data-message-id="${escapeHtml(String(message.id))}">
         <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
           <span class="chat-area__message-text">${escapeHtml(message.text)}</span>
           <span class="chat-area__message-meta">
@@ -125,7 +125,7 @@ export class ChatArea {
           }
         </header>
 
-        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history>
+        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history data-history-chat="${escapeHtml(chat.id)}">
           ${
             options.messagesLoading
               ? ''

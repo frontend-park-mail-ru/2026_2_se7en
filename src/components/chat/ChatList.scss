@@ -275,3 +275,31 @@
     width: auto;
   }
 }
+
+.chat-panel__search-section {
+  padding: 10px 8px;
+  border-bottom: 1px solid #ecf2f7;
+
+  h3,
+  p {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  h3 {
+    color: #142033;
+  }
+
+  p {
+    color: #6c7b91;
+  }
+}
+
+.chat-panel__search-more {
+  margin: 4px 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f5faff;
+  color: #142033;
+  font-size: 12px;
+}

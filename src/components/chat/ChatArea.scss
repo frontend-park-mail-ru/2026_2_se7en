@@ -469,3 +469,8 @@
     }
   }
 }
+
+.chat-area__message-row:focus .chat-area__message {
+  outline: 2px solid #307df4;
+  outline-offset: 2px;
+}

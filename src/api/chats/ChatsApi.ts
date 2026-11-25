@@ -46,6 +46,16 @@ export class ChatsApi extends ServerApi {
     return this._request<ListMessagesResponse>(`${chatMessagesUrl(id)}?${query.toString()}`);
   }
 
+  static searchMessages(
+    query: string,
+    limit: number,
+    before?: string,
+  ): Promise<ApiResult<ListMessagesResponse>> {
+    const params = new URLSearchParams({ q: query, limit: String(limit) });
+    if (before) params.set('before', before);
+    return this._request<ListMessagesResponse>(`/messages/search?${params}`);
+  }
+
   static sendMessage(id: string, content: string): Promise<ApiResult<ChatMessage>> {
     return this._request<ChatMessage>(chatMessagesUrl(id), {
       method: 'POST',
