@@ -14,7 +14,7 @@ import { eventBus } from '@/helpers/EventBus.ts';
 import { renderContactPicker } from '@/components/chat/ContactPicker.ts';
 import { user } from '@/store/User.ts';
 import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
-import type { ChatMember, Message } from '@/api/chats/chats.types.ts';
+import type { ChatMember, ChatMessage, Message } from '@/api/chats/chats.types.ts';
 import type {
   ContactPreview,
   GroupFormView,
@@ -64,11 +64,17 @@ export class ChatsPage extends Page {
   private openMemberMenuId: string | null = null;
   private removeMemberId: string | null = null;
   private chatFilter: ChatFilter = 'all';
+  private messageSearchTimer?: number;
+  private messageSearchVersion = 0;
   private messageSearch: {
     chatId: string;
     query: string;
     currentId?: string;
     scrollTop: number;
+    items: ChatMessage[];
+    before?: string;
+    loading: boolean;
+    error: boolean;
   } | null = null;
   private loadingOlderMessages = false;
   private messageDraft = '';
@@ -154,7 +160,11 @@ export class ChatsPage extends Page {
             : 'Собеседник печатает…'
           : '';
     const role = this.model.role.value;
-    const messages: Message[] = this.model.messages.value.map((message) => ({
+    const searchingMessages = Boolean(this.messageSearch?.query.trim());
+    const messageItems = searchingMessages
+      ? (this.messageSearch?.items ?? [])
+      : this.model.messages.value;
+    const messages: Message[] = messageItems.map((message) => ({
       id: message.id,
       text: message.content ?? '',
       isOutgoing: message.user_id === user.getId(),
@@ -165,11 +175,19 @@ export class ChatsPage extends Page {
       messages,
       searchQuery: this.messageSearch?.query,
       searchMessageId: this.messageSearch?.currentId,
-      messagesLoading: this.model.messagesLoading.value,
-      messagesError: this.model.messagesError.value,
+      messagesLoading: searchingMessages
+        ? this.messageSearch?.loading && !messages.length
+        : this.model.messagesLoading.value,
+      messagesError: searchingMessages
+        ? this.messageSearch?.error
+          ? 'Не удалось найти сообщения'
+          : ''
+        : this.model.messagesError.value,
       sendError: this.model.sendError.value,
       sending: this.model.sending.value,
-      hasMoreMessages: this.model.hasMoreMessages.value,
+      hasMoreMessages: searchingMessages
+        ? Boolean(this.messageSearch?.before && !this.messageSearch.loading)
+        : this.model.hasMoreMessages.value,
       draft: this.messageDraft,
       typingLabel,
       peerUserId,
@@ -320,9 +338,11 @@ export class ChatsPage extends Page {
     const historyScroll = this.container.querySelector('[data-message-history]')?.scrollTop;
     this.container.innerHTML = this.render();
     this.bindEvents();
+
     if (inputSelector) {
       const nextInput = this.container.querySelector<HTMLInputElement>(inputSelector);
       nextInput?.focus({ preventScroll: true });
+
       if (selectionStart != null && selectionEnd != null) {
         nextInput?.setSelectionRange(selectionStart, selectionEnd);
       }
@@ -331,48 +351,93 @@ export class ChatsPage extends Page {
         .querySelector<HTMLButtonElement>(`[data-search-step="${searchButton.dataset.searchStep}"]`)
         ?.focus({ preventScroll: true });
     }
+
     if (this.messageSearch) {
       const history = this.container.querySelector<HTMLElement>('[data-message-history]');
-      if (history && historyScroll !== undefined) history.scrollTop = historyScroll;
+
+      if (history && historyScroll !== undefined) {
+        history.scrollTop = historyScroll;
+      }
+
       const current = history?.querySelector<HTMLElement>('[aria-current="true"]');
-      if (current) this.messageSearch.currentId = current.dataset.messageId;
-      if (
-        this.messageSearch.query.trim() &&
-        this.model.hasMoreMessages.value &&
-        !this.model.messagesLoading.value &&
-        !this.model.messagesError.value
-      ) {
-        void this.loadOlderMessages();
+
+      if (current) {
+        this.messageSearch.currentId = current.dataset.messageId;
       }
     }
   }
 
   private async loadOlderMessages(): Promise<void> {
-    if (this.loadingOlderMessages) return;
+    if (this.loadingOlderMessages) {
+      return;
+    }
+
     this.loadingOlderMessages = true;
     try {
       await this.model.loadOlderMessages();
     } finally {
       this.loadingOlderMessages = false;
     }
-    if (this.messageSearch?.query.trim()) this.update();
+  }
+
+  private async loadMessageSearch(): Promise<void> {
+    const search = this.messageSearch;
+    if (!search?.query.trim()) {
+      return;
+    }
+
+    const version = ++this.messageSearchVersion;
+    search.loading = true;
+    search.error = false;
+    this.update();
+    const result = await this.model.searchMessages(
+      search.chatId,
+      search.query.trim(),
+      search.before,
+    );
+
+    if (this.messageSearch !== search || version !== this.messageSearchVersion) {
+      return;
+    }
+
+    search.loading = false;
+    if (result instanceof ApiError) {
+      search.error = true;
+    } else {
+      const page = result.data?.items ?? [];
+      search.before = page.length === 50 ? page[page.length - 1]?.id : undefined;
+      search.items = [...page.reverse(), ...search.items];
+    }
+    this.update();
   }
 
   private closeMessageSearch(): void {
+    window.clearTimeout(this.messageSearchTimer);
     const scrollTop = this.messageSearch?.scrollTop ?? 0;
     this.messageSearch = null;
     this.update();
     const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
-    if (history) history.scrollTop = scrollTop;
+
+    if (history) {
+      history.scrollTop = scrollTop;
+    }
+
     this.container?.querySelector<HTMLButtonElement>('[data-chat-search]')?.focus();
   }
 
   private moveSearchResult(step: number): void {
-    if (!this.messageSearch || !this.container) return;
+    if (!this.messageSearch || !this.container) {
+      return;
+    }
+
     const rows = Array.from(
       this.container.querySelectorAll<HTMLElement>('[data-message-history] [data-message-id]'),
     );
-    if (!rows.length) return;
+
+    if (!rows.length) {
+      return;
+    }
+
     const index = rows.findIndex((row) => row.dataset.messageId === this.messageSearch?.currentId);
     this.messageSearch.currentId =
       rows[(index + step + rows.length) % rows.length].dataset.messageId;
@@ -419,6 +484,9 @@ export class ChatsPage extends Page {
       this.messageSearch = {
         chatId: this.model.activeChat.value.id,
         query: '',
+        items: [],
+        loading: false,
+        error: false,
         scrollTop: this.container?.querySelector('[data-message-history]')?.scrollTop ?? 0,
       };
       this.dialogMenuOpen = false;
@@ -472,6 +540,11 @@ export class ChatsPage extends Page {
 
     if (target.closest('[data-chats-more]')) {
       void this.model.loadMoreChats();
+      return;
+    }
+
+    if (target.closest('[data-message-search-more], [data-message-search-retry]')) {
+      void this.loadMessageSearch();
       return;
     }
 
@@ -813,8 +886,17 @@ export class ChatsPage extends Page {
     }
 
     if (input.name === 'message-search' && this.messageSearch) {
+      window.clearTimeout(this.messageSearchTimer);
+      this.messageSearchVersion += 1;
       this.messageSearch.query = input.value;
       this.messageSearch.currentId = undefined;
+      this.messageSearch.items = [];
+      this.messageSearch.before = undefined;
+      this.messageSearch.error = false;
+      this.messageSearch.loading = Boolean(input.value.trim());
+      if (this.messageSearch.loading) {
+        this.messageSearchTimer = window.setTimeout(() => void this.loadMessageSearch(), 250);
+      }
       this.update();
       const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
       if (history) history.scrollTop = 0;
@@ -1062,6 +1144,8 @@ export class ChatsPage extends Page {
   }
 
   unmount(): void {
+    window.clearTimeout(this.messageSearchTimer);
+    this.messageSearchVersion += 1;
     this.container?.removeEventListener('click', this.handleContainerClick);
     this.container?.removeEventListener('keydown', this.handleContainerKeydown);
     this.container?.removeEventListener('input', this.handleContainerInput);

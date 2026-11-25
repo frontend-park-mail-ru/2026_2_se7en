@@ -16,19 +16,20 @@ const asset = (name: string): string => `/design-assets/${name}`;
 /** Отображает выбранный диалог, сообщения и форму отправки. */
 export class ChatArea {
   private renderMessage(message: Message, pattern?: RegExp, current = false): string {
+    const messageHtml = pattern
+      ? message.text
+          .split(pattern)
+          .map((part, index) => {
+            const escapedPart = escapeHtml(part);
+            return index % 2 ? `<mark>${escapedPart}</mark>` : escapedPart;
+          })
+          .join('')
+      : escapeHtml(message.text);
+
     return `
       <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} data-message-id="${escapeHtml(String(message.id))}">
         <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
-          <span class="chat-area__message-text">${
-            pattern
-              ? message.text
-                  .split(pattern)
-                  .map((part, index) =>
-                    index % 2 ? `<mark>${escapeHtml(part)}</mark>` : escapeHtml(part),
-                  )
-                  .join('')
-              : escapeHtml(message.text)
-          }</span>
+          <span class="chat-area__message-text">${messageHtml}</span>
           <span class="chat-area__message-meta">
             ${escapeHtml(message.time)}
             ${message.isOutgoing ? (message.isRead ? MessageReadIcon : MessageSentIcon) : ''}
@@ -59,7 +60,7 @@ export class ChatArea {
 
   private renderSearch(query: string, index: number, count: number): string {
     return `<div class="chat-area__search" role="search">
-      ${PanelSearch({ label: 'Поиск по сообщениям', placeholder: 'Поиск по сообщениям', value: query, name: 'message-search' })}
+      ${PanelSearch({ label: 'Поиск по сообщениям', placeholder: 'Поиск по сообщениям', value: query, name: 'message-search', maxLength: 200 })}
       ${
         query.trim() && count
           ? `
@@ -153,7 +154,7 @@ export class ChatArea {
       ? new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'iu')
       : undefined;
     const history = options.messages ?? [];
-    const messages = pattern ? history.filter((message) => pattern.test(message.text)) : history;
+    const messages = history;
     const currentIndex = Math.max(
       0,
       messages.findIndex((message) => message.id === options.searchMessageId),
@@ -172,10 +173,10 @@ export class ChatArea {
             options.messagesLoading
               ? ''
               : options.messagesError
-                ? `<div class="chat-area__history-status" role="alert"><p>${escapeHtml(options.messagesError)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-messages-retry': '' } })}</div>`
+                ? `<div class="chat-area__history-status" role="alert"><p>${escapeHtml(options.messagesError)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { [query ? 'data-message-search-retry' : 'data-messages-retry']: '' } })}</div>`
                 : hasMessages
                   ? `
-            ${options.hasMoreMessages && !query ? Button({ text: 'Загрузить предыдущие сообщения', mode: 'unstyled', className: 'chat-area__load-more', attrs: { 'data-messages-more': '' } }) : ''}
+            ${options.hasMoreMessages ? Button({ text: query ? 'Загрузить ещё совпадения' : 'Загрузить предыдущие сообщения', mode: 'unstyled', className: 'chat-area__load-more', attrs: { [query ? 'data-message-search-more' : 'data-messages-more']: '' } }) : ''}
             ${options.dateLabel ? `<span class="chat-area__date">${escapeHtml(options.dateLabel)}</span>` : ''}
             <div class="chat-area__messages">
               ${messages.map((message, index) => this.renderMessage(message, pattern, Boolean(query) && index === currentIndex)).join('')}
@@ -183,7 +184,7 @@ export class ChatArea {
           `
                   : `
             <p class="chat-area__empty-conversation">
-              ${query ? (options.hasMoreMessages ? 'Ищем в истории…' : `По запросу «${escapeHtml(query)}» ничего не найдено`) : 'Напишите первое сообщение в диалоге'}
+              ${query ? `По запросу «${escapeHtml(query)}» ничего не найдено` : 'Напишите первое сообщение в диалоге'}
             </p>
           `
           }
