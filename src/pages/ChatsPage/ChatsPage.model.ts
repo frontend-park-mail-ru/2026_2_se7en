@@ -185,7 +185,7 @@ export class ChatsPageModel {
     await this.loadChats();
   }
 
-  async selectChat(id: string): Promise<void> {
+  async selectChat(id: string, messageId?: string): Promise<boolean> {
     if (this.selectedChatId !== id) {
       this.stopTyping();
       this.clearRemoteTyping();
@@ -206,13 +206,13 @@ export class ChatsPageModel {
     const detail = await ChatsApi.getChat(id);
 
     if (version !== this.selectionVersion) {
-      return;
+      return false;
     }
 
     if (detail instanceof ApiError) {
       this.messagesError.value = detail.message;
       this.messagesLoading.value = false;
-      return;
+      return false;
     }
 
     if (detail.data?.chat) {
@@ -226,6 +226,25 @@ export class ChatsPageModel {
 
     this.socket.subscribe(id);
     await Promise.all([this.loadMessages(id, version), this.loadMembers(id, version)]);
+
+    if (messageId && version === this.selectionVersion) {
+      while (
+        !this.messages.value.some((message) => message.id === messageId) &&
+        this.messagePagination.state.value.next &&
+        !this.messagesError.value
+      ) {
+        const oldestId = this.messages.value[0]?.id;
+        await this.loadMoreMessages('next');
+        if (version !== this.selectionVersion || this.messages.value[0]?.id === oldestId) {
+          break;
+        }
+      }
+    }
+
+    return (
+      version === this.selectionVersion &&
+      (!messageId || this.messages.value.some((message) => message.id === messageId))
+    );
   }
 
   private async fetchMessages(before: string | null) {

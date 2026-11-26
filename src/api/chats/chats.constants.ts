@@ -1,4 +1,5 @@
 export const GET_CHATS_URL = '/chats';
+export const SEARCH_MESSAGES_URL = '/messages/search';
 
 export const chatUrl = (id: string): string => `${GET_CHATS_URL}/${encodeURIComponent(id)}`;
 

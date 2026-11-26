@@ -1,3 +1,5 @@
+$chat-text-color: #142033;
+
 .chat-panel {
   position: relative;
   @include flex-column;
@@ -16,7 +18,7 @@
   }
 
   &__title {
-    color: #142033;
+    color: $chat-text-color;
     font-size: 25px;
     line-height: 30px;
     font-weight: 700;
@@ -99,7 +101,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #142033;
+    color: $chat-text-color;
     font-size: 14px;
     font-weight: 600;
 
@@ -129,7 +131,7 @@
       height: 40px;
       padding: 0 10px;
       text-align: left;
-      color: #142033;
+      color: $chat-text-color;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
@@ -171,7 +173,7 @@
     place-items: center;
     width: 40px;
     height: 40px;
-    color: #142033;
+    color: $chat-text-color;
     background: #e8f3ff url('/design-assets/69aeb.svg') center / 40px 40px no-repeat;
     border-radius: 50%;
     font-size: 12px;
@@ -209,7 +211,7 @@
   }
 
   &__name {
-    color: #142033;
+    color: $chat-text-color;
     font-size: 12px;
     line-height: 16px;
     font-weight: 600;
@@ -231,7 +233,7 @@
   }
 
   &__time {
-    color: #142033;
+    color: $chat-text-color;
     font-size: 10px;
     line-height: 14px;
     white-space: nowrap;
@@ -274,4 +276,32 @@
     left: 16px;
     width: auto;
   }
+}
+
+.chat-panel__search-section {
+  padding: 10px 8px;
+  border-bottom: 1px solid #ecf2f7;
+
+  h3,
+  p {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  h3 {
+    color: $chat-text-color;
+  }
+
+  p {
+    color: #6c7b91;
+  }
+}
+
+.chat-panel__search-more {
+  margin: 4px 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f5faff;
+  color: $chat-text-color;
+  font-size: 12px;
 }

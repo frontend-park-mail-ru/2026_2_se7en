@@ -6,6 +6,7 @@ import type { PaginationState } from '@/helpers/PagedWindow.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { renderPageControl } from '@/helpers/PagedScroll.ts';
+import { type SidebarSearchResults, renderSidebarSearch } from './SidebarSearch.ts';
 export type { ChatFilter } from './chat.types.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
@@ -56,15 +57,12 @@ export class ChatList {
 
   private renderFilters(activeFilter: ChatFilter): string {
     return `
-      <div class="chat-panel__tools">
-        ${PanelSearch({ label: 'Поиск по чатам пока недоступен', placeholder: 'Поиск по чатам', disabled: true })}
         <div class="chat-panel__filters" role="group" aria-label="Фильтр чатов">
           ${Button({ text: 'Все', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'all' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'all', 'aria-pressed': String(activeFilter === 'all') } })}
           ${Button({ text: 'Непрочитанные', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'unread' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'unread', 'aria-pressed': String(activeFilter === 'unread') } })}
           ${Button({ text: 'Диалоги', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'dialog' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'dialog', 'aria-pressed': String(activeFilter === 'dialog') } })}
           ${Button({ text: 'Группы', mode: 'unstyled', className: `chat-panel__filter${activeFilter === 'group' ? ' chat-panel__filter_active' : ''}`, attrs: { 'data-chat-filter': 'group', 'aria-pressed': String(activeFilter === 'group') } })}
         </div>
-      </div>
     `;
   }
 
@@ -80,52 +78,72 @@ export class ChatList {
     `;
   }
 
-  /** Применяет фильтр и возвращает разметку списка чатов. */
+  private renderChatItems(
+    chats: DisplayChat[],
+    activeChat: DisplayChat | null,
+    isLoading: boolean,
+    filter: ChatFilter,
+  ): string {
+    if (isLoading && chats.length === 0) {
+      return '';
+    }
+
+    const visibleChats = chats.filter((chat) => {
+      switch (filter) {
+        case 'unread':
+          return chat.unreadCount !== 0;
+        case 'dialog':
+          return chat.type === 'dialog';
+        case 'group':
+          return chat.type === 'group';
+        case 'all':
+          return true;
+      }
+    });
+
+    if (visibleChats.length) {
+      return visibleChats.map((chat) => this.renderChatItem(chat, activeChat?.id ?? null)).join('');
+    }
+
+    return `
+      <div class="chat-panel__empty">
+        <p>${chats.length ? 'Ничего не найдено' : 'Список пока пуст'}</p>
+        <span>${chats.length ? 'Попробуйте другой фильтр' : 'Новые диалоги появятся здесь'}</span>
+      </div>
+    `;
+  }
+
+  /** Возвращает список чатов или результаты поиска. */
   render(
     chats: DisplayChat[],
     activeChat: DisplayChat | null,
     isLoading: boolean,
     isCreateMenuOpen = false,
-    options: { filter?: ChatFilter; pagination?: PaginationState } = {},
+    options: {
+      filter?: ChatFilter;
+      pagination?: PaginationState;
+      query?: string;
+      results?: SidebarSearchResults;
+    } = {},
   ): string {
     const filter = options.filter ?? 'all';
-    const visibleChats = chats.filter((chat) => {
-      switch (filter) {
-        case 'unread':
-          if (chat.unreadCount === 0) return false;
-          break;
-        case 'dialog':
-          if (chat.type !== 'dialog') return false;
-          break;
-        case 'group':
-          if (chat.type !== 'group') return false;
-          break;
-        case 'all':
-          break;
-      }
-      return true;
-    });
-
-    const list =
-      isLoading && chats.length === 0
-        ? ''
-        : visibleChats.length
-          ? visibleChats.map((chat) => this.renderChatItem(chat, activeChat?.id ?? null)).join('')
-          : `
-          <div class="chat-panel__empty">
-            <p>${chats.length ? 'Ничего не найдено' : 'Список пока пуст'}</p>
-            <span>${chats.length ? 'Попробуйте другой фильтр' : 'Новые диалоги появятся здесь'}</span>
-          </div>
-        `;
+    const query = options.query ?? '';
+    const listContent = options.results
+      ? renderSidebarSearch(options.results)
+      : this.renderChatItems(chats, activeChat, isLoading, filter);
+    const pagination = query.trim() ? undefined : options.pagination;
 
     return `
       <section class="chat-panel" aria-label="Список чатов">
         ${this.renderHeader(isCreateMenuOpen)}
-        ${this.renderFilters(options.filter ?? 'all')}
-        <div class="chat-panel__list" data-chat-list data-scroll-key="${filter}" aria-busy="${isLoading || Boolean(options.pagination?.pending)}">
-          ${options.pagination ? renderPageControl('previous', options.pagination, 'Предыдущие чаты') : ''}
-          ${list}
-          ${options.pagination ? renderPageControl('next', options.pagination, 'Следующие чаты') : ''}
+        <div class="chat-panel__tools">
+          ${PanelSearch({ label: 'Поиск по контактам, чатам и сообщениям', placeholder: 'Поиск', name: 'sidebar-search', value: query, maxLength: 200 })}
+          ${query.trim() ? '' : this.renderFilters(filter)}
+        </div>
+        <div class="chat-panel__list" data-chat-list data-scroll-key="${escapeHtml(query.trim() ? 'search:' + query.trim() : filter)}" aria-busy="${isLoading || Boolean(pagination?.pending)}">
+          ${pagination ? renderPageControl('previous', pagination, 'Предыдущие чаты') : ''}
+          ${listContent}
+          ${pagination ? renderPageControl('next', pagination, 'Следующие чаты') : ''}
         </div>
         ${this.renderCreateMenu(isCreateMenuOpen)}
       </section>
