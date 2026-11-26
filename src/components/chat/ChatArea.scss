@@ -421,6 +421,8 @@
   &__modal {
     width: 316px;
     max-width: 100%;
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
     padding: 24px;
     background: #fff;
     border-radius: 20px;
@@ -430,6 +432,7 @@
       font-size: 20px;
       line-height: 26px;
       font-weight: 700;
+      overflow-wrap: anywhere;
     }
 
     p {
@@ -438,6 +441,11 @@
       font-size: 12px;
       line-height: 18px;
     }
+  }
+
+  &__modal .chat-area__modal-error {
+    color: #c22735;
+    overflow-wrap: anywhere;
   }
 
   &__modal-actions {

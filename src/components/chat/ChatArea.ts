@@ -40,7 +40,7 @@ export class ChatArea {
     `;
   }
 
-  private renderDeleteConfirm(name: string, isGroup: boolean): string {
+  renderDeleteConfirm(name: string, isGroup: boolean, error = ''): string {
     return `
       <div class="chat-area__modal-backdrop" role="presentation">
         <div class="chat-area__modal" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title">
@@ -50,6 +50,7 @@ export class ChatArea {
               ? 'Группа и вся переписка будут удалены для всех участников. Это действие нельзя отменить.'
               : 'Переписка будет удалена у всех. Это действие нельзя отменить.'
           }</p>
+          ${error ? `<p class="chat-area__modal-error" role="alert">${escapeHtml(error)}</p>` : ''}
           <div class="chat-area__modal-actions">
             ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-cancel-delete': '' } })}
             ${Button({ text: 'Удалить', mode: 'unstyled', className: 'chat-area__modal-danger', attrs: { 'data-confirm-delete': '' } })}
@@ -203,7 +204,7 @@ export class ChatArea {
           ${Button({ text: `<img src="${asset('1dc80.svg')}" alt="" width="20" height="20">`, type: 'submit', mode: 'unstyled', className: 'chat-area__send', ariaLabel: 'Отправить сообщение', disabled: !draft.trim() || Boolean(options.sending) })}
         </form>
         ${options.sendError ? `<p class="chat-area__send-error" role="alert">${escapeHtml(options.sendError)}</p>` : ''}
-        ${options.deleteConfirmOpen ? this.renderDeleteConfirm(chat.name ?? '', isGroup) : ''}
+        ${options.deleteConfirmOpen ? this.renderDeleteConfirm(chat.name ?? '', isGroup, options.deleteError) : ''}
       </section>
     `;
   }

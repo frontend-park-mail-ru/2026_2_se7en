@@ -75,6 +75,7 @@ export class ChatsPage extends Page {
   private createMenuOpen = false;
   private dialogMenuOpen = false;
   private deleteConfirmOpen = false;
+  private deleteError = '';
   private leaveConfirmOpen = false;
   private openMemberMenuId: string | null = null;
   private removeMemberId: string | null = null;
@@ -199,6 +200,7 @@ export class ChatsPage extends Page {
       canDeleteGroup: role === 'creator',
       menuOpen: this.dialogMenuOpen,
       deleteConfirmOpen: this.deleteConfirmOpen,
+      deleteError: this.deleteError,
     });
 
     if (
@@ -253,11 +255,19 @@ export class ChatsPage extends Page {
               openMemberMenuId: this.openMemberMenuId,
               removeMemberId: this.removeMemberId,
               canManageRoles: role === 'creator',
+              canDeleteGroup: role === 'creator',
               loading: this.model.membersLoading.value,
               error: this.model.membersError.value,
             });
 
-      return this.renderLayout(`${leftPanel}${rightPanel}`, 'layout_messenger layout_group-screen');
+      const confirmation =
+        this.view === 'group-edit' && this.deleteConfirmOpen
+          ? this.chatArea.renderDeleteConfirm(chat.name ?? '', true, this.deleteError)
+          : '';
+      return this.renderLayout(
+        `${leftPanel}${rightPanel}${confirmation}`,
+        'layout_messenger layout_group-screen',
+      );
     }
 
     const modifier = this.view === 'list' ? 'layout_chat-list' : chat ? 'layout_dialog-open' : '';
@@ -926,15 +936,13 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-confirm-delete]')) {
-      if (this.actionPending) {
-        return;
-      }
+      if (this.actionPending || !this.deleteConfirmOpen) return;
       this.actionPending = true;
 
       void this.model.deleteChat().then((result) => {
         this.actionPending = false;
         if (result instanceof ApiError) {
-          eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
+          this.deleteError = result.message;
         } else {
           this.deleteConfirmOpen = false;
           this.view = 'chat';
@@ -959,15 +967,18 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-dialog-delete]')) {
+      const chat = this.model.activeChat.value;
+      if (!chat || (chat.type === 'group' && this.model.role.value !== 'creator')) return;
       this.dialogMenuOpen = false;
+      this.deleteError = '';
       this.deleteConfirmOpen = true;
       this.update();
+      this.container?.querySelector<HTMLButtonElement>('[data-cancel-delete]')?.focus();
       return;
     }
 
     if (target.closest('[data-cancel-delete]')) {
-      this.deleteConfirmOpen = false;
-      this.update();
+      this.closeDeleteConfirm();
       return;
     }
 
@@ -979,9 +990,21 @@ export class ChatsPage extends Page {
     }
   };
 
+  private closeDeleteConfirm(): void {
+    if (this.actionPending) return;
+    this.deleteConfirmOpen = false;
+    this.update();
+    const selector =
+      this.view === 'group-edit' ? '[data-dialog-delete]' : '[data-dialog-menu-toggle]';
+    this.container?.querySelector<HTMLButtonElement>(selector)?.focus();
+  }
+
   private readonly handleContainerKeydown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.publicProfile) {
       this.closePublicProfile();
+    } else if (this.deleteConfirmOpen && event.key === 'Escape') {
+      event.preventDefault();
+      this.closeDeleteConfirm();
     } else if (this.messageSearch && event.key === 'Escape') {
       event.preventDefault();
       this.closeMessageSearch();

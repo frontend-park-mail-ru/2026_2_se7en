@@ -20,6 +20,7 @@ export interface ChatAreaOptions {
   canDeleteGroup?: boolean;
   menuOpen?: boolean;
   deleteConfirmOpen?: boolean;
+  deleteError?: string;
 }
 
 /** Доступные фильтры списка чатов. */
@@ -68,5 +69,6 @@ export interface GroupMembersView {
   removeMemberId?: string | null;
   canManage?: boolean;
   canManageRoles?: boolean;
+  canDeleteGroup?: boolean;
   leaveConfirmOpen?: boolean;
 }
