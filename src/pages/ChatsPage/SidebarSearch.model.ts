@@ -3,12 +3,13 @@ import { ChatsApi } from '@/api/chats/ChatsApi.ts';
 import type { Contact } from '@/api/contacts/contacts.types.ts';
 import { ContactsApi } from '@/api/contacts/ContactsApi.ts';
 import type { GetChatsParams } from '@/api/chats/chats.types.ts';
+import { ProfileApi } from '@/api/profile/ProfileApi.ts';
 import type {
   SearchSection,
   SidebarSearchResults,
   SidebarSearchSection,
 } from '@/components/chat/SidebarSearch.ts';
-import { formatMessageTime, toDisplayChat } from '@/helpers/chat.ts';
+import { formatMessageTime, getChatInitials, toDisplayChat } from '@/helpers/chat.ts';
 
 const pageSize = 20;
 
@@ -20,11 +21,13 @@ function emptyState(): SidebarSearchSection {
 export class SidebarSearchModel {
   readonly results: SidebarSearchResults = {
     contacts: emptyState(),
+    users: emptyState(),
     chats: emptyState(),
     messages: emptyState(),
   };
   readonly contacts = new Map<string, Contact>();
   private contactOffset = 0;
+  private userOffset = 0;
   private chatCursor: Pick<GetChatsParams, 'after_time' | 'after_id'> = {};
   private messageCursor?: string;
 
@@ -63,6 +66,34 @@ export class SidebarSearchModel {
         );
         this.contactOffset += contacts.length;
         section.hasMore = contacts.length === pageSize;
+      } else if (key === 'users') {
+        const response = await ProfileApi.searchUsers(this.query, pageSize, this.userOffset);
+        if (response instanceof ApiError) {
+          section.error = true;
+          return;
+        }
+
+        const page = response.data;
+        for (const user of page?.items ?? []) {
+          const title =
+            [user.first_name, user.last_name].filter(Boolean).join(' ') || user.nickname;
+          section.items.push({
+            id: user.user_id,
+            title,
+            description: '@' + user.nickname,
+            profile: {
+              userId: user.user_id,
+              firstName: user.first_name,
+              lastName: user.last_name,
+              nickname: user.nickname,
+              avatarUrl: user.icon_url,
+              initials: getChatInitials(title),
+              isContact: user.is_contact,
+            },
+          });
+        }
+        section.hasMore = page?.next_offset != null;
+        if (page?.next_offset != null) this.userOffset = page.next_offset;
       } else if (key === 'chats') {
         const response = await ChatsApi.getChats({
           limit: pageSize,

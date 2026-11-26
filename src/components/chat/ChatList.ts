@@ -137,7 +137,7 @@ export class ChatList {
       <section class="chat-panel" aria-label="Список чатов">
         ${this.renderHeader(isCreateMenuOpen)}
         <div class="chat-panel__tools">
-          ${PanelSearch({ label: 'Поиск по контактам, чатам и сообщениям', placeholder: 'Поиск', name: 'sidebar-search', value: query, maxLength: 200 })}
+          ${PanelSearch({ label: 'Поиск по пользователям, контактам, чатам и сообщениям', placeholder: 'Поиск', name: 'sidebar-search', value: query, maxLength: 200 })}
           ${query.trim() ? '' : this.renderFilters(filter)}
         </div>
         <div class="chat-panel__list" data-chat-list data-scroll-key="${escapeHtml(query.trim() ? 'search:' + query.trim() : filter)}" aria-busy="${isLoading || Boolean(pagination?.pending)}">

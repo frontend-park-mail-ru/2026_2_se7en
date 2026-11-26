@@ -8,6 +8,17 @@ export interface PublicProfileData {
   icon_url?: string | null;
 }
 
+export interface UserSearchResult extends Omit<PublicProfileData, 'id'> {
+  user_id: string;
+  is_contact: boolean;
+  is_online: boolean;
+}
+
+export interface UserSearchResponse {
+  items: UserSearchResult[];
+  next_offset?: number;
+}
+
 export interface ProfileData extends PublicProfileData {
   email: string;
   phone_number?: string | null;

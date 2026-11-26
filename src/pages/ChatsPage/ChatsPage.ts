@@ -290,20 +290,22 @@ export class ChatsPage extends Page {
     this.container?.querySelector<HTMLButtonElement>('[data-public-profile-close]')?.focus();
   }
 
-  private async addPublicProfileToContacts(): Promise<void> {
-    const profile = this.publicProfile;
+  private async addPublicProfileToContacts(profile = this.publicProfile): Promise<void> {
     if (!profile || profile.isContact || profile.isAddingContact) return;
 
     profile.isAddingContact = true;
     this.update();
     const result = await ContactsApi.createContact({ nickname: profile.nickname });
-    if (this.publicProfile?.userId === profile.userId) {
-      this.publicProfile.isAddingContact = false;
-      if (result.success || result.status === 409) {
-        this.publicProfile.isContact = true;
-      }
-      this.update();
+    profile.isAddingContact = false;
+    if (result.success || result.status === 409) {
+      profile.isContact = true;
+      const visibleProfile = this.sidebarSearch?.results.users.items.find(
+        (item) => item.id === profile.userId,
+      )?.profile;
+      if (visibleProfile) visibleProfile.isContact = true;
+      if (this.publicProfile?.userId === profile.userId) this.publicProfile.isContact = true;
     }
+    this.update();
 
     if (result.success) {
       if (!this.contacts.some((contact) => contact.id === profile.userId)) {
@@ -469,6 +471,30 @@ export class ChatsPage extends Page {
     }
   }
 
+  private async startDialog(userId: string): Promise<void> {
+    if (this.actionPending) return;
+    this.actionPending = true;
+    const fromContactPicker = this.view === 'contact-picker';
+    const result = await this.model.createDialog(userId);
+    this.actionPending = false;
+    if (!this.container) return;
+
+    if (result instanceof ApiError) {
+      if (fromContactPicker) this.contactsError = result.message;
+      else eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
+    } else {
+      this.view = 'chat';
+      this.contactsError = '';
+      this.messageDraft = '';
+      this.dialogMenuOpen = false;
+      this.deleteConfirmOpen = false;
+    }
+
+    this.update();
+    if (result.success)
+      this.container.querySelector<HTMLInputElement>('[data-message-input]')?.focus();
+  }
+
   private openChat(chatId: string, messageId?: string): void {
     const version = ++this.chatNavigationVersion;
     this.openingMessage = Boolean(messageId);
@@ -542,6 +568,22 @@ export class ChatsPage extends Page {
       SearchSection | undefined;
     if (more && this.sidebarSearch && !this.sidebarSearch.results[more].loading) {
       void this.loadSidebarSearch(this.sidebarSearch, more);
+      return;
+    }
+
+    const writeUserId = target.closest<HTMLElement>('[data-search-write]')?.dataset.searchWrite;
+    if (writeUserId) {
+      void this.startDialog(writeUserId);
+      return;
+    }
+
+    const addUserId = target.closest<HTMLElement>('[data-search-add-contact]')?.dataset
+      .searchAddContact;
+    if (addUserId) {
+      const profile = this.sidebarSearch?.results.users.items.find(
+        (item) => item.id === addUserId,
+      )?.profile;
+      if (profile) void this.addPublicProfileToContacts(profile);
       return;
     }
 
@@ -646,18 +688,7 @@ export class ChatsPage extends Page {
     }
     const contactId = target.closest<HTMLElement>('[data-contact-id]')?.dataset.contactId;
     if (contactId) {
-      if (this.actionPending) return;
-      this.actionPending = true;
-      void this.model.createDialog(contactId).then((result) => {
-        this.actionPending = false;
-        if (result instanceof ApiError) {
-          this.contactsError = result.message;
-        } else {
-          this.view = 'chat';
-          this.contactsError = '';
-        }
-        this.update();
-      });
+      void this.startDialog(contactId);
       return;
     }
     if (target.closest('[data-group-add-submit]')) {

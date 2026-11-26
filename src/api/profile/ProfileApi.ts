@@ -1,6 +1,7 @@
 import type { ApiResult } from '@/api/ApiResponse.ts';
 import { ServerApi } from '@/api/ServerApi.ts';
 import { USING_MOCK } from '@/api/api.constants.ts';
+import { joinSearchParams } from '@/helpers/JoinSearchParams.ts';
 import { mockGetUserProfile } from '@/api/contacts/contacts.mock';
 import {
   PROFILE_AVATAR_URL,
@@ -13,6 +14,7 @@ import type {
   PublicProfileData,
   UpdatePasswordData,
   UpdateProfileData,
+  UserSearchResponse,
 } from '@/api/profile/profile.types';
 import {
   mockGetProfile,
@@ -24,6 +26,15 @@ import {
  * API для работы с профилем пользователя.
  */
 export class ProfileApi extends ServerApi {
+  static searchUsers(
+    q: string,
+    limit: number,
+    offset: number,
+  ): Promise<ApiResult<UserSearchResponse>> {
+    const params = joinSearchParams({ q, limit, offset });
+    return this._request<UserSearchResponse>(`${PUBLIC_PROFILE_URL}?${params}`);
+  }
+
   static async getUserProfile(id: string): Promise<ApiResult<PublicProfileData>> {
     if (USING_MOCK.CONTACTS) return mockGetUserProfile(id);
     return this._request<PublicProfileData>(`${PUBLIC_PROFILE_URL}/${encodeURIComponent(id)}`);
