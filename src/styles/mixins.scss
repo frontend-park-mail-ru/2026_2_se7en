@@ -41,6 +41,11 @@
   white-space: nowrap;
 }
 
+// Перенос слишком длинных слов (ссылки, длинные имена) в многострочном тексте.
+@mixin wrap-long-words {
+  overflow-wrap: anywhere;
+}
+
 // Скрытие стандартного контура фокуса (заменяется кольцом box-shadow).
 @mixin focus-outline-none {
   outline: 2px solid transparent;

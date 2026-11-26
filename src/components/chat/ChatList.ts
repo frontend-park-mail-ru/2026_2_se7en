@@ -26,8 +26,8 @@ export class ChatList {
           ${chat.isOnline ? '<span class="chat-item__online"></span>' : ''}
         </span>
         <span class="chat-item__body">
-          <span class="chat-item__name">${escapeHtml(chat.name)}</span>
-          <span class="chat-item__message">${escapeHtml(chat.lastMessage)}</span>
+          <span class="chat-item__name" data-tooltip="${escapeHtml(chat.name)}">${escapeHtml(chat.name)}</span>
+          <span class="chat-item__message" data-tooltip="${escapeHtml(chat.lastMessage)}">${escapeHtml(chat.lastMessage)}</span>
         </span>
         <span class="chat-item__meta">
           <span class="chat-item__time">${escapeHtml(chat.time)}</span>

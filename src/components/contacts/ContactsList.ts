@@ -45,7 +45,7 @@ export class ContactsList {
               ${contact.isOnline ? '<span class="contact-item__online"></span>' : ''}
             </span>
             <span class="contact-item__details">
-              <span class="contact-item__name">${escapeHtml(contact.name)}</span>
+              <span class="contact-item__name" data-tooltip="${escapeHtml(contact.name)}">${escapeHtml(contact.name)}</span>
               <span class="contact-item__status${contact.isOnline ? ' contact-item__status_online' : ''}">
                 ${contact.isOnline ? 'в сети' : 'был недавно'}
               </span>
@@ -163,7 +163,10 @@ export class ContactsList {
           <div class="contacts-list__demo">
             <h3>Профили пользователей</h3>
             <p>Демонстрационные данные</p>
-            ${DEMO_PROFILES.map((profile) => `<a href="${getUserProfileHref(profile.id)}">${escapeHtml(`${profile.first_name} ${profile.last_name || ''}`.trim())} →</a>`).join('')}
+            ${DEMO_PROFILES.map((profile) => {
+              const name = `${profile.first_name} ${profile.last_name || ''}`.trim();
+              return `<a href="${getUserProfileHref(profile.id)}" data-tooltip="${escapeHtml(name)}">${escapeHtml(name)} →</a>`;
+            }).join('')}
           </div>
         `
             : ''

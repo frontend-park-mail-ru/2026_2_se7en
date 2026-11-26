@@ -21,7 +21,7 @@ export function ProfileSecurity({ email, phone, passwordMask }: ProfileSecurityP
         <div class="profile-security__row">
           <div class="profile-security__info">
             <span class="profile-security__label">${escapeHtml(row.label)}</span>
-            <span class="profile-security__value">${escapeHtml(row.value)}</span>
+            <span class="profile-security__value" data-tooltip="${escapeHtml(row.value)}">${escapeHtml(row.value)}</span>
           </div>
           <a
             href="/profile/${row.target}"

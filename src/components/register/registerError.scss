@@ -15,7 +15,7 @@
   }
 
   &__title {
-    overflow-wrap: anywhere;
+    @include wrap-long-words;
     font-size: 0.875rem;
     line-height: 1.25rem;
     font-weight: 500;
@@ -24,7 +24,7 @@
 
   &__hint {
     margin-top: 0.125rem;
-    overflow-wrap: anywhere;
+    @include wrap-long-words;
     font-size: 0.75rem;
     line-height: 1rem;
     color: $red-600;

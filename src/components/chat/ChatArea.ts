@@ -29,7 +29,7 @@ export class ChatArea {
     return `
       <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" data-message-id="${escapeHtml(String(message.id))}">
         <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}${message.authorName ? ' chat-area__message_group' : ''}">
-          ${message.authorName ? `<span class="chat-area__message-author">${escapeHtml(message.authorName)}</span>` : ''}
+          ${message.authorName ? `<span class="chat-area__message-author" data-tooltip="${escapeHtml(message.authorName)}">${escapeHtml(message.authorName)}</span>` : ''}
           <span class="chat-area__message-text">${escapeHtml(message.text)}</span>
           <span class="chat-area__message-meta">
             ${escapeHtml(message.time)}
@@ -86,7 +86,7 @@ export class ChatArea {
               ${chat.isOnline ? '<span class="chat-area__online"></span>' : ''}
             </span>
             <span class="chat-area__identity-text">
-              <strong>${escapeHtml(chat.name)}</strong>
+              <strong data-tooltip="${escapeHtml(chat.name)}">${escapeHtml(chat.name)}</strong>
               <small>${isGroup ? `${chat.members_count ?? 0} участников` : chat.isOnline ? 'в сети' : ''}</small>
             </span>
 `,

@@ -34,8 +34,8 @@ export function renderContactPicker(
               ${contact.online ? '<span class="contact-picker__online"></span>' : ''}
             </span>
             <span class="contact-picker__text">
-              <strong>${escapeHtml(contact.name)}</strong>
-              <small>${escapeHtml(contact.nickname)}</small>
+              <strong data-tooltip="${escapeHtml(contact.name)}">${escapeHtml(contact.name)}</strong>
+              <small data-tooltip="${escapeHtml(contact.nickname)}">${escapeHtml(contact.nickname)}</small>
             </span>
           `,
           })}

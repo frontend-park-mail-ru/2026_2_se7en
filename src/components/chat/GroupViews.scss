@@ -98,7 +98,7 @@
 
   &__error {
     display: block;
-    overflow-wrap: anywhere;
+    @include wrap-long-words;
     color: #e43e49;
     font-size: 11px;
     line-height: 15px;
@@ -225,7 +225,7 @@
     }
 
     p {
-      overflow-wrap: anywhere;
+      @include wrap-long-words;
       color: #142033;
       font-size: 14px;
     }
@@ -471,7 +471,7 @@
     border-radius: 20px;
 
     h3 {
-      overflow-wrap: anywhere;
+      @include wrap-long-words;
       color: #142033;
       font-size: 20px;
       line-height: 26px;
@@ -479,7 +479,7 @@
 
     p {
       margin-top: 12px;
-      overflow-wrap: anywhere;
+      @include wrap-long-words;
       color: #6c7b91;
       font-size: 12px;
       line-height: 18px;

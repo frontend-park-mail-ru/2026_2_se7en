@@ -34,8 +34,8 @@ export function renderSidebarSearch(results: SidebarSearchResults): string {
       .map((item) =>
         Button({
           text: `<span class="chat-item__body">
-        <span class="chat-item__name">${escapeHtml(item.title)}</span>
-        ${item.description ? `<span class="chat-item__message">${escapeHtml(item.description)}</span>` : ''}
+        <span class="chat-item__name" data-tooltip="${escapeHtml(item.title)}">${escapeHtml(item.title)}</span>
+        ${item.description ? `<span class="chat-item__message" data-tooltip="${escapeHtml(item.description)}">${escapeHtml(item.description)}</span>` : ''}
       </span>`,
           mode: 'unstyled',
           className: 'chat-item',
