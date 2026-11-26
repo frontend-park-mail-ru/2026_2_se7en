@@ -43,6 +43,43 @@
     border-bottom: 1px solid #ecf2f7;
   }
 
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    padding-right: 6px;
+    background: #f5faff;
+    border-radius: 12px;
+
+    .panel-search {
+      min-width: 0;
+    }
+    span {
+      color: #6c7b91;
+      font-size: 12px;
+    }
+    button {
+      flex: 0 0 32px;
+      height: 36px;
+      color: #455771;
+      font-size: 18px;
+      &:disabled {
+        opacity: 0.4;
+      }
+    }
+  }
+
+  &__message-text mark {
+    background: transparent;
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  &__message-row[aria-current='true'] mark {
+    text-decoration-thickness: 2px;
+  }
+
   &__back {
     display: none;
     flex: 0 0 36px;
