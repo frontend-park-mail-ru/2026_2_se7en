@@ -2,6 +2,8 @@ import type { Message } from '@/api/chats/chats.types.ts';
 
 /** Настройки отображения области диалога. */
 export interface ChatAreaOptions {
+  searchQuery?: string;
+  searchMessageId?: string;
   messages?: Message[];
   messagesLoading?: boolean;
   messagesError?: string;
