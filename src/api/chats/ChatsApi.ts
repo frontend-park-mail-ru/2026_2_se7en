@@ -16,6 +16,7 @@ import type {
 } from '@/api/chats/chats.types.ts';
 import {
   GET_CHATS_URL,
+  SEARCH_MESSAGES_URL,
   chatMembersUrl,
   chatMessagesUrl,
   chatUrl,
@@ -49,6 +50,16 @@ export class ChatsApi extends ServerApi {
     if (search) query.set('q', search);
 
     return this._request<ListMessagesResponse>(`${chatMessagesUrl(id)}?${query.toString()}`);
+  }
+
+  static searchMessages(
+    query: string,
+    limit: number,
+    before?: string,
+  ): Promise<ApiResult<ListMessagesResponse>> {
+    const params = new URLSearchParams({ q: query, limit: String(limit) });
+    if (before) params.set('before', before);
+    return this._request<ListMessagesResponse>(`${SEARCH_MESSAGES_URL}?${params}`);
   }
 
   static sendMessage(id: string, content: string): Promise<ApiResult<ChatMessage>> {

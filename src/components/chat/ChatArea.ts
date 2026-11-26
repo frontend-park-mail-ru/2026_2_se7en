@@ -27,7 +27,7 @@ export class ChatArea {
       : escapeHtml(message.text);
 
     return `
-      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} data-message-id="${escapeHtml(String(message.id))}">
+      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} tabindex="-1" data-message-id="${escapeHtml(String(message.id))}">
         <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
           <span class="chat-area__message-text">${messageHtml}</span>
           <span class="chat-area__message-meta">
@@ -168,7 +168,7 @@ export class ChatArea {
           ${options.searchQuery !== undefined ? this.renderSearch(options.searchQuery, currentIndex, messages.length) : this.renderHeader(chat, options)}
         </header>
 
-        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history>
+        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history data-history-chat="${escapeHtml(chat.id)}">
           ${
             options.messagesLoading
               ? ''
