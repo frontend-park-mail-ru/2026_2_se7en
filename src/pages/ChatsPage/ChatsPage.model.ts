@@ -113,6 +113,10 @@ export class ChatsPageModel {
     this.socket.disconnect();
   }
 
+  searchMessages(chatId: string, query: string, before?: string) {
+    return ChatsApi.getMessages(chatId, before, query);
+  }
+
   private async fetchChats(cursor: ChatCursor | null, filter: ChatFilter, version: number) {
     const items: (DisplayChat & { id: string })[] = [];
     const type = filter === 'dialog' || filter === 'group' ? filter : undefined;

@@ -3,6 +3,9 @@ import type { PaginationState } from '@/helpers/PagedWindow.ts';
 
 /** Настройки отображения области диалога. */
 export interface ChatAreaOptions {
+  searchQuery?: string;
+  searchMessageId?: string;
+  moreSearchResults?: boolean;
   messages?: Message[];
   messagesLoading?: boolean;
   messagesError?: string;
