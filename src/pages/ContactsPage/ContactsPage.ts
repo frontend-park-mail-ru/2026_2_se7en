@@ -9,6 +9,7 @@ import { ContactsPageModel } from './ContactsPage.model.ts';
 import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import type { Message } from '@/api/chats/chats.types.ts';
 import { Page } from '@/pages/Page.ts';
+import { PagedScroll } from '@/helpers/PagedScroll.ts';
 import { PublicProfileModal } from '@/components/profile/PublicProfileModal.ts';
 import type { PublicProfileView } from '@/components/profile/PublicProfileModal.ts';
 import { ROUTES } from '@/constants/Routes.ts';
@@ -25,9 +26,19 @@ export class ContactsPage extends Page {
   private readonly model = new ContactsPageModel();
   private readonly layout = new DefaultLayout();
   private readonly contactsList = new ContactsList();
+  private readonly contactsScroll = new PagedScroll('[data-contact-list]', (direction) => {
+    if (this.searchTimer === null) void this.model.pagination.load(direction);
+  });
   private readonly contactDialog = new ContactDialog();
   private readonly chatModel = new ChatsPageModel();
   private readonly chatArea = new ChatArea();
+  private readonly messageScroll = new PagedScroll(
+    '[data-message-history]',
+    (direction) => {
+      void this.chatModel.loadMoreMessages(direction);
+    },
+    true,
+  );
   private searchTimer: number | null = null;
   private messageDraft = '';
   private dialogMenuOpen = false;
@@ -40,7 +51,13 @@ export class ContactsPage extends Page {
     super();
 
     this.setSubscribers(
-      [this.model.contacts, this.model.activeContact, this.model.isLoading, this.model.hasError],
+      [
+        this.model.contacts,
+        this.model.pagination.state,
+        this.model.activeContact,
+        this.model.isLoading,
+        this.model.hasError,
+      ],
       () => this.update(),
     );
     this.setSubscribers(
@@ -53,7 +70,7 @@ export class ContactsPage extends Page {
         this.chatModel.messagesError,
         this.chatModel.sendError,
         this.chatModel.sending,
-        this.chatModel.hasMoreMessages,
+        this.chatModel.messagePagination.state,
         this.chatModel.typingUsers,
       ],
       () => this.update(),
@@ -82,7 +99,7 @@ export class ContactsPage extends Page {
           messagesError: this.chatModel.messagesError.value,
           sendError: this.chatModel.sendError.value,
           sending: this.chatModel.sending.value,
-          hasMoreMessages: this.chatModel.hasMoreMessages.value,
+          messagePagination: this.chatModel.messagePagination.state.value,
           draft: this.messageDraft,
           typingLabel: this.chatModel.typingUsers.value.length ? 'Собеседник печатает…' : '',
           peerUserId,
@@ -103,6 +120,7 @@ export class ContactsPage extends Page {
           this.model.query,
           this.contactMenuOpenId,
           this.pendingContactDeleteId,
+          this.model.pagination.state.value,
         )}
         ${rightPanel}
       </main>
@@ -124,18 +142,23 @@ export class ContactsPage extends Page {
       : 'input[name="contact-search"]';
     const start = focusedInput?.selectionStart;
     const end = focusedInput?.selectionEnd;
-    this.container.innerHTML = this.render();
+    this.contactsScroll.capture(this.container);
+    this.messageScroll.capture(this.container);
+    this.replaceContent(this.render());
     if (focusedInput) {
       const next = this.container.querySelector<HTMLInputElement>(selector);
       next?.focus();
       if (start != null && end != null) next?.setSelectionRange(start, end);
     }
+    this.contactsScroll.connect(this.container);
+    this.messageScroll.connect(this.container);
   }
 
   private updateContactItems(): void {
     const list = this.container?.querySelector<HTMLElement>('[data-contact-list]');
-    if (!list) return;
+    if (!list || !this.container) return;
 
+    this.contactsScroll.capture(this.container);
     list.innerHTML = this.contactsList.renderItems(
       this.model.contacts.value,
       this.model.activeContact.value?.id ?? null,
@@ -145,7 +168,9 @@ export class ContactsPage extends Page {
       this.model.query,
       this.contactMenuOpenId,
       this.pendingContactDeleteId,
+      this.model.pagination.state.value,
     );
+    this.contactsScroll.connect(this.container);
   }
 
   bindEvents(): void {
@@ -236,10 +261,6 @@ export class ContactsPage extends Page {
 
     if (target.closest('[data-messages-retry]')) {
       void this.chatModel.loadMessages();
-      return;
-    }
-    if (target.closest('[data-messages-more]')) {
-      void this.chatModel.loadOlderMessages();
       return;
     }
     if (target.closest('[data-dialog-menu-toggle]')) {
@@ -369,12 +390,10 @@ export class ContactsPage extends Page {
       return;
     }
 
-    this.model.contacts.value = this.model.contacts.value.filter(
-      (contact) => contact.id !== contactId,
-    );
     if (this.model.activeContact.value?.id === contactId) {
       this.model.activeContact.value = null;
     }
+    void this.model.loadContacts();
     eventBus.emit('snackbar:show', { text: 'Контакт удалён', type: 'success' });
   }
 
@@ -389,9 +408,11 @@ export class ContactsPage extends Page {
     this.container?.removeEventListener('input', this.handleContainerInput);
     this.container?.removeEventListener('submit', this.handleContainerSubmit);
     if (this.searchTimer !== null) window.clearTimeout(this.searchTimer);
+    super.unmount();
+    this.contactsScroll.disconnect();
+    this.messageScroll.disconnect();
     this.chatModel.destroy();
     this.layout.unmount();
     this.model.destroy();
-    super.unmount();
   }
 }

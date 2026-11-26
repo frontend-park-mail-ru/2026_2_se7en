@@ -98,7 +98,7 @@ export class UserProfilePage extends Page {
     if (!this.container) return;
     this.contactActions?.destroy();
     this.contactActions = null;
-    this.container.innerHTML = this.render();
+    this.replaceContent(this.render());
     this.bindEvents();
   }
 

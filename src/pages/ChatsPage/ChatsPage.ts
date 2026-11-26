@@ -7,6 +7,7 @@ import type { Contact } from '@/api/contacts/contacts.types.ts';
 import { ContactsApi } from '@/api/contacts/ContactsApi.ts';
 import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import { Page } from '@/pages/Page.ts';
+import { PagedScroll } from '@/helpers/PagedScroll.ts';
 import { PublicProfileModal } from '@/components/profile/PublicProfileModal.ts';
 import type { PublicProfileView } from '@/components/profile/PublicProfileModal.ts';
 import { ROUTES } from '@/constants/Routes.ts';
@@ -56,7 +57,17 @@ export class ChatsPage extends Page {
   private readonly model = new ChatsPageModel();
   private readonly layout = new DefaultLayout();
   private readonly chatList = new ChatList();
+  private readonly chatScroll = new PagedScroll('[data-chat-list]', (direction) => {
+    void this.model.loadMoreChats(direction);
+  });
   private readonly chatArea = new ChatArea();
+  private readonly messageScroll = new PagedScroll(
+    '[data-message-history]',
+    (direction) => {
+      void this.model.loadMoreMessages(direction);
+    },
+    true,
+  );
 
   private view: ChatsView = 'chat';
   private createMenuOpen = false;
@@ -78,7 +89,6 @@ export class ChatsPage extends Page {
   private groupContacts: GroupMemberView[] = [];
   private contactsLoading = false;
   private contactsError = '';
-  private chatsLoadStarted = false;
   private contactRequestVersion = 0;
   private publicProfile: PublicProfileView | null = null;
   private readonly selectedMemberIds = new Set<string>();
@@ -103,26 +113,11 @@ export class ChatsPage extends Page {
         this.model.membersError,
         this.model.sendError,
         this.model.sending,
-        this.model.hasMoreMessages,
-        this.model.hasMoreChats,
+        this.model.messagePagination.state,
+        this.model.chatPagination.state,
       ],
       () => this.update(),
     );
-  }
-
-  async mount(): Promise<boolean> {
-    if (document.querySelector('.layout_contacts')) {
-      this.chatsLoadStarted = true;
-      let timer: number | undefined;
-      await Promise.race([
-        this.model.loadChats(),
-        new Promise<void>((resolve) => {
-          timer = window.setTimeout(resolve, 200);
-        }),
-      ]);
-      window.clearTimeout(timer);
-    }
-    return super.mount();
   }
 
   render(): string {
@@ -161,7 +156,7 @@ export class ChatsPage extends Page {
       messagesError: this.model.messagesError.value,
       sendError: this.model.sendError.value,
       sending: this.model.sending.value,
-      hasMoreMessages: this.model.hasMoreMessages.value,
+      messagePagination: this.model.messagePagination.state.value,
       draft: this.messageDraft,
       typingLabel,
       peerUserId,
@@ -205,7 +200,7 @@ export class ChatsPage extends Page {
 
     const leftPanel = this.chatList.render(chats, chat, loading, this.createMenuOpen, {
       filter: this.chatFilter,
-      hasMore: this.model.hasMoreChats.value,
+      pagination: this.model.chatPagination.state.value,
     });
 
     if (chat && (['group-info', 'group-edit'] as ChatsView[]).includes(this.view)) {
@@ -306,7 +301,9 @@ export class ChatsPage extends Page {
       : null;
     const selectionStart = focusedInput?.selectionStart;
     const selectionEnd = focusedInput?.selectionEnd;
-    this.container.innerHTML = this.render();
+    this.chatScroll.capture(this.container);
+    this.messageScroll.capture(this.container);
+    this.replaceContent(this.render());
     this.bindEvents();
     if (focusedInput) {
       const nextInput = this.container.querySelector<HTMLInputElement>('[data-message-input]');
@@ -315,6 +312,8 @@ export class ChatsPage extends Page {
         nextInput?.setSelectionRange(selectionStart, selectionEnd);
       }
     }
+    this.chatScroll.connect(this.container);
+    this.messageScroll.connect(this.container);
   }
 
   bindEvents(): void {
@@ -374,22 +373,12 @@ export class ChatsPage extends Page {
       (['all', 'unread', 'dialog', 'group'] as string[]).includes(selectedFilter)
     ) {
       this.chatFilter = selectedFilter as ChatFilter;
-      this.update();
+      this.model.setChatFilter(this.chatFilter);
       return;
     }
 
     if (target.closest('[data-messages-retry]')) {
       void this.model.loadMessages();
-      return;
-    }
-
-    if (target.closest('[data-chats-more]')) {
-      void this.model.loadMoreChats();
-      return;
-    }
-
-    if (target.closest('[data-messages-more]')) {
-      void this.model.loadOlderMessages();
       return;
     }
 
@@ -968,7 +957,7 @@ export class ChatsPage extends Page {
     this.container?.addEventListener('input', this.handleContainerInput);
     this.container?.addEventListener('change', this.handleContainerChange);
     this.container?.addEventListener('submit', this.handleContainerSubmit);
-    this.model.start(!this.chatsLoadStarted);
+    this.model.start();
   }
 
   unmount(): void {
@@ -984,7 +973,9 @@ export class ChatsPage extends Page {
       URL.revokeObjectURL(this.editAvatarObjectUrl);
     }
     this.layout.unmount();
-    this.model.destroy();
     super.unmount();
+    this.chatScroll.disconnect();
+    this.messageScroll.disconnect();
+    this.model.destroy();
   }
 }

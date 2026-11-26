@@ -2,6 +2,7 @@ import './ChatArea.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { ChatAreaOptions } from './chat.types.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { renderPageControl } from '@/helpers/PagedScroll.ts';
 import type { DisplayChat, Message } from '@/api/chats/chats.types.ts';
 import {
   EditGroupIcon,
@@ -16,7 +17,7 @@ const asset = (name: string): string => `/design-assets/${name}`;
 export class ChatArea {
   private renderMessage(message: Message): string {
     return `
-      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" data-message-id="${escapeHtml(String(message.id))}">
+      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" data-scroll-row="${escapeHtml(String(message.id))}">
         <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
           <span class="chat-area__message-text">${escapeHtml(message.text)}</span>
           <span class="chat-area__message-meta">
@@ -52,6 +53,7 @@ export class ChatArea {
     const messages = options.messages ?? [];
     const hasMessages = messages.length > 0;
     const draft = options.draft ?? '';
+    const pagination = options.messagePagination;
 
     return `
       <section class="chat-area chat-area_open" aria-label="Переписка">
@@ -125,7 +127,7 @@ export class ChatArea {
           }
         </header>
 
-        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history>
+        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading || pagination?.pending)}" data-message-history data-scroll-key="${escapeHtml(chat.id ?? '')}">
           ${
             options.messagesLoading
               ? ''
@@ -133,11 +135,12 @@ export class ChatArea {
                 ? `<div class="chat-area__history-status" role="alert"><p>${escapeHtml(options.messagesError)}</p>${Button({ text: 'Повторить', mode: 'unstyled', attrs: { 'data-messages-retry': '' } })}</div>`
                 : hasMessages
                   ? `
-            ${options.hasMoreMessages ? Button({ text: 'Загрузить предыдущие сообщения', mode: 'unstyled', className: 'chat-area__load-more', attrs: { 'data-messages-more': '' } }) : ''}
+            ${pagination ? renderPageControl('next', pagination, 'Предыдущие сообщения', 'chat-area__load-more') : ''}
             ${options.dateLabel ? `<span class="chat-area__date">${escapeHtml(options.dateLabel)}</span>` : ''}
             <div class="chat-area__messages">
               ${messages.map((message) => this.renderMessage(message)).join('')}
             </div>
+            ${pagination ? renderPageControl('previous', pagination, 'Следующие сообщения', 'chat-area__load-more') : ''}
           `
                   : `
             <p class="chat-area__empty-conversation">

@@ -188,7 +188,7 @@ export class ProfilePage extends Page {
 
   private update(): void {
     if (!this.container) return;
-    this.container.innerHTML = this.render();
+    this.replaceContent(this.render());
     this.bindEvents();
   }
 

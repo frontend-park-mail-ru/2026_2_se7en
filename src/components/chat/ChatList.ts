@@ -2,8 +2,10 @@ import './ChatList.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { ChatFilter } from './chat.types.ts';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import type { PaginationState } from '@/helpers/PagedWindow.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { renderPageControl } from '@/helpers/PagedScroll.ts';
 export type { ChatFilter } from './chat.types.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
@@ -35,7 +37,7 @@ export class ChatList {
 `,
         mode: 'unstyled',
         className: `chat-item${isActive ? ' chat-item_active' : ''}`,
-        attrs: { 'data-chat-id': chat.id ?? '' },
+        attrs: { 'data-chat-id': chat.id ?? '', 'data-scroll-row': chat.id ?? '' },
       })}
     `;
   }
@@ -84,7 +86,7 @@ export class ChatList {
     activeChat: DisplayChat | null,
     isLoading: boolean,
     isCreateMenuOpen = false,
-    options: { filter?: ChatFilter; hasMore?: boolean } = {},
+    options: { filter?: ChatFilter; pagination?: PaginationState } = {},
   ): string {
     const filter = options.filter ?? 'all';
     const visibleChats = chats.filter((chat) => {
@@ -120,7 +122,11 @@ export class ChatList {
       <section class="chat-panel" aria-label="Список чатов">
         ${this.renderHeader(isCreateMenuOpen)}
         ${this.renderFilters(options.filter ?? 'all')}
-        <div class="chat-panel__list" aria-busy="${isLoading}">${list}${options.hasMore ? Button({ text: 'Загрузить ещё', mode: 'unstyled', attrs: { 'data-chats-more': '' } }) : ''}</div>
+        <div class="chat-panel__list" data-chat-list data-scroll-key="${filter}" aria-busy="${isLoading || Boolean(options.pagination?.pending)}">
+          ${options.pagination ? renderPageControl('previous', options.pagination, 'Предыдущие чаты') : ''}
+          ${list}
+          ${options.pagination ? renderPageControl('next', options.pagination, 'Следующие чаты') : ''}
+        </div>
         ${this.renderCreateMenu(isCreateMenuOpen)}
       </section>
     `;

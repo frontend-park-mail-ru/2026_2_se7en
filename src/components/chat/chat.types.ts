@@ -1,4 +1,5 @@
 import type { Message } from '@/api/chats/chats.types.ts';
+import type { PaginationState } from '@/helpers/PagedWindow.ts';
 
 /** Настройки отображения области диалога. */
 export interface ChatAreaOptions {
@@ -9,7 +10,7 @@ export interface ChatAreaOptions {
   sending?: boolean;
   draft?: string;
   dateLabel?: string;
-  hasMoreMessages?: boolean;
+  messagePagination?: PaginationState;
   typingLabel?: string;
   peerUserId?: string;
   canEditGroup?: boolean;
