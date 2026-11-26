@@ -3,16 +3,25 @@ import { ChatsApi } from '@/api/chats/ChatsApi.ts';
 import type { Contact } from '@/api/contacts/contacts.types.ts';
 import { ContactsApi } from '@/api/contacts/ContactsApi.ts';
 import type { GetChatsParams } from '@/api/chats/chats.types.ts';
-import type { SearchSection, SidebarSearchResults } from '@/components/chat/SidebarSearch.ts';
+import type {
+  SearchSection,
+  SidebarSearchResults,
+  SidebarSearchSection,
+} from '@/components/chat/SidebarSearch.ts';
 import { formatMessageTime, toDisplayChat } from '@/helpers/chat.ts';
 
 const pageSize = 20;
 
+function emptyState(): SidebarSearchSection {
+  return { items: [], loading: true, error: false, hasMore: false };
+}
+
+/** Загружает результаты одного поискового запроса и хранит позицию пагинации каждой секции. */
 export class SidebarSearchModel {
   readonly results: SidebarSearchResults = {
-    contacts: { items: [], loading: true, error: false, hasMore: false },
-    chats: { items: [], loading: true, error: false, hasMore: false },
-    messages: { items: [], loading: true, error: false, hasMore: false },
+    contacts: emptyState(),
+    chats: emptyState(),
+    messages: emptyState(),
   };
   readonly contacts = new Map<string, Contact>();
   private contactOffset = 0;

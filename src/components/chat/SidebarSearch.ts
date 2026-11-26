@@ -26,6 +26,7 @@ const sectionTitles: Record<SearchSection, string> = {
   messages: 'Сообщения',
 };
 
+/** Отображает результаты поиска и состояние загрузки каждой секции боковой панели. */
 export function renderSidebarSearch(results: SidebarSearchResults): string {
   return SEARCH_SECTIONS.map((key) => {
     const section = results[key];
