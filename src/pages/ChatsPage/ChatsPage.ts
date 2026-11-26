@@ -168,17 +168,21 @@ export class ChatsPage extends Page {
             : 'Собеседник печатает…'
           : '';
     const role = this.model.role.value;
-    const searchingMessages = Boolean(this.messageSearch?.query.trim());
-    const messageItems = searchingMessages
-      ? (this.messageSearch?.items ?? [])
-      : this.model.messages.value;
-    const messages: Message[] = messageItems.map((message) => ({
-      id: message.id,
-      text: message.content ?? '',
-      isOutgoing: message.user_id === user.getId(),
-      isRead: message.is_read,
-      time: formatMessageTime(new Date(message.created_at)),
-    }));
+    const messages: Message[] = this.model.messages.value.map((message) => {
+      const isOutgoing = message.user_id === user.getId();
+      const authorName =
+        !isOutgoing && chat?.type === 'group'
+          ? groupMembers.find((member) => member.id === message.user_id)?.name
+          : undefined;
+      return {
+        id: message.id,
+        text: message.content ?? '',
+        isOutgoing,
+        isRead: message.is_read,
+        time: formatMessageTime(new Date(message.created_at)),
+        authorName,
+      };
+    });
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
       searchQuery: this.messageSearch?.query,
@@ -753,14 +757,14 @@ export class ChatsPage extends Page {
         selectionError.textContent = '';
       }
 
-      const selected = !selection.has(id);
-      if (selected) {
-        selection.add(id);
-      } else {
+      if (selection.has(id)) {
         selection.delete(id);
+      } else {
+        selection.add(id);
       }
 
-      updateMemberRowState(row, selected);
+      // Обновляем только строку и счётчики, чтобы не сбрасывать скролл списка.
+      updateMemberRowState(row, selection.has(id));
       const countText = groupSelectionCountText(selection, adding);
       const counters = this.container?.querySelectorAll<HTMLElement>('[data-group-selected-count]');
       for (const counter of counters ?? []) {

@@ -122,4 +122,5 @@ export interface Message {
   isOutgoing: boolean;
   isRead?: boolean;
   time: string;
+  authorName?: string;
 }

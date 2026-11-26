@@ -27,9 +27,10 @@ export class ChatArea {
       : escapeHtml(message.text);
 
     return `
-      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} tabindex="-1" data-message-id="${escapeHtml(String(message.id))}">
-        <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
-          <span class="chat-area__message-text">${messageHtml}</span>
+      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" data-message-id="${escapeHtml(String(message.id))}">
+        <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}${message.authorName ? ' chat-area__message_group' : ''}">
+          ${message.authorName ? `<span class="chat-area__message-author">${escapeHtml(message.authorName)}</span>` : ''}
+          <span class="chat-area__message-text">${escapeHtml(message.text)}</span>
           <span class="chat-area__message-meta">
             ${escapeHtml(message.time)}
             ${message.isOutgoing ? (message.isRead ? MessageReadIcon : MessageSentIcon) : ''}
