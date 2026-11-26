@@ -10,22 +10,26 @@ import { Page } from '@/pages/Page.ts';
 import { PublicProfileModal } from '@/components/profile/PublicProfileModal.ts';
 import type { PublicProfileView } from '@/components/profile/PublicProfileModal.ts';
 import { ROUTES } from '@/constants/Routes.ts';
+import { SidebarSearchModel } from './SidebarSearch.model.ts';
 import { eventBus } from '@/helpers/EventBus.ts';
 import { renderContactPicker } from '@/components/chat/ContactPicker.ts';
 import { user } from '@/store/User.ts';
 import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
-import type { ChatMember, Message } from '@/api/chats/chats.types.ts';
+import type { ChatMember, ChatMessage, Message } from '@/api/chats/chats.types.ts';
 import type {
   ContactPreview,
   GroupFormView,
   GroupMemberView,
 } from '@/components/chat/chat.types.ts';
+import { SEARCH_SECTIONS, type SearchSection } from '@/components/chat/SidebarSearch.ts';
 import { formatMessageTime, getChatInitials } from '@/helpers/chat.ts';
 import {
+  groupSelectionCountText,
   renderGroupCreateDetails,
   renderGroupCreateMembers,
   renderGroupEdit,
   renderGroupInfo,
+  updateMemberRowState,
 } from '@/components/chat/GroupViews.ts';
 import { validateAvatar, validateGroupForm } from '@/components/chat/GroupValidation.ts';
 
@@ -64,6 +68,23 @@ export class ChatsPage extends Page {
   private openMemberMenuId: string | null = null;
   private removeMemberId: string | null = null;
   private chatFilter: ChatFilter = 'all';
+  private searchQuery = '';
+  private sidebarSearch: SidebarSearchModel | null = null;
+  private searchTimer?: number;
+  private chatNavigationVersion = 0;
+  private messageSearchTimer?: number;
+  private messageSearchVersion = 0;
+  private messageSearch: {
+    chatId: string;
+    query: string;
+    currentId?: string;
+    scrollTop: number;
+    items: ChatMessage[];
+    before?: string;
+    loading: boolean;
+    error: boolean;
+  } | null = null;
+  private loadingOlderMessages = false;
   private messageDraft = '';
   private actionPending = false;
   private createForm: GroupFormView = {};
@@ -126,6 +147,7 @@ export class ChatsPage extends Page {
 
   render(): string {
     const chat = this.model.activeChat.value;
+    if (this.messageSearch && this.messageSearch.chatId !== chat?.id) this.messageSearch = null;
     const chats = this.model.chats.value;
     const loading = this.model.isLoading.value;
     const networkError = this.model.hasNetworkError.value;
@@ -147,19 +169,38 @@ export class ChatsPage extends Page {
             : 'Собеседник печатает…'
           : '';
     const role = this.model.role.value;
-    const messages: Message[] = this.model.messages.value.map((message) => ({
-      id: message.id,
-      text: message.content ?? '',
-      isOutgoing: message.user_id === user.getId(),
-      isRead: message.is_read,
-      time: formatMessageTime(new Date(message.created_at)),
-    }));
+    const messages: Message[] = this.model.messages.value.map((message) => {
+      const isOutgoing = message.user_id === user.getId();
+      const authorName =
+        !isOutgoing && chat?.type === 'group'
+          ? groupMembers.find((member) => member.id === message.user_id)?.name
+          : undefined;
+      return {
+        id: message.id,
+        text: message.content ?? '',
+        isOutgoing,
+        isRead: message.is_read,
+        time: formatMessageTime(new Date(message.created_at)),
+        authorName,
+      };
+    });
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
-      messagesLoading: this.model.messagesLoading.value,
-      messagesError: this.model.messagesError.value,
+      searchQuery: this.messageSearch?.query,
+      searchMessageId: this.messageSearch?.currentId,
+      messagesLoading: searchingMessages
+        ? this.messageSearch?.loading && !messages.length
+        : this.model.messagesLoading.value,
+      messagesError: searchingMessages
+        ? this.messageSearch?.error
+          ? 'Не удалось найти сообщения'
+          : ''
+        : this.model.messagesError.value,
       sendError: this.model.sendError.value,
-      hasMoreMessages: this.model.hasMoreMessages.value,
+      sending: this.model.sending.value,
+      hasMoreMessages: searchingMessages
+        ? Boolean(this.messageSearch?.before && !this.messageSearch.loading)
+        : this.model.hasMoreMessages.value,
       draft: this.messageDraft,
       typingLabel,
       peerUserId,
@@ -204,6 +245,8 @@ export class ChatsPage extends Page {
     const leftPanel = this.chatList.render(chats, chat, loading, this.createMenuOpen, {
       filter: this.chatFilter,
       hasMore: this.model.hasMoreChats.value,
+      query: this.searchQuery,
+      results: this.sidebarSearch?.results,
     });
 
     if (chat && (['group-info', 'group-edit'] as ChatsView[]).includes(this.view)) {
@@ -260,7 +303,7 @@ export class ChatsPage extends Page {
       bio: profile.bio,
       avatarUrl: profile.icon_url,
       initials: getChatInitials(fullName || profile.nickname),
-      isContact: this.contacts.some((contact) => contact.id === userId),
+      isContact: Boolean(contact) || this.contacts.some((item) => item.id === userId),
     };
     this.dialogMenuOpen = false;
     this.update();
@@ -311,8 +354,12 @@ export class ChatsPage extends Page {
       return;
     }
 
-    const focusedInput = document.activeElement?.matches('[data-message-input]')
-      ? (document.activeElement as HTMLInputElement)
+    const focusedInput =
+      document.activeElement instanceof HTMLInputElement ? document.activeElement : null;
+    const inputSelector = focusedInput?.matches(
+      '[data-message-input], [name="message-search"], [name="sidebar-search"]',
+    )
+      ? `input[name="${focusedInput.name}"]`
       : null;
     const selectionStart = focusedInput?.selectionStart;
     const selectionEnd = focusedInput?.selectionEnd;
@@ -328,6 +375,10 @@ export class ChatsPage extends Page {
     const nearBottom = oldHistory
       ? oldScrollHeight - oldScrollTop - oldHistory.clientHeight < 80
       : true;
+    const searchButton = document.activeElement?.closest<HTMLButtonElement>('[data-search-step]');
+    const panelScroll = this.container.querySelector('.chat-panel__list')?.scrollTop;
+    const focusedMessage = document.activeElement?.closest<HTMLElement>('[data-message-id]');
+    const previousHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
     this.container.innerHTML = this.render();
     const newChatList = this.container.querySelector<HTMLElement>('.chat-panel__list');
     if (newChatList) newChatList.scrollTop = oldChatListScrollTop;
@@ -347,13 +398,173 @@ export class ChatsPage extends Page {
             : 0);
     }
     this.bindEvents();
-    if (focusedInput) {
-      const nextInput = this.container.querySelector<HTMLInputElement>('[data-message-input]');
-      nextInput?.focus();
+
+    const panel = this.container.querySelector('.chat-panel__list');
+    if (panel && panelScroll !== undefined) {
+      panel.scrollTop = panelScroll;
+    }
+    const history = this.container.querySelector<HTMLElement>('[data-message-history]');
+    if (
+      history &&
+      previousHistory &&
+      previousHistory.dataset.historyChat === history.dataset.historyChat
+    ) {
+      history.scrollTop = previousHistory.scrollTop;
+      if (focusedMessage?.dataset.messageId) {
+        history
+          .querySelector<HTMLElement>(
+            `[data-message-id="${CSS.escape(focusedMessage.dataset.messageId)}"]`,
+          )
+          ?.focus({ preventScroll: true });
+      }
+    }
+
+    if (inputSelector) {
+      const nextInput = this.container.querySelector<HTMLInputElement>(inputSelector);
+      nextInput?.focus({ preventScroll: true });
+
       if (selectionStart != null && selectionEnd != null) {
         nextInput?.setSelectionRange(selectionStart, selectionEnd);
       }
+    } else if (searchButton) {
+      this.container
+        .querySelector<HTMLButtonElement>(`[data-search-step="${searchButton.dataset.searchStep}"]`)
+        ?.focus({ preventScroll: true });
     }
+
+    if (this.messageSearch) {
+      const current = history?.querySelector<HTMLElement>('[aria-current="true"]');
+
+      if (current) {
+        this.messageSearch.currentId = current.dataset.messageId;
+      }
+    }
+  }
+
+  private async loadOlderMessages(): Promise<void> {
+    if (this.loadingOlderMessages) {
+      return;
+    }
+
+    this.loadingOlderMessages = true;
+    try {
+      await this.model.loadOlderMessages();
+    } finally {
+      this.loadingOlderMessages = false;
+    }
+  }
+
+  private async loadMessageSearch(): Promise<void> {
+    const search = this.messageSearch;
+    if (!search?.query.trim()) {
+      return;
+    }
+
+    const version = ++this.messageSearchVersion;
+    search.loading = true;
+    search.error = false;
+    this.update();
+    const result = await this.model.searchMessages(
+      search.chatId,
+      search.query.trim(),
+      search.before,
+    );
+
+    if (this.messageSearch !== search || version !== this.messageSearchVersion) {
+      return;
+    }
+
+    search.loading = false;
+    if (result instanceof ApiError) {
+      search.error = true;
+    } else {
+      const page = result.data?.items ?? [];
+      search.before = page.length === 50 ? page[page.length - 1]?.id : undefined;
+      search.items = [...page.reverse(), ...search.items];
+    }
+    this.update();
+  }
+
+  private closeMessageSearch(): void {
+    window.clearTimeout(this.messageSearchTimer);
+    const scrollTop = this.messageSearch?.scrollTop ?? 0;
+    this.messageSearch = null;
+    this.update();
+    const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
+
+    if (history) {
+      history.scrollTop = scrollTop;
+    }
+
+    this.container?.querySelector<HTMLButtonElement>('[data-chat-search]')?.focus();
+  }
+
+  private moveSearchResult(step: number): void {
+    if (!this.messageSearch || !this.container) {
+      return;
+    }
+
+    const rows = Array.from(
+      this.container.querySelectorAll<HTMLElement>('[data-message-history] [data-message-id]'),
+    );
+
+    if (!rows.length) {
+      return;
+    }
+
+    const index = rows.findIndex((row) => row.dataset.messageId === this.messageSearch?.currentId);
+    this.messageSearch.currentId =
+      rows[(index + step + rows.length) % rows.length].dataset.messageId;
+    this.update();
+    this.container
+      .querySelector('[data-message-id][aria-current="true"]')
+      ?.scrollIntoView({ block: 'nearest' });
+  }
+
+  private async loadSidebarSearch(
+    search: SidebarSearchModel,
+    section: SearchSection,
+  ): Promise<void> {
+    const request = search.load(section);
+    this.update();
+    await request;
+    if (this.sidebarSearch === search) {
+      this.update();
+    }
+  }
+
+  private openChat(chatId: string, messageId?: string): void {
+    const version = ++this.chatNavigationVersion;
+    window.clearTimeout(this.messageSearchTimer);
+    this.messageSearch = null;
+    this.view = 'chat';
+    this.messageDraft = '';
+    this.deleteConfirmOpen = false;
+    this.leaveConfirmOpen = false;
+    this.openMemberMenuId = null;
+    this.createMenuOpen = false;
+    this.dialogMenuOpen = false;
+
+    if (!messageId) {
+      eventBus.emit('chats:select', { id: chatId });
+      return;
+    }
+
+    void this.model.selectChat(chatId, messageId).then((found) => {
+      if (!this.container || version !== this.chatNavigationVersion) {
+        return;
+      }
+
+      const message = this.container.querySelector<HTMLElement>(
+        `[data-message-id="${CSS.escape(messageId)}"]`,
+      );
+      if (found && message) {
+        message.focus({ preventScroll: true });
+        message.scrollIntoView({ block: 'center' });
+      } else if (this.view === 'chat') {
+        eventBus.emit('snackbar:show', { text: 'Не удалось открыть сообщение', type: 'error' });
+      }
+    });
   }
 
   bindEvents(): void {
@@ -389,16 +600,61 @@ export class ChatsPage extends Page {
       return;
     }
 
+    const more = target.closest<HTMLElement>('[data-search-more]')?.dataset.searchMore as
+      SearchSection | undefined;
+    if (more && this.sidebarSearch && !this.sidebarSearch.results[more].loading) {
+      void this.loadSidebarSearch(this.sidebarSearch, more);
+      return;
+    }
+
+    const result = target.closest<HTMLElement>('[data-search-result]')?.dataset;
+    const resultId = result?.searchResult;
+    if (resultId) {
+      switch (result.searchSection) {
+        case 'contacts': {
+          const contact = this.sidebarSearch?.contacts.get(resultId);
+          this.openPublicProfile(resultId, contact);
+          break;
+        }
+        case 'chats':
+          this.openChat(resultId);
+          break;
+        case 'messages':
+          if (result.searchChat) {
+            this.openChat(result.searchChat, resultId);
+          }
+          break;
+      }
+      return;
+    }
+
+    if (target.closest('[data-chat-search]') && this.model.activeChat.value) {
+      this.messageSearch = {
+        chatId: this.model.activeChat.value.id,
+        query: '',
+        items: [],
+        loading: false,
+        error: false,
+        scrollTop: this.container?.querySelector('[data-message-history]')?.scrollTop ?? 0,
+      };
+      this.dialogMenuOpen = false;
+      this.update();
+      this.container?.querySelector<HTMLInputElement>('[name="message-search"]')?.focus();
+      return;
+    }
+    if (target.closest('[data-close-search]')) {
+      this.closeMessageSearch();
+      return;
+    }
+    const step = target.closest<HTMLElement>('[data-search-step]')?.dataset.searchStep;
+    if (step) {
+      this.moveSearchResult(Number(step));
+      return;
+    }
+
     const chatItem = target.closest<HTMLElement>('[data-chat-id]');
     if (chatItem?.dataset.chatId) {
-      this.view = 'chat';
-      this.messageDraft = '';
-      this.deleteConfirmOpen = false;
-      this.leaveConfirmOpen = false;
-      this.openMemberMenuId = null;
-      this.createMenuOpen = false;
-      this.dialogMenuOpen = false;
-      eventBus.emit('chats:select', { id: chatItem.dataset.chatId });
+      this.openChat(chatItem.dataset.chatId);
       return;
     }
 
@@ -427,8 +683,13 @@ export class ChatsPage extends Page {
       return;
     }
 
+    if (target.closest('[data-message-search-more], [data-message-search-retry]')) {
+      void this.loadMessageSearch();
+      return;
+    }
+
     if (target.closest('[data-messages-more]')) {
-      void this.model.loadOlderMessages();
+      void this.loadOlderMessages();
       return;
     }
 
@@ -512,28 +773,44 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-group-member]')) {
-      const id = target.closest<HTMLElement>('[data-group-member]')?.dataset.groupMember;
-      if (!id) {
+      const row = target.closest<HTMLElement>('[data-group-member]');
+      const id = row?.dataset.groupMember;
+      if (!row || !id) {
         return;
       }
 
-      const selection =
-        this.view === 'group-add-members'
-          ? this.selectedAdditionalMemberIds
-          : this.selectedMemberIds;
-      const total = this.view === 'group-add-members' ? this.model.members.value.length : 1;
+      const adding = this.view === 'group-add-members';
+      const selection = adding ? this.selectedAdditionalMemberIds : this.selectedMemberIds;
+      const total = adding ? this.model.members.value.length : 1;
+      const selectionError = this.container?.querySelector<HTMLElement>(
+        '.group-create-panel__selection-error',
+      );
+
       if (!selection.has(id) && total + selection.size >= 100) {
         this.createForm.membersError = 'В группе может быть не больше 100 участников.';
-        this.update();
+        if (selectionError) {
+          selectionError.textContent = this.createForm.membersError;
+        }
         return;
       }
       this.createForm.membersError = '';
+      if (selectionError) {
+        selectionError.textContent = '';
+      }
+
       if (selection.has(id)) {
         selection.delete(id);
       } else {
         selection.add(id);
       }
-      this.update();
+
+      // Обновляем только строку и счётчики, чтобы не сбрасывать скролл списка.
+      updateMemberRowState(row, selection.has(id));
+      const countText = groupSelectionCountText(selection, adding);
+      const counters = this.container?.querySelectorAll<HTMLElement>('[data-group-selected-count]');
+      for (const counter of counters ?? []) {
+        counter.textContent = countText;
+      }
       return;
     }
 
@@ -709,6 +986,7 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-chat-back]')) {
+      this.chatNavigationVersion += 1;
       this.model.stopTyping();
       this.view = 'list';
       this.update();
@@ -745,12 +1023,62 @@ export class ChatsPage extends Page {
   private readonly handleContainerKeydown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.publicProfile) {
       this.closePublicProfile();
+    } else if (this.messageSearch && event.key === 'Escape') {
+      event.preventDefault();
+      this.closeMessageSearch();
+    } else if (
+      event.key === 'Enter' &&
+      (event.target as HTMLElement)?.matches('[name="message-search"]') &&
+      !event.isComposing
+    ) {
+      event.preventDefault();
+      this.moveSearchResult(event.shiftKey ? -1 : 1);
     }
   };
 
   private readonly handleContainerInput = (event: Event): void => {
     const input = event.target as HTMLInputElement | HTMLTextAreaElement | null;
     if (!input) {
+      return;
+    }
+
+    if (input.name === 'sidebar-search') {
+      window.clearTimeout(this.searchTimer);
+      this.searchQuery = input.value;
+      const query = input.value.trim();
+      const search = query ? new SidebarSearchModel(query) : null;
+      this.sidebarSearch = search;
+      this.update();
+      const list = this.container?.querySelector('.chat-panel__list');
+      if (list) {
+        list.scrollTop = 0;
+      }
+
+      if (search) {
+        this.searchTimer = window.setTimeout(() => {
+          for (const section of SEARCH_SECTIONS) {
+            void this.loadSidebarSearch(search, section);
+          }
+        }, 250);
+      }
+      return;
+    }
+
+    if (input.name === 'message-search' && this.messageSearch) {
+      window.clearTimeout(this.messageSearchTimer);
+      this.messageSearchVersion += 1;
+      this.messageSearch.query = input.value;
+      this.messageSearch.currentId = undefined;
+      this.messageSearch.items = [];
+      this.messageSearch.before = undefined;
+      this.messageSearch.error = false;
+      this.messageSearch.loading = Boolean(input.value.trim());
+      if (this.messageSearch.loading) {
+        this.messageSearchTimer = window.setTimeout(() => void this.loadMessageSearch(), 250);
+      }
+      this.update();
+      const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
+      if (history) history.scrollTop = 0;
       return;
     }
 
@@ -1009,6 +1337,11 @@ export class ChatsPage extends Page {
   }
 
   unmount(): void {
+    window.clearTimeout(this.searchTimer);
+    this.sidebarSearch = null;
+    this.chatNavigationVersion += 1;
+    window.clearTimeout(this.messageSearchTimer);
+    this.messageSearchVersion += 1;
     this.container?.removeEventListener('click', this.handleContainerClick);
     this.container?.removeEventListener('keydown', this.handleContainerKeydown);
     this.container?.removeEventListener('input', this.handleContainerInput);

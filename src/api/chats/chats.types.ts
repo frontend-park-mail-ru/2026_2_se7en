@@ -44,6 +44,7 @@ export interface GetChatsParams {
   limit?: number;
   after_time?: string;
   after_id?: string;
+  q?: string;
   type?: ChatType;
 }
 
@@ -76,6 +77,7 @@ export interface ChatMessage {
   id: string;
   user_id: string;
   chat_id: string;
+  chat_name?: string;
   content?: string | null;
   type: MessageType;
   is_read: boolean;
@@ -119,4 +121,5 @@ export interface Message {
   isOutgoing: boolean;
   isRead?: boolean;
   time: string;
+  authorName?: string;
 }

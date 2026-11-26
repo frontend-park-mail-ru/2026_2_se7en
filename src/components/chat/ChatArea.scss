@@ -43,6 +43,43 @@
     border-bottom: 1px solid #ecf2f7;
   }
 
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    padding-right: 6px;
+    background: #f5faff;
+    border-radius: 12px;
+
+    .panel-search {
+      min-width: 0;
+    }
+    span {
+      color: #6c7b91;
+      font-size: 12px;
+    }
+    button {
+      flex: 0 0 32px;
+      height: 36px;
+      color: #455771;
+      font-size: 18px;
+      &:disabled {
+        opacity: 0.4;
+      }
+    }
+  }
+
+  &__message-text mark {
+    background: transparent;
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  &__message-row[aria-current='true'] mark {
+    text-decoration-thickness: 2px;
+  }
+
   &__back {
     display: none;
     flex: 0 0 36px;
@@ -284,6 +321,12 @@
       border-radius: 16px 6px 16px 16px;
       box-shadow: none;
     }
+
+    &_group {
+      @include flex-column;
+      align-items: flex-start;
+      gap: 4px;
+    }
   }
 
   &__message-text {
@@ -292,6 +335,14 @@
     font-size: 13px;
     line-height: 1.45;
     overflow-wrap: anywhere;
+  }
+
+  &__message-author {
+    @include truncate;
+    max-width: 100%;
+    color: #6c7b91;
+    font-size: 11px;
+    font-weight: 500;
   }
 
   &__message-meta {
@@ -306,6 +357,10 @@
 
   &__message_outgoing &__message-meta {
     color: #fff;
+  }
+
+  &__message_group &__message-meta {
+    align-self: flex-end;
   }
 
   &__composer {
@@ -486,4 +541,9 @@
       display: none;
     }
   }
+}
+
+.chat-area__message-row:focus .chat-area__message {
+  outline: 2px solid #307df4;
+  outline-offset: 2px;
 }
