@@ -62,7 +62,12 @@
     }
   }
 
+  &__info {
+    min-width: 0;
+  }
+
   &__name {
+    @include truncate;
     font-size: 1.75rem;
     font-weight: 700;
     color: $gray-900;
@@ -70,6 +75,7 @@
   }
 
   &__subtitle {
+    @include truncate;
     font-size: 0.875rem;
     font-weight: 600;
     color: $gray-900;

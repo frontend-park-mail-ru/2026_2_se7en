@@ -53,6 +53,11 @@
     background-color: $red-50;
     border: 1px solid $red-200;
     border-radius: $radius-md;
+
+    p {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
   }
 
   &__loading {
