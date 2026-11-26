@@ -169,7 +169,7 @@ export class ChatArea {
           ${options.searchQuery !== undefined ? this.renderSearch(options.searchQuery, currentIndex, messages.length) : this.renderHeader(chat, options)}
         </header>
 
-        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history>
+        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading)}" data-message-history data-history-chat="${escapeHtml(chat.id)}">
           ${
             options.messagesLoading
               ? ''

@@ -3,6 +3,7 @@ import { Button } from '@/components/core/Button.ts';
 import { DEMO_PROFILES } from '@/api/contacts/contacts.mock';
 import type { DisplayContact } from '@/api/contacts/contacts.types.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
+import { USING_MOCK } from '@/api/api.constants.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { getUserProfileHref } from '@/constants/Routes';
 

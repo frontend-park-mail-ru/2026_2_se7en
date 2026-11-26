@@ -79,6 +79,7 @@ export class ChatsPageModel {
   }
 
   destroy(): void {
+    this.selectionVersion += 1;
     this.dialogRequestVersion += 1;
     window.clearTimeout(this.activityTimer ?? undefined);
     this.stopTyping();
@@ -152,7 +153,7 @@ export class ChatsPageModel {
     }
   }
 
-  async selectChat(id: string): Promise<void> {
+  async selectChat(id: string, messageId?: string): Promise<boolean> {
     if (this.selectedChatId !== id) {
       this.stopTyping();
       this.clearRemoteTyping();
@@ -174,13 +175,13 @@ export class ChatsPageModel {
     const detail = await ChatsApi.getChat(id);
 
     if (version !== this.selectionVersion) {
-      return;
+      return false;
     }
 
     if (detail instanceof ApiError) {
       this.messagesError.value = detail.message;
       this.messagesLoading.value = false;
-      return;
+      return false;
     }
 
     if (detail.data?.chat) {
@@ -194,6 +195,25 @@ export class ChatsPageModel {
 
     this.socket.subscribe(id);
     await Promise.all([this.loadMessages(id, version), this.loadMembers(id, version)]);
+
+    if (messageId && version === this.selectionVersion) {
+      while (
+        !this.messages.value.some((message) => message.id === messageId) &&
+        this.hasMoreMessages.value &&
+        !this.messagesError.value
+      ) {
+        const oldestId = this.messages.value[0]?.id;
+        await this.loadOlderMessages();
+        if (version !== this.selectionVersion || this.messages.value[0]?.id === oldestId) {
+          break;
+        }
+      }
+    }
+
+    return (
+      version === this.selectionVersion &&
+      (!messageId || this.messages.value.some((message) => message.id === messageId))
+    );
   }
 
   async loadMessages(id = this.selectedChatId, version = this.selectionVersion): Promise<void> {
@@ -244,7 +264,11 @@ export class ChatsPageModel {
     }
 
     const items = result.data?.items ?? [];
-    this.messages.value = [...items].reverse().concat(this.messages.value);
+    const loadedIds = new Set(this.messages.value.map((message) => message.id));
+    this.messages.value = [...items]
+      .reverse()
+      .filter((message) => !loadedIds.has(message.id))
+      .concat(this.messages.value);
     this.hasMoreMessages.value = items.length === 50;
     this.markMessagesRead(id, items);
   }
