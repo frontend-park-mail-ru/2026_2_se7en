@@ -89,6 +89,10 @@ export class ChatsPageModel {
     this.socket.disconnect();
   }
 
+  searchMessages(chatId: string, query: string, before?: string) {
+    return ChatsApi.getMessages(chatId, before, query);
+  }
+
   async loadChats(showLoading = false): Promise<void> {
     if (this.isFetching) {
       this.pendingChatsRefresh = true;

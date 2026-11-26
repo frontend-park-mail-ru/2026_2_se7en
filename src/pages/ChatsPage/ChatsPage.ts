@@ -15,7 +15,7 @@ import { eventBus } from '@/helpers/EventBus.ts';
 import { renderContactPicker } from '@/components/chat/ContactPicker.ts';
 import { user } from '@/store/User.ts';
 import { type ChatFilter, ChatList } from '@/components/chat/ChatList.ts';
-import type { ChatMember, Message } from '@/api/chats/chats.types.ts';
+import type { ChatMember, ChatMessage, Message } from '@/api/chats/chats.types.ts';
 import type {
   ContactPreview,
   GroupFormView,
@@ -72,6 +72,19 @@ export class ChatsPage extends Page {
   private sidebarSearch: SidebarSearchModel | null = null;
   private searchTimer?: number;
   private chatNavigationVersion = 0;
+  private messageSearchTimer?: number;
+  private messageSearchVersion = 0;
+  private messageSearch: {
+    chatId: string;
+    query: string;
+    currentId?: string;
+    scrollTop: number;
+    items: ChatMessage[];
+    before?: string;
+    loading: boolean;
+    error: boolean;
+  } | null = null;
+  private loadingOlderMessages = false;
   private messageDraft = '';
   private actionPending = false;
   private createForm: GroupFormView = {};
@@ -133,6 +146,7 @@ export class ChatsPage extends Page {
 
   render(): string {
     const chat = this.model.activeChat.value;
+    if (this.messageSearch && this.messageSearch.chatId !== chat?.id) this.messageSearch = null;
     const chats = this.model.chats.value;
     const loading = this.model.isLoading.value;
     const networkError = this.model.hasNetworkError.value;
@@ -154,7 +168,11 @@ export class ChatsPage extends Page {
             : 'Собеседник печатает…'
           : '';
     const role = this.model.role.value;
-    const messages: Message[] = this.model.messages.value.map((message) => ({
+    const searchingMessages = Boolean(this.messageSearch?.query.trim());
+    const messageItems = searchingMessages
+      ? (this.messageSearch?.items ?? [])
+      : this.model.messages.value;
+    const messages: Message[] = messageItems.map((message) => ({
       id: message.id,
       text: message.content ?? '',
       isOutgoing: message.user_id === user.getId(),
@@ -163,11 +181,21 @@ export class ChatsPage extends Page {
     }));
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
-      messagesLoading: this.model.messagesLoading.value,
-      messagesError: this.model.messagesError.value,
+      searchQuery: this.messageSearch?.query,
+      searchMessageId: this.messageSearch?.currentId,
+      messagesLoading: searchingMessages
+        ? this.messageSearch?.loading && !messages.length
+        : this.model.messagesLoading.value,
+      messagesError: searchingMessages
+        ? this.messageSearch?.error
+          ? 'Не удалось найти сообщения'
+          : ''
+        : this.model.messagesError.value,
       sendError: this.model.sendError.value,
       sending: this.model.sending.value,
-      hasMoreMessages: this.model.hasMoreMessages.value,
+      hasMoreMessages: searchingMessages
+        ? Boolean(this.messageSearch?.before && !this.messageSearch.loading)
+        : this.model.hasMoreMessages.value,
       draft: this.messageDraft,
       typingLabel,
       peerUserId,
@@ -310,13 +338,16 @@ export class ChatsPage extends Page {
       return;
     }
 
-    const focusedInput = document.activeElement?.matches(
-      '[data-message-input], [name="sidebar-search"]',
+    const focusedInput =
+      document.activeElement instanceof HTMLInputElement ? document.activeElement : null;
+    const inputSelector = focusedInput?.matches(
+      '[data-message-input], [name="message-search"], [name="sidebar-search"]',
     )
-      ? (document.activeElement as HTMLInputElement)
+      ? `input[name="${focusedInput.name}"]`
       : null;
     const selectionStart = focusedInput?.selectionStart;
     const selectionEnd = focusedInput?.selectionEnd;
+    const searchButton = document.activeElement?.closest<HTMLButtonElement>('[data-search-step]');
     const panelScroll = this.container.querySelector('.chat-panel__list')?.scrollTop;
     const focusedMessage = document.activeElement?.closest<HTMLElement>('[data-message-id]');
     const previousHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
@@ -343,15 +374,106 @@ export class ChatsPage extends Page {
       }
     }
 
-    if (focusedInput) {
-      const nextInput = this.container.querySelector<HTMLInputElement>(
-        focusedInput.name === 'sidebar-search' ? '[name="sidebar-search"]' : '[data-message-input]',
-      );
+    if (inputSelector) {
+      const nextInput = this.container.querySelector<HTMLInputElement>(inputSelector);
       nextInput?.focus({ preventScroll: true });
+
       if (selectionStart != null && selectionEnd != null) {
         nextInput?.setSelectionRange(selectionStart, selectionEnd);
       }
+    } else if (searchButton) {
+      this.container
+        .querySelector<HTMLButtonElement>(`[data-search-step="${searchButton.dataset.searchStep}"]`)
+        ?.focus({ preventScroll: true });
     }
+
+    if (this.messageSearch) {
+      const current = history?.querySelector<HTMLElement>('[aria-current="true"]');
+
+      if (current) {
+        this.messageSearch.currentId = current.dataset.messageId;
+      }
+    }
+  }
+
+  private async loadOlderMessages(): Promise<void> {
+    if (this.loadingOlderMessages) {
+      return;
+    }
+
+    this.loadingOlderMessages = true;
+    try {
+      await this.model.loadOlderMessages();
+    } finally {
+      this.loadingOlderMessages = false;
+    }
+  }
+
+  private async loadMessageSearch(): Promise<void> {
+    const search = this.messageSearch;
+    if (!search?.query.trim()) {
+      return;
+    }
+
+    const version = ++this.messageSearchVersion;
+    search.loading = true;
+    search.error = false;
+    this.update();
+    const result = await this.model.searchMessages(
+      search.chatId,
+      search.query.trim(),
+      search.before,
+    );
+
+    if (this.messageSearch !== search || version !== this.messageSearchVersion) {
+      return;
+    }
+
+    search.loading = false;
+    if (result instanceof ApiError) {
+      search.error = true;
+    } else {
+      const page = result.data?.items ?? [];
+      search.before = page.length === 50 ? page[page.length - 1]?.id : undefined;
+      search.items = [...page.reverse(), ...search.items];
+    }
+    this.update();
+  }
+
+  private closeMessageSearch(): void {
+    window.clearTimeout(this.messageSearchTimer);
+    const scrollTop = this.messageSearch?.scrollTop ?? 0;
+    this.messageSearch = null;
+    this.update();
+    const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
+
+    if (history) {
+      history.scrollTop = scrollTop;
+    }
+
+    this.container?.querySelector<HTMLButtonElement>('[data-chat-search]')?.focus();
+  }
+
+  private moveSearchResult(step: number): void {
+    if (!this.messageSearch || !this.container) {
+      return;
+    }
+
+    const rows = Array.from(
+      this.container.querySelectorAll<HTMLElement>('[data-message-history] [data-message-id]'),
+    );
+
+    if (!rows.length) {
+      return;
+    }
+
+    const index = rows.findIndex((row) => row.dataset.messageId === this.messageSearch?.currentId);
+    this.messageSearch.currentId =
+      rows[(index + step + rows.length) % rows.length].dataset.messageId;
+    this.update();
+    this.container
+      .querySelector('[data-message-id][aria-current="true"]')
+      ?.scrollIntoView({ block: 'nearest' });
   }
 
   private async loadSidebarSearch(
@@ -368,6 +490,8 @@ export class ChatsPage extends Page {
 
   private openChat(chatId: string, messageId?: string): void {
     const version = ++this.chatNavigationVersion;
+    window.clearTimeout(this.messageSearchTimer);
+    this.messageSearch = null;
     this.view = 'chat';
     this.messageDraft = '';
     this.deleteConfirmOpen = false;
@@ -459,6 +583,30 @@ export class ChatsPage extends Page {
       return;
     }
 
+    if (target.closest('[data-chat-search]') && this.model.activeChat.value) {
+      this.messageSearch = {
+        chatId: this.model.activeChat.value.id,
+        query: '',
+        items: [],
+        loading: false,
+        error: false,
+        scrollTop: this.container?.querySelector('[data-message-history]')?.scrollTop ?? 0,
+      };
+      this.dialogMenuOpen = false;
+      this.update();
+      this.container?.querySelector<HTMLInputElement>('[name="message-search"]')?.focus();
+      return;
+    }
+    if (target.closest('[data-close-search]')) {
+      this.closeMessageSearch();
+      return;
+    }
+    const step = target.closest<HTMLElement>('[data-search-step]')?.dataset.searchStep;
+    if (step) {
+      this.moveSearchResult(Number(step));
+      return;
+    }
+
     const chatItem = target.closest<HTMLElement>('[data-chat-id]');
     if (chatItem?.dataset.chatId) {
       this.openChat(chatItem.dataset.chatId);
@@ -490,8 +638,13 @@ export class ChatsPage extends Page {
       return;
     }
 
+    if (target.closest('[data-message-search-more], [data-message-search-retry]')) {
+      void this.loadMessageSearch();
+      return;
+    }
+
     if (target.closest('[data-messages-more]')) {
-      void this.model.loadOlderMessages();
+      void this.loadOlderMessages();
       return;
     }
 
@@ -825,6 +978,16 @@ export class ChatsPage extends Page {
   private readonly handleContainerKeydown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.publicProfile) {
       this.closePublicProfile();
+    } else if (this.messageSearch && event.key === 'Escape') {
+      event.preventDefault();
+      this.closeMessageSearch();
+    } else if (
+      event.key === 'Enter' &&
+      (event.target as HTMLElement)?.matches('[name="message-search"]') &&
+      !event.isComposing
+    ) {
+      event.preventDefault();
+      this.moveSearchResult(event.shiftKey ? -1 : 1);
     }
   };
 
@@ -853,6 +1016,24 @@ export class ChatsPage extends Page {
           }
         }, 250);
       }
+      return;
+    }
+
+    if (input.name === 'message-search' && this.messageSearch) {
+      window.clearTimeout(this.messageSearchTimer);
+      this.messageSearchVersion += 1;
+      this.messageSearch.query = input.value;
+      this.messageSearch.currentId = undefined;
+      this.messageSearch.items = [];
+      this.messageSearch.before = undefined;
+      this.messageSearch.error = false;
+      this.messageSearch.loading = Boolean(input.value.trim());
+      if (this.messageSearch.loading) {
+        this.messageSearchTimer = window.setTimeout(() => void this.loadMessageSearch(), 250);
+      }
+      this.update();
+      const history = this.container?.querySelector<HTMLElement>('[data-message-history]');
+      if (history) history.scrollTop = 0;
       return;
     }
 
@@ -1100,6 +1281,8 @@ export class ChatsPage extends Page {
     window.clearTimeout(this.searchTimer);
     this.sidebarSearch = null;
     this.chatNavigationVersion += 1;
+    window.clearTimeout(this.messageSearchTimer);
+    this.messageSearchVersion += 1;
     this.container?.removeEventListener('click', this.handleContainerClick);
     this.container?.removeEventListener('keydown', this.handleContainerKeydown);
     this.container?.removeEventListener('input', this.handleContainerInput);

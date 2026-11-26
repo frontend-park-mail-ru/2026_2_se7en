@@ -40,9 +40,14 @@ export class ChatsApi extends ServerApi {
     return this._request<ChatDetailResponse>(chatUrl(id));
   }
 
-  static getMessages(id: string, before?: string): Promise<ApiResult<ListMessagesResponse>> {
+  static getMessages(
+    id: string,
+    before?: string,
+    search?: string,
+  ): Promise<ApiResult<ListMessagesResponse>> {
     const query = new URLSearchParams({ limit: '50' });
     if (before) query.set('before', before);
+    if (search) query.set('q', search);
 
     return this._request<ListMessagesResponse>(`${chatMessagesUrl(id)}?${query.toString()}`);
   }
