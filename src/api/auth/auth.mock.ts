@@ -11,7 +11,7 @@ export const MOCK_CREDENTIALS: LoginData = {
 export const MOCK_USER: User = {
   id: '1',
   email: '1@1.ru',
-  phoneNumber: null,
+  phone_number: null,
   profile: { id: '2', nickname: 'nick' },
 };
 

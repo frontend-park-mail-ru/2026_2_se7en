@@ -42,7 +42,6 @@ export interface ChatsResponse {
  */
 export interface GetChatsParams {
   limit?: number;
-  offset?: number;
   after_time?: string;
   after_id?: string;
   q?: string;

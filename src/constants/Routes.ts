@@ -3,6 +3,7 @@ type Route =
   | 'LOGIN'
   | 'REGISTER'
   | 'CONTACTS'
+  | 'USERS'
   | 'PROFILE'
   | 'PROFILE_PUBLIC'
   | 'PROFILE_SECURITY'
@@ -17,6 +18,7 @@ const PROFILE = '/profile';
 export const ROUTES = {
   HOME: '/chats',
   CONTACTS: '/contacts',
+  USERS: '/users',
   LOGIN: '/login',
   REGISTER: '/register',
   USER_PROFILE_PATTERN: /^\/users\/[^/]+$/,
