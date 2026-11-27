@@ -102,6 +102,7 @@
 
   &__error {
     display: block;
+    @include wrap-long-words;
     color: #e43e49;
     font-size: 11px;
     line-height: 15px;
@@ -191,15 +192,18 @@
       @include flex;
       flex-direction: column;
       gap: 4px;
+      min-width: 0;
     }
 
     strong {
+      @include truncate;
       color: #142033;
       font-size: 16px;
       font-weight: 600;
     }
 
     small {
+      @include truncate;
       color: #9aa8ba;
       font-size: 11px;
     }
@@ -226,6 +230,7 @@
     }
 
     p {
+      @include wrap-long-words;
       color: #142033;
       font-size: 14px;
     }
@@ -377,6 +382,7 @@
     }
 
     small {
+      @include truncate;
       color: #9aa8ba;
       font-size: 11px;
       line-height: 14px;
@@ -470,6 +476,7 @@
     border-radius: 20px;
 
     h3 {
+      @include wrap-long-words;
       color: #142033;
       font-size: 20px;
       line-height: 26px;
@@ -477,6 +484,7 @@
 
     p {
       margin-top: 12px;
+      @include wrap-long-words;
       color: #6c7b91;
       font-size: 12px;
       line-height: 18px;
@@ -632,15 +640,18 @@
       @include flex;
       flex-direction: column;
       gap: 4px;
+      min-width: 0;
     }
 
     strong {
+      @include truncate;
       color: #142033;
       font-size: 13px;
       font-weight: 600;
     }
 
     small {
+      @include truncate;
       color: #9aa8ba;
       font-size: 11px;
     }

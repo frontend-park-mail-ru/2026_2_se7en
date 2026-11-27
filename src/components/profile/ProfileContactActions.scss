@@ -3,11 +3,12 @@
     flex-basis: 100%;
     color: $gray-600;
     font-size: 0.875rem;
-    overflow-wrap: anywhere;
+    @include wrap-long-words;
   }
 
   &__status {
     margin-top: 0.75rem;
+    @include wrap-long-words;
     font-size: 0.875rem;
     color: $gray-600;
   }
@@ -38,6 +39,7 @@
     }
     > p {
       margin-top: 0.75rem;
+      @include wrap-long-words;
       font-size: 0.875rem;
       color: $gray-500;
     }

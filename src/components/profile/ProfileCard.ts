@@ -40,8 +40,8 @@ export function ProfileCard({
     <div class="profile-card">
       ${avatar}
       <div class="profile-card__info">
-        <h2 class="profile-card__name">${escapeHtml(name)}</h2>
-        <p class="profile-card__subtitle">${escapeHtml(subtitle)}</p>
+        <h2 class="profile-card__name" data-tooltip="${escapeHtml(name)}">${escapeHtml(name)}</h2>
+        <p class="profile-card__subtitle" data-tooltip="${escapeHtml(subtitle)}">${escapeHtml(subtitle)}</p>
       </div>
     </div>
   `;

@@ -1,0 +1,32 @@
+// Кастомный тултип
+
+.tooltip {
+  position: fixed;
+  z-index: 100;
+  max-width: 240px;
+  padding: 6px 10px;
+  @include wrap-long-words;
+  color: #fff;
+  background: rgba(20, 32, 51, 0.92);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px -8px rgba(20, 32, 51, 0.4);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 8px));
+  visibility: hidden;
+  transition:
+    opacity 120ms ease,
+    visibility 120ms ease;
+
+  &_visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &_below {
+    transform: translate(-50%, 8px);
+  }
+}

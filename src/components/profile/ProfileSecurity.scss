@@ -17,6 +17,7 @@
   &__info {
     @include flex-column;
     gap: 0.25rem;
+    min-width: 0;
   }
 
   &__label {
@@ -25,6 +26,7 @@
   }
 
   &__value {
+    @include truncate;
     font-size: 1rem;
     color: $gray-900;
     font-weight: 500;

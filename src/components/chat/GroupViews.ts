@@ -43,7 +43,7 @@ function avatarPicker(
         ${avatar(initials, mode === 'create', false, imageUrl)}
         <span>
           <strong>${mode === 'create' ? 'Добавить фото группы' : 'Изменить фото группы'}</strong>
-          <small>${escapeHtml(fileName || 'Необязательно')}</small>
+          <small ${fileName ? `data-tooltip="${escapeHtml(fileName)}"` : ''}>${escapeHtml(fileName || 'Необязательно')}</small>
         </span>
       </label>
       ${Input({ className: 'group-view__file-input', id, type: 'file', name: 'avatar', unstyled: true, attrs: { accept: 'image/png,image/jpeg,image/webp', 'data-group-avatar': mode, 'aria-describedby': `${id}-error` } })}
@@ -99,7 +99,7 @@ function memberRow(
   );
   const memberText = `
     <span class="group-view__member-text">
-      <strong>${escapeHtml(member.name)}</strong>
+      <strong data-tooltip="${escapeHtml(member.name)}">${escapeHtml(member.name)}</strong>
       <small>${escapeHtml(member.status)}</small>
     </span>
   `;
@@ -262,7 +262,7 @@ export function renderGroupInfo(
         <div class="group-view__summary">
           ${avatar(chat.initials, false, false, chat.icon_url ?? undefined)}
           <span>
-            <strong>${escapeHtml(chat.name)}</strong>
+            <strong data-tooltip="${escapeHtml(chat.name)}">${escapeHtml(chat.name)}</strong>
             <small>${chat.members_count ?? members.length} из 100 участников</small>
           </span>
         </div>

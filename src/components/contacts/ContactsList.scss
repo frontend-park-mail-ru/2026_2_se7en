@@ -222,6 +222,7 @@
     margin: 0.25rem 0 0.75rem;
   }
   a {
+    @include truncate;
     display: block;
     padding: 0.5rem 0;
     font-size: 0.875rem;

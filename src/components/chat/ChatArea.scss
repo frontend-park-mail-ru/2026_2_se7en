@@ -238,6 +238,7 @@
     left: 50%;
     width: max-content;
     max-width: 90%;
+    @include wrap-long-words;
     transform: translate(-50%, -50%);
     color: #6c7b91;
     font-size: 14px;
@@ -247,6 +248,7 @@
   &__history-status {
     align-self: center;
     margin: auto;
+    @include wrap-long-words;
     color: #6c7b91;
     font-size: 13px;
     text-align: center;
@@ -271,6 +273,7 @@
   }
 
   &__typing {
+    @include truncate;
     position: relative;
     margin-top: auto;
     color: #6c7b91;
@@ -334,7 +337,7 @@
     min-width: 0;
     font-size: 13px;
     line-height: 1.45;
-    overflow-wrap: anywhere;
+    @include wrap-long-words;
   }
 
   &__message-author {
@@ -375,6 +378,7 @@
 
   &__send-error {
     padding: 0 24px 8px;
+    @include wrap-long-words;
     color: #e43e49;
     background: #fff;
     font-size: 11px;
@@ -450,6 +454,7 @@
     border-radius: 20px;
 
     h2 {
+      @include wrap-long-words;
       color: #142033;
       font-size: 20px;
       line-height: 26px;
@@ -458,6 +463,7 @@
 
     p {
       margin-top: 12px;
+      @include wrap-long-words;
       color: #6c7b91;
       font-size: 12px;
       line-height: 18px;
