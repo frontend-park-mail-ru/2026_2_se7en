@@ -28,6 +28,7 @@ export const VALID_TABS: ProfileTab[] = [
   'email',
   'phone',
   'password',
+  'menu',
 ];
 
 /**
@@ -186,7 +187,9 @@ export class ProfilePageModel {
 
   private async submit(): Promise<void> {
     const tab = this.activeTab.value;
-    if (this.isSubmitting.value || tab === 'security' || tab === 'overview') return;
+    if (this.isSubmitting.value || tab === 'security' || tab === 'overview' || tab === 'menu') {
+      return;
+    }
 
     this.formError.value = null;
 

@@ -5,6 +5,7 @@ type Route =
   | 'CONTACTS'
   | 'USERS'
   | 'PROFILE'
+  | 'PROFILE_MENU'
   | 'PROFILE_PUBLIC'
   | 'PROFILE_SECURITY'
   | 'PROFILE_EMAIL'
@@ -23,6 +24,7 @@ export const ROUTES = {
   REGISTER: '/register',
   USER_PROFILE_PATTERN: /^\/users\/[^/]+$/,
   PROFILE,
+  PROFILE_MENU: `${PROFILE}/menu`,
   PROFILE_PUBLIC: `${PROFILE}/public`,
   PROFILE_SECURITY: `${PROFILE}/security`,
   PROFILE_EMAIL: `${PROFILE}/email`,

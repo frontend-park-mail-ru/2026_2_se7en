@@ -6,8 +6,8 @@ import { ProfilePage } from '@/pages/ProfilePage/ProfilePage.ts';
 import { ROUTES } from '@/constants/Routes.ts';
 import { RegisterPage } from '@/pages/RegisterPage/RegisterPage.ts';
 import { UserProfilePage } from '@/pages/UserProfilePage/UserProfilePage';
-import { bindTooltips } from '@/components/core/Tooltip.ts';
 import { UsersPage } from '@/pages/UsersPage/UsersPage.ts';
+import { bindTooltips } from '@/components/core/Tooltip.ts';
 import { router } from '@/helpers/Router.ts';
 import { user } from '@/store/User';
 

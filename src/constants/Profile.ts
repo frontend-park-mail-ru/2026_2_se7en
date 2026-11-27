@@ -84,7 +84,7 @@ export const PROFILE_REGEXES = {
 
 /** Поля, относящиеся к каждой вкладке профиля. */
 export const PROFILE_TAB_FIELDS: Record<
-  Exclude<ProfileTab, 'security' | 'overview'>,
+  Exclude<ProfileTab, 'security' | 'overview' | 'menu'>,
   ProfileField[]
 > = {
   public: ['first_name', 'last_name', 'nickname', 'bio'],

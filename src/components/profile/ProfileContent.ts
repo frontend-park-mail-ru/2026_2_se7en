@@ -205,6 +205,41 @@ export function ProfileContent({
     `;
   }
 
+  // Мобильный экран выбора раздела профиля.
+  if (activeTab === 'menu') {
+    const sections = [
+      { path: ROUTES.PROFILE, label: 'Профиль' },
+      { path: ROUTES.PROFILE_PUBLIC, label: 'Публичная информация' },
+      { path: ROUTES.PROFILE_SECURITY, label: 'Аккаунт и безопасность' },
+    ];
+
+    return `
+      <div class="profile-page">
+        <aside class="profile-page__sidebar">${ProfileMenu(activeTab)}</aside>
+        <main class="profile-page__main">
+          <header class="profile-page__header">
+            <button type="button" class="profile-menu-hub__back" data-profile-menu-back aria-label="Назад к чатам">
+              <img src="/design-assets/63b18.svg" alt="" width="20" height="20">
+            </button>
+            <h1 class="profile-page__title">Профиль</h1>
+          </header>
+          <nav class="profile-menu-hub" aria-label="Разделы профиля">
+            ${sections
+              .map(
+                (section) => `
+              <a href="${section.path}" class="profile-menu-hub__item">
+                <span>${escapeHtml(section.label)}</span>
+                <span class="profile-menu-hub__chevron" aria-hidden="true"></span>
+              </a>
+            `,
+              )
+              .join('')}
+          </nav>
+        </main>
+      </div>
+    `;
+  }
+
   let headerTitle = '';
   let cardSubtitle = '';
   let contentHtml = '';
