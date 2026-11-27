@@ -4,7 +4,8 @@ import type {
   ProfileFormValues,
 } from '@/api/profile/profile.types';
 
-export type ProfileTab = 'overview' | 'public' | 'security' | 'email' | 'phone' | 'password';
+export type ProfileTab =
+  'overview' | 'public' | 'security' | 'email' | 'phone' | 'password' | 'menu';
 
 export interface ProfileCardParams {
   name: string;

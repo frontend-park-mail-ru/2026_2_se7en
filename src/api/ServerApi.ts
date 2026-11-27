@@ -41,15 +41,10 @@ export class ServerApi {
     const generation = this.csrfGeneration;
     const request = (async () => {
       try {
-        const response = await fetch(`${BASE_URL}/csrf`, { credentials: 'include' });
+        const response = await fetch(`${BASE_URL}${CSRF_URL}`, { credentials: 'include' });
         if (!response.ok) return null;
-        const data: unknown = await response.json();
-        if (
-          !data ||
-          typeof data !== 'object' ||
-          !('csrf_token' in data) ||
-          typeof data.csrf_token !== 'string'
-        ) {
+        const data = (await response.json()) as Partial<CSRFTokenResponse> | null;
+        if (!data || typeof data.csrf_token !== 'string') {
           return null;
         }
         if (generation !== this.csrfGeneration) return null;
@@ -111,16 +106,15 @@ export class ServerApi {
       const isPublicAuthRequest =
         method === 'POST' && (endpoint === LOGIN_URL || endpoint === REGISTER_URL);
       if (!SAFE_METHODS.includes(method) && !isPublicAuthRequest) {
-        const csrf = await ServerApi.getCSRFToken();
-        if (csrf.success === false) return csrf;
-        if (typeof csrf.data?.csrf_token !== 'string' || !csrf.data.csrf_token) {
+        const csrf = await ServerApi.getCsrfToken();
+        if (!csrf) {
           return new ApiError(
             ERROR_CODES.UNKNOWN_ERROR,
             ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR],
-            csrf.status,
+            STATUSES.INTERNAL_SERVER_ERROR,
           );
         }
-        headers.set(CSRF_HEADER, csrf.data.csrf_token);
+        headers.set(CSRF_HEADER, csrf);
       }
 
       const response = await fetch(url, config);

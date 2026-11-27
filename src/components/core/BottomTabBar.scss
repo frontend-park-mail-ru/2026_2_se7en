@@ -1,0 +1,175 @@
+// Нижняя панель навигации мобильной версии.
+// На десктопе скрыта.
+
+.bottom-bar {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .layout_chat-list .bottom-bar,
+  .layout_contacts .bottom-bar,
+  .layout_users .bottom-bar {
+    @include flex;
+    position: fixed;
+    z-index: 40;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    align-items: stretch;
+    height: 64px;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: #fff;
+    border-top: 1px solid #ecf2f7;
+  }
+
+  .layout_chat-list .chat-panel {
+    padding-bottom: 72px;
+  }
+
+  .bottom-bar__tab {
+    @include flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    color: #9aa8ba;
+    background: none;
+    border: 0;
+    font-size: 11px;
+    cursor: pointer;
+
+    .icon {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  // Активная вкладка - чёрная.
+  .layout_chat-list .bottom-bar__tab_chats,
+  .layout_contacts .bottom-bar__tab_contacts,
+  .layout_users .bottom-bar__tab_contacts {
+    color: #142033;
+    font-weight: 600;
+  }
+
+  // Поповер над табом профиля.
+  .bottom-bar__menu {
+    position: fixed;
+    z-index: 41;
+    right: 16px;
+    bottom: 72px;
+    display: none;
+    min-width: 160px;
+    padding: 8px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 28px -8px rgba(20, 32, 51, 0.25);
+  }
+
+  .bottom-bar_menu-open .bottom-bar__menu {
+    display: block;
+  }
+
+  .bottom-bar__menu-item {
+    @include flex;
+    @include flex-align-center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    color: #142033;
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+
+    .icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    &:hover {
+      background: #f1f8fe;
+    }
+  }
+
+  // Подтверждение выхода.
+  .bottom-bar__modal-backdrop {
+    position: fixed;
+    z-index: 45;
+    inset: 0;
+    display: none;
+    background: rgba(20, 32, 51, 0.4);
+  }
+
+  .bottom-bar__modal {
+    position: fixed;
+    z-index: 46;
+    top: 50%;
+    left: 50%;
+    width: 316px;
+    max-width: calc(100% - 40px);
+    display: none;
+    padding: 24px;
+    background: #fff;
+    border-radius: 20px;
+    transform: translate(-50%, -50%);
+
+    h3 {
+      color: #142033;
+      font-size: 20px;
+      line-height: 26px;
+      font-weight: 700;
+    }
+
+    p {
+      margin-top: 12px;
+      @include wrap-long-words;
+      color: #6c7b91;
+      font-size: 12px;
+      line-height: 18px;
+    }
+  }
+
+  .bottom-bar__modal-actions {
+    @include flex;
+    gap: 8px;
+    margin-top: 16px;
+
+    button {
+      flex: 1;
+      height: 40px;
+      border: 0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  }
+
+  .bottom-bar__modal-cancel {
+    color: #142033;
+    background: #f5faff;
+  }
+
+  .bottom-bar__modal-confirm {
+    color: #fff;
+    background: #142033;
+
+    &:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+  }
+
+  .bottom-bar_confirm-open .bottom-bar__modal-backdrop,
+  .bottom-bar_confirm-open .bottom-bar__modal {
+    display: block;
+  }
+
+  // Меню создания перекрывает таб-бар.
+  .layout_menu-open.layout_chat-list .bottom-bar {
+    display: none;
+  }
+}

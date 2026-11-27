@@ -169,7 +169,7 @@ export function validateProfileField(
  * Валидирует все поля активной вкладки профиля.
  */
 export function validateProfileTab(
-  tab: Exclude<ProfileTab, 'security' | 'overview'>,
+  tab: Exclude<ProfileTab, 'security' | 'overview' | 'menu'>,
   values: ProfileFormValues,
 ): { isValid: boolean; fieldErrors: ProfileFieldErrors } {
   const fields = PROFILE_TAB_FIELDS[tab];

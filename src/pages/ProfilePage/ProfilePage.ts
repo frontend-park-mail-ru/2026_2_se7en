@@ -92,6 +92,10 @@ export class ProfilePage extends Page {
       void this.model.loadProfile();
     });
 
+    this.container?.querySelector('[data-profile-menu-back]')?.addEventListener('click', () => {
+      void router.goTo(ROUTES.HOME);
+    });
+
     const form = document.getElementById(PROFILE_FORM_ID);
     form?.addEventListener('submit', (event: SubmitEvent) => {
       event.preventDefault();

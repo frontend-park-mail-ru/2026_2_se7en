@@ -1,14 +1,18 @@
 import './DefaultLayout.scss';
+import { BottomTabBar } from '@/components/core/BottomTabBar.ts';
 import { Sidebar } from '@/components/core/Sidebar.js';
 
 /**
- * Базовый лейаут приложения с боковой панелью Sidebar.
+ * Базовый лейаут приложения с боковой панелью Sidebar
+ * и мобильной нижней панелью навигации BottomTabBar.
  */
 export class DefaultLayout {
   private readonly sidebar: Sidebar;
+  private readonly bottomBar: BottomTabBar;
 
   constructor() {
     this.sidebar = new Sidebar();
+    this.bottomBar = new BottomTabBar();
   }
 
   /**
@@ -22,15 +26,18 @@ export class DefaultLayout {
       <div class="layout${modifier ? ` ${modifier}` : ''}">
         ${this.sidebar.render()}
         ${contentHtml}
+        ${this.bottomBar.render()}
       </div>
     `;
   }
 
   bindEvents(): void {
     this.sidebar.bindEvents();
+    this.bottomBar.bindEvents();
   }
 
   unmount(): void {
     this.sidebar.unbindEvents();
+    this.bottomBar.unbindEvents();
   }
 }

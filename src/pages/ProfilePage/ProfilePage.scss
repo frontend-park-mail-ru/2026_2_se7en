@@ -67,6 +67,57 @@
   }
 }
 
+// Мобильный экран выбора раздела профиля.
+.profile-menu-hub {
+  width: min(100%, 36rem);
+  padding: 0 1rem 1.5rem;
+
+  &__back {
+    @include flex-center;
+    width: 40px;
+    height: 40px;
+    margin-right: 0.75rem;
+    background: $gray-50;
+    border: 0;
+    border-radius: $radius-full;
+    cursor: pointer;
+  }
+
+  &__item {
+    @include flex;
+    @include flex-align-center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 1.125rem 1.25rem;
+    color: $gray-900;
+    background: $white;
+    border-bottom: 1px solid $gray-100;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:first-child {
+      border-top-left-radius: $radius-xl;
+      border-top-right-radius: $radius-xl;
+    }
+
+    &:last-child {
+      border-bottom: 0;
+      border-bottom-left-radius: $radius-xl;
+      border-bottom-right-radius: $radius-xl;
+    }
+  }
+
+  // Шеврон из двух сторон рамки, без отдельной иконки.
+  &__chevron {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid $gray-400;
+    border-bottom: 2px solid $gray-400;
+    transform: rotate(-45deg);
+  }
+}
+
 @media (max-width: 900px) {
   .profile-page {
     flex-direction: column;
@@ -83,5 +134,12 @@
     &__content {
       padding: 1.25rem;
     }
+  }
+}
+
+// Хаб профиля предназначен для мобильной навигации.
+@media (min-width: 701px) {
+  .profile-menu-hub__back {
+    display: none;
   }
 }
