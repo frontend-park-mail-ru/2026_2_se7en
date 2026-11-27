@@ -7,6 +7,7 @@ import type { Contact } from '@/api/contacts/contacts.types.ts';
 import { ContactsApi } from '@/api/contacts/ContactsApi.ts';
 import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import { Page } from '@/pages/Page.ts';
+import { PagedScroll } from '@/helpers/PagedScroll.ts';
 import { PublicProfileModal } from '@/components/profile/PublicProfileModal.ts';
 import type { PublicProfileView } from '@/components/profile/PublicProfileModal.ts';
 import { ROUTES } from '@/constants/Routes.ts';
@@ -58,12 +59,23 @@ export class ChatsPage extends Page {
   private readonly model = new ChatsPageModel();
   private readonly layout = new DefaultLayout();
   private readonly chatList = new ChatList();
+  private readonly chatScroll = new PagedScroll('[data-chat-list]', (direction) => {
+    void this.model.loadMoreChats(direction);
+  });
   private readonly chatArea = new ChatArea();
+  private readonly messageScroll = new PagedScroll(
+    '[data-message-history]',
+    (direction) => {
+      if (!this.openingMessage) void this.model.loadMoreMessages(direction);
+    },
+    true,
+  );
 
   private view: ChatsView = 'chat';
   private createMenuOpen = false;
   private dialogMenuOpen = false;
   private deleteConfirmOpen = false;
+  private deleteError = '';
   private leaveConfirmOpen = false;
   private openMemberMenuId: string | null = null;
   private removeMemberId: string | null = null;
@@ -72,6 +84,7 @@ export class ChatsPage extends Page {
   private sidebarSearch: SidebarSearchModel | null = null;
   private searchTimer?: number;
   private chatNavigationVersion = 0;
+  private openingMessage = false;
   private messageSearchTimer?: number;
   private messageSearchVersion = 0;
   private messageSearch: {
@@ -84,7 +97,6 @@ export class ChatsPage extends Page {
     loading: boolean;
     error: boolean;
   } | null = null;
-  private loadingOlderMessages = false;
   private messageDraft = '';
   private actionPending = false;
   private createForm: GroupFormView = {};
@@ -99,7 +111,6 @@ export class ChatsPage extends Page {
   private groupContacts: GroupMemberView[] = [];
   private contactsLoading = false;
   private contactsError = '';
-  private chatsLoadStarted = false;
   private contactRequestVersion = 0;
   private publicProfile: PublicProfileView | null = null;
   private readonly selectedMemberIds = new Set<string>();
@@ -114,6 +125,7 @@ export class ChatsPage extends Page {
         this.model.activeChat,
         this.model.role,
         this.model.messages,
+        this.model.firstUnreadId,
         this.model.members,
         this.model.typingUsers,
         this.model.isLoading,
@@ -123,26 +135,12 @@ export class ChatsPage extends Page {
         this.model.membersLoading,
         this.model.membersError,
         this.model.sendError,
-        this.model.hasMoreMessages,
-        this.model.hasMoreChats,
+        this.model.sending,
+        this.model.messagePagination.state,
+        this.model.chatPagination.state,
       ],
       () => this.update(),
     );
-  }
-
-  async mount(): Promise<boolean> {
-    if (document.querySelector('.layout_contacts')) {
-      this.chatsLoadStarted = true;
-      let timer: number | undefined;
-      await Promise.race([
-        this.model.loadChats(),
-        new Promise<void>((resolve) => {
-          timer = window.setTimeout(resolve, 200);
-        }),
-      ]);
-      window.clearTimeout(timer);
-    }
-    return super.mount();
   }
 
   render(): string {
@@ -169,8 +167,12 @@ export class ChatsPage extends Page {
             : 'Собеседник печатает…'
           : '';
     const role = this.model.role.value;
-    const messages: Message[] = this.model.messages.value.map((message) => {
-      const isOutgoing = message.user_id === user.getId();
+    const searchingMessages = Boolean(this.messageSearch?.query.trim());
+    const messageItems = searchingMessages
+      ? (this.messageSearch?.items ?? [])
+      : this.model.messages.value;
+    const messages: Message[] = messageItems.map((message) => {
+      const isOutgoing = message.user_id === currentUserId;
       const authorName =
         !isOutgoing && chat?.type === 'group'
           ? groupMembers.find((member) => member.id === message.user_id)?.name
@@ -186,6 +188,7 @@ export class ChatsPage extends Page {
     });
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
+      firstUnreadId: this.model.firstUnreadId.value,
       searchQuery: this.messageSearch?.query,
       searchMessageId: this.messageSearch?.currentId,
       messagesLoading: searchingMessages
@@ -198,9 +201,10 @@ export class ChatsPage extends Page {
         : this.model.messagesError.value,
       sendError: this.model.sendError.value,
       sending: this.model.sending.value,
-      hasMoreMessages: searchingMessages
-        ? Boolean(this.messageSearch?.before && !this.messageSearch.loading)
-        : this.model.hasMoreMessages.value,
+      messagePagination: searchingMessages ? undefined : this.model.messagePagination.state.value,
+      moreSearchResults: Boolean(
+        searchingMessages && this.messageSearch?.before && !this.messageSearch.loading,
+      ),
       draft: this.messageDraft,
       typingLabel,
       peerUserId,
@@ -208,6 +212,7 @@ export class ChatsPage extends Page {
       canDeleteGroup: role === 'creator',
       menuOpen: this.dialogMenuOpen,
       deleteConfirmOpen: this.deleteConfirmOpen,
+      deleteError: this.deleteError,
     });
 
     if (
@@ -244,7 +249,7 @@ export class ChatsPage extends Page {
 
     const leftPanel = this.chatList.render(chats, chat, loading, this.createMenuOpen, {
       filter: this.chatFilter,
-      hasMore: this.model.hasMoreChats.value,
+      pagination: this.model.chatPagination.state.value,
       query: this.searchQuery,
       results: this.sidebarSearch?.results,
     });
@@ -262,11 +267,19 @@ export class ChatsPage extends Page {
               openMemberMenuId: this.openMemberMenuId,
               removeMemberId: this.removeMemberId,
               canManageRoles: role === 'creator',
+              canDeleteGroup: role === 'creator',
               loading: this.model.membersLoading.value,
               error: this.model.membersError.value,
             });
 
-      return this.renderLayout(`${leftPanel}${rightPanel}`, 'layout_messenger layout_group-screen');
+      const confirmation =
+        this.view === 'group-edit' && this.deleteConfirmOpen
+          ? this.chatArea.renderDeleteConfirm(chat.name ?? '', true, this.deleteError)
+          : '';
+      return this.renderLayout(
+        `${leftPanel}${rightPanel}${confirmation}`,
+        'layout_messenger layout_group-screen',
+      );
     }
 
     const modifier = this.view === 'list' ? 'layout_chat-list' : chat ? 'layout_dialog-open' : '';
@@ -278,11 +291,12 @@ export class ChatsPage extends Page {
     return this.layout.render(`${content}${PublicProfileModal(this.publicProfile)}`, modifier);
   }
 
-  private async openPublicProfile(userId: string): Promise<void> {
+  private async openPublicProfile(userId: string, contact?: Contact): Promise<void> {
     const member = this.model.members.value.find((candidate) => candidate.user_id === userId);
-    if (!member?.profile) return;
+    const profile = contact ?? member?.profile;
+    if (!profile) return;
 
-    if (!this.contactsLoaded) {
+    if (!contact && !this.contactsLoaded) {
       await this.loadContacts();
       if (!this.contactsLoaded) {
         eventBus.emit('snackbar:show', {
@@ -293,14 +307,13 @@ export class ChatsPage extends Page {
       }
     }
 
-    const profile = member.profile;
     const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
     this.publicProfile = {
       userId,
       firstName: profile.first_name,
       lastName: profile.last_name,
       nickname: profile.nickname,
-      bio: profile.bio,
+      bio: member?.profile?.bio,
       avatarUrl: profile.icon_url,
       initials: getChatInitials(fullName || profile.nickname),
       isContact: Boolean(contact) || this.contacts.some((item) => item.id === userId),
@@ -310,20 +323,22 @@ export class ChatsPage extends Page {
     this.container?.querySelector<HTMLButtonElement>('[data-public-profile-close]')?.focus();
   }
 
-  private async addPublicProfileToContacts(): Promise<void> {
-    const profile = this.publicProfile;
+  private async addPublicProfileToContacts(profile = this.publicProfile): Promise<void> {
     if (!profile || profile.isContact || profile.isAddingContact) return;
 
     profile.isAddingContact = true;
     this.update();
     const result = await ContactsApi.createContact({ nickname: profile.nickname });
-    if (this.publicProfile?.userId === profile.userId) {
-      this.publicProfile.isAddingContact = false;
-      if (result.success || result.status === 409) {
-        this.publicProfile.isContact = true;
-      }
-      this.update();
+    profile.isAddingContact = false;
+    if (result.success || result.status === 409) {
+      profile.isContact = true;
+      const visibleProfile = this.sidebarSearch?.results.users.items.find(
+        (item) => item.id === profile.userId,
+      )?.profile;
+      if (visibleProfile) visibleProfile.isContact = true;
+      if (this.publicProfile?.userId === profile.userId) this.publicProfile.isContact = true;
     }
+    this.update();
 
     if (result.success) {
       if (!this.contacts.some((contact) => contact.id === profile.userId)) {
@@ -363,61 +378,16 @@ export class ChatsPage extends Page {
       : null;
     const selectionStart = focusedInput?.selectionStart;
     const selectionEnd = focusedInput?.selectionEnd;
-    const oldChatList = this.container.querySelector<HTMLElement>('.chat-panel__list');
-    const oldChatListScrollTop = oldChatList?.scrollTop ?? 0;
-    const oldHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
-    const oldLastId = oldHistory?.querySelector<HTMLElement>('[data-message-id]:last-child')
-      ?.dataset.messageId;
-    const oldFirstId =
-      oldHistory?.querySelector<HTMLElement>('[data-message-id]')?.dataset.messageId;
-    const oldScrollTop = oldHistory?.scrollTop ?? 0;
-    const oldScrollHeight = oldHistory?.scrollHeight ?? 0;
-    const nearBottom = oldHistory
-      ? oldScrollHeight - oldScrollTop - oldHistory.clientHeight < 80
-      : true;
     const searchButton = document.activeElement?.closest<HTMLButtonElement>('[data-search-step]');
-    const panelScroll = this.container.querySelector('.chat-panel__list')?.scrollTop;
-    const focusedMessage = document.activeElement?.closest<HTMLElement>('[data-message-id]');
+    const focusedMessageId =
+      document.activeElement?.closest<HTMLElement>('[data-message-id]')?.dataset.messageId;
     const previousHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
-    this.container.innerHTML = this.render();
-    const newChatList = this.container.querySelector<HTMLElement>('.chat-panel__list');
-    if (newChatList) newChatList.scrollTop = oldChatListScrollTop;
-    const newHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
-    if (newHistory) {
-      const newLastId = newHistory.querySelector<HTMLElement>('[data-message-id]:last-child')
-        ?.dataset.messageId;
-      const newFirstId =
-        newHistory.querySelector<HTMLElement>('[data-message-id]')?.dataset.messageId;
-      if (!oldHistory || (oldLastId !== newLastId && nearBottom))
-        newHistory.scrollTop = newHistory.scrollHeight;
-      else
-        newHistory.scrollTop =
-          oldScrollTop +
-          (oldFirstId && oldFirstId !== newFirstId
-            ? Math.max(0, newHistory.scrollHeight - oldScrollHeight)
-            : 0);
-    }
+    const historyScroll = previousHistory?.scrollTop;
+    const historyKey = previousHistory?.dataset.scrollKey;
+    this.chatScroll.capture(this.container);
+    this.messageScroll.capture(this.container);
+    this.replaceContent(this.render());
     this.bindEvents();
-
-    const panel = this.container.querySelector('.chat-panel__list');
-    if (panel && panelScroll !== undefined) {
-      panel.scrollTop = panelScroll;
-    }
-    const history = this.container.querySelector<HTMLElement>('[data-message-history]');
-    if (
-      history &&
-      previousHistory &&
-      previousHistory.dataset.historyChat === history.dataset.historyChat
-    ) {
-      history.scrollTop = previousHistory.scrollTop;
-      if (focusedMessage?.dataset.messageId) {
-        history
-          .querySelector<HTMLElement>(
-            `[data-message-id="${CSS.escape(focusedMessage.dataset.messageId)}"]`,
-          )
-          ?.focus({ preventScroll: true });
-      }
-    }
 
     if (inputSelector) {
       const nextInput = this.container.querySelector<HTMLInputElement>(inputSelector);
@@ -431,6 +401,27 @@ export class ChatsPage extends Page {
         .querySelector<HTMLButtonElement>(`[data-search-step="${searchButton.dataset.searchStep}"]`)
         ?.focus({ preventScroll: true });
     }
+    this.chatScroll.connect(this.container);
+    this.messageScroll.connect(this.container);
+    this.chatArea.bindHistory(
+      this.container,
+      (id) => {
+        if (!this.openingMessage) this.model.markVisibleMessageRead(id);
+      },
+      () => this.model.loadLatestMessages(),
+    );
+
+    const history = this.container.querySelector<HTMLElement>('[data-message-history]');
+    if (history && historyKey === history.dataset.scrollKey) {
+      if (this.messageSearch?.query.trim() && historyScroll !== undefined) {
+        history.scrollTop = historyScroll;
+      }
+      if (focusedMessageId) {
+        history
+          .querySelector<HTMLElement>(`[data-message-id="${CSS.escape(focusedMessageId)}"]`)
+          ?.focus({ preventScroll: true });
+      }
+    }
 
     if (this.messageSearch) {
       const current = history?.querySelector<HTMLElement>('[aria-current="true"]');
@@ -438,19 +429,6 @@ export class ChatsPage extends Page {
       if (current) {
         this.messageSearch.currentId = current.dataset.messageId;
       }
-    }
-  }
-
-  private async loadOlderMessages(): Promise<void> {
-    if (this.loadingOlderMessages) {
-      return;
-    }
-
-    this.loadingOlderMessages = true;
-    try {
-      await this.model.loadOlderMessages();
-    } finally {
-      this.loadingOlderMessages = false;
     }
   }
 
@@ -533,8 +511,33 @@ export class ChatsPage extends Page {
     }
   }
 
+  private async startDialog(userId: string): Promise<void> {
+    if (this.actionPending) return;
+    this.actionPending = true;
+    const fromContactPicker = this.view === 'contact-picker';
+    const result = await this.model.createDialog(userId);
+    this.actionPending = false;
+    if (!this.container) return;
+
+    if (result instanceof ApiError) {
+      if (fromContactPicker) this.contactsError = result.message;
+      else eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
+    } else {
+      this.view = 'chat';
+      this.contactsError = '';
+      this.messageDraft = '';
+      this.dialogMenuOpen = false;
+      this.deleteConfirmOpen = false;
+    }
+
+    this.update();
+    if (result.success)
+      this.container.querySelector<HTMLInputElement>('[data-message-input]')?.focus();
+  }
+
   private openChat(chatId: string, messageId?: string): void {
     const version = ++this.chatNavigationVersion;
+    this.openingMessage = Boolean(messageId);
     window.clearTimeout(this.messageSearchTimer);
     this.messageSearch = null;
     this.view = 'chat';
@@ -555,6 +558,7 @@ export class ChatsPage extends Page {
         return;
       }
 
+      this.openingMessage = false;
       const message = this.container.querySelector<HTMLElement>(
         `[data-message-id="${CSS.escape(messageId)}"]`,
       );
@@ -607,13 +611,29 @@ export class ChatsPage extends Page {
       return;
     }
 
+    const writeUserId = target.closest<HTMLElement>('[data-search-write]')?.dataset.searchWrite;
+    if (writeUserId) {
+      void this.startDialog(writeUserId);
+      return;
+    }
+
+    const addUserId = target.closest<HTMLElement>('[data-search-add-contact]')?.dataset
+      .searchAddContact;
+    if (addUserId) {
+      const profile = this.sidebarSearch?.results.users.items.find(
+        (item) => item.id === addUserId,
+      )?.profile;
+      if (profile) void this.addPublicProfileToContacts(profile);
+      return;
+    }
+
     const result = target.closest<HTMLElement>('[data-search-result]')?.dataset;
     const resultId = result?.searchResult;
     if (resultId) {
       switch (result.searchSection) {
         case 'contacts': {
           const contact = this.sidebarSearch?.contacts.get(resultId);
-          this.openPublicProfile(resultId, contact);
+          void this.openPublicProfile(resultId, contact);
           break;
         }
         case 'chats':
@@ -669,7 +689,7 @@ export class ChatsPage extends Page {
       (['all', 'unread', 'dialog', 'group'] as string[]).includes(selectedFilter)
     ) {
       this.chatFilter = selectedFilter as ChatFilter;
-      this.update();
+      this.model.setChatFilter(this.chatFilter);
       return;
     }
 
@@ -678,18 +698,8 @@ export class ChatsPage extends Page {
       return;
     }
 
-    if (target.closest('[data-chats-more]')) {
-      void this.model.loadMoreChats();
-      return;
-    }
-
     if (target.closest('[data-message-search-more], [data-message-search-retry]')) {
       void this.loadMessageSearch();
-      return;
-    }
-
-    if (target.closest('[data-messages-more]')) {
-      void this.loadOlderMessages();
       return;
     }
 
@@ -718,18 +728,7 @@ export class ChatsPage extends Page {
     }
     const contactId = target.closest<HTMLElement>('[data-contact-id]')?.dataset.contactId;
     if (contactId) {
-      if (this.actionPending) return;
-      this.actionPending = true;
-      void this.model.createDialog(contactId).then((result) => {
-        this.actionPending = false;
-        if (result instanceof ApiError) {
-          this.contactsError = result.message;
-        } else {
-          this.view = 'chat';
-          this.contactsError = '';
-        }
-        this.update();
-      });
+      void this.startDialog(contactId);
       return;
     }
     if (target.closest('[data-group-add-submit]')) {
@@ -967,15 +966,13 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-confirm-delete]')) {
-      if (this.actionPending) {
-        return;
-      }
+      if (this.actionPending || !this.deleteConfirmOpen) return;
       this.actionPending = true;
 
       void this.model.deleteChat().then((result) => {
         this.actionPending = false;
         if (result instanceof ApiError) {
-          eventBus.emit('snackbar:show', { text: result.message, type: 'error' });
+          this.deleteError = result.message;
         } else {
           this.deleteConfirmOpen = false;
           this.view = 'chat';
@@ -1000,15 +997,18 @@ export class ChatsPage extends Page {
     }
 
     if (target.closest('[data-dialog-delete]')) {
+      const chat = this.model.activeChat.value;
+      if (!chat || (chat.type === 'group' && this.model.role.value !== 'creator')) return;
       this.dialogMenuOpen = false;
+      this.deleteError = '';
       this.deleteConfirmOpen = true;
       this.update();
+      this.container?.querySelector<HTMLButtonElement>('[data-cancel-delete]')?.focus();
       return;
     }
 
     if (target.closest('[data-cancel-delete]')) {
-      this.deleteConfirmOpen = false;
-      this.update();
+      this.closeDeleteConfirm();
       return;
     }
 
@@ -1020,9 +1020,21 @@ export class ChatsPage extends Page {
     }
   };
 
+  private closeDeleteConfirm(): void {
+    if (this.actionPending) return;
+    this.deleteConfirmOpen = false;
+    this.update();
+    const selector =
+      this.view === 'group-edit' ? '[data-dialog-delete]' : '[data-dialog-menu-toggle]';
+    this.container?.querySelector<HTMLButtonElement>(selector)?.focus();
+  }
+
   private readonly handleContainerKeydown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.publicProfile) {
       this.closePublicProfile();
+    } else if (this.deleteConfirmOpen && event.key === 'Escape') {
+      event.preventDefault();
+      this.closeDeleteConfirm();
     } else if (this.messageSearch && event.key === 'Escape') {
       event.preventDefault();
       this.closeMessageSearch();
@@ -1150,9 +1162,15 @@ export class ChatsPage extends Page {
         return;
       }
 
-      this.messageDraft = '';
-      this.update();
-      void this.model.sendMessage(text);
+      void this.model.sendMessage(text).then(async (message) => {
+        if (!message || this.model.activeChat.value?.id !== message.chat_id) return;
+        this.messageDraft = '';
+        this.update();
+        await this.model.loadLatestMessages();
+        if (this.container) {
+          this.chatArea.scrollToLatest(this.container, message.chat_id);
+        }
+      });
       return;
     }
 
@@ -1333,7 +1351,7 @@ export class ChatsPage extends Page {
     this.container?.addEventListener('input', this.handleContainerInput);
     this.container?.addEventListener('change', this.handleContainerChange);
     this.container?.addEventListener('submit', this.handleContainerSubmit);
-    this.model.start(!this.chatsLoadStarted);
+    this.model.start();
   }
 
   unmount(): void {
@@ -1354,7 +1372,10 @@ export class ChatsPage extends Page {
       URL.revokeObjectURL(this.editAvatarObjectUrl);
     }
     this.layout.unmount();
-    this.model.destroy();
     super.unmount();
+    this.chatScroll.disconnect();
+    this.messageScroll.disconnect();
+    this.chatArea.disconnectHistory();
+    this.model.destroy();
   }
 }

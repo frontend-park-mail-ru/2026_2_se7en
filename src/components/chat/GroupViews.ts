@@ -348,6 +348,7 @@ export function renderGroupEdit(
         <p class="group-view__error" role="status">${escapeHtml(form.membersError || form.submitError)}</p>
       </div>
       <footer class="group-view__footer group-view__footer_edit">
+        ${options.canDeleteGroup ? Button({ text: 'Удалить группу', mode: 'unstyled', className: 'group-view__delete', disabled: form.submitting, attrs: { 'data-dialog-delete': '' } }) : ''}
         ${Button({ text: 'Отмена', mode: 'unstyled', attrs: { 'data-group-cancel': '' } })}
         ${Button({ text: form.submitting ? 'Сохранение…' : 'Сохранить', type: 'submit', mode: 'unstyled', disabled: form.submitting, attrs: { 'data-group-save': '' } })}
       </footer>

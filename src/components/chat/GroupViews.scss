@@ -428,6 +428,7 @@
     }
 
     &_edit {
+      flex-wrap: wrap;
       justify-content: flex-end;
 
       button {
@@ -438,6 +439,12 @@
         background: #f5faff;
         border-radius: 10px;
         font-size: 12px;
+      }
+
+      .group-view__delete {
+        margin-right: auto;
+        color: #c22735;
+        background: #fff2f3;
       }
 
       button:last-child {

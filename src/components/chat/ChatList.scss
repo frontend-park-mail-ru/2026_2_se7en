@@ -314,3 +314,23 @@ $chat-text-color: #142033;
   color: $chat-text-color;
   font-size: 12px;
 }
+
+.chat-item_search-user {
+  flex-wrap: wrap;
+  height: auto;
+  gap: 4px 12px;
+}
+
+.chat-panel__search-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+
+  .chat-panel__search-more {
+    margin: 0;
+
+    &:disabled {
+      opacity: 0.65;
+    }
+  }
+}

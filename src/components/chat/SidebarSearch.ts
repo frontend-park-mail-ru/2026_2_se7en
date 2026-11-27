@@ -1,7 +1,8 @@
 import { Button } from '@/components/core/Button.ts';
+import type { PublicProfileView } from '@/components/profile/PublicProfileModal.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 
-export const SEARCH_SECTIONS = ['contacts', 'chats', 'messages'] as const;
+export const SEARCH_SECTIONS = ['users', 'contacts', 'chats', 'messages'] as const;
 export type SearchSection = (typeof SEARCH_SECTIONS)[number];
 
 export interface SidebarSearchItem {
@@ -9,6 +10,7 @@ export interface SidebarSearchItem {
   title: string;
   description?: string;
   chatId?: string;
+  profile?: PublicProfileView;
 }
 
 export interface SidebarSearchSection {
@@ -21,6 +23,7 @@ export interface SidebarSearchSection {
 export type SidebarSearchResults = Record<SearchSection, SidebarSearchSection>;
 
 const sectionTitles: Record<SearchSection, string> = {
+  users: 'Пользователи',
   contacts: 'Контакты',
   chats: 'Чаты',
   messages: 'Сообщения',
@@ -31,12 +34,39 @@ export function renderSidebarSearch(results: SidebarSearchResults): string {
   return SEARCH_SECTIONS.map((key) => {
     const section = results[key];
     const items = section.items
-      .map((item) =>
-        Button({
-          text: `<span class="chat-item__body">
+      .map((item) => {
+        const text = `<span class="chat-item__body">
         <span class="chat-item__name">${escapeHtml(item.title)}</span>
         ${item.description ? `<span class="chat-item__message">${escapeHtml(item.description)}</span>` : ''}
-      </span>`,
+      </span>`;
+
+        if (item.profile) {
+          return `<div class="chat-item chat-item_search-user">
+          ${text}
+          <div class="chat-panel__search-actions">
+            ${Button({
+              text: 'Написать',
+              mode: 'unstyled',
+              className: 'chat-panel__search-more',
+              attrs: { 'data-search-write': item.id },
+            })}
+            ${Button({
+              text: item.profile.isContact
+                ? 'Уже в контактах'
+                : item.profile.isAddingContact
+                  ? 'Добавляем…'
+                  : 'Добавить в контакты',
+              mode: 'unstyled',
+              className: 'chat-panel__search-more',
+              disabled: item.profile.isContact || item.profile.isAddingContact,
+              attrs: { 'data-search-add-contact': item.id },
+            })}
+          </div>
+        </div>`;
+        }
+
+        return Button({
+          text,
           mode: 'unstyled',
           className: 'chat-item',
           attrs: {
@@ -44,8 +74,8 @@ export function renderSidebarSearch(results: SidebarSearchResults): string {
             'data-search-result': item.id,
             'data-search-chat': item.chatId ?? '',
           },
-        }),
-      )
+        });
+      })
       .join('');
     const status = section.loading
       ? 'Ищем…'

@@ -6,10 +6,6 @@ import { CSRF_HEADER, CSRF_URL, SAFE_METHODS } from '@/api/csrf.constants.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { LOGIN_URL, REGISTER_URL } from '@/api/auth/auth.constants.ts';
 
-interface CSRFTokenResponse {
-  csrf_token: string;
-}
-
 interface ApiRequestOptions extends Omit<RequestInit, 'body' | 'headers' | 'credentials'> {
   body?: unknown;
   headers?: HeadersInit;
@@ -41,7 +37,10 @@ export class ServerApi {
     const generation = this.csrfGeneration;
     const request = (async () => {
       try {
-        const response = await fetch(`${BASE_URL}/csrf`, { credentials: 'include' });
+        const response = await fetch(`${BASE_URL}${CSRF_URL}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        });
         if (!response.ok) return null;
         const data: unknown = await response.json();
         if (
@@ -90,12 +89,6 @@ export class ServerApi {
 
     const { body, skipAuthRedirect, skipCsrf, ...restOptions } = options;
 
-    const method = (options.method ?? 'GET').toUpperCase();
-    if (!skipCsrf && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-      const token = await this.getCsrfToken();
-      if (token) headers.set('X-CSRF-Token', token);
-    }
-
     const config: RequestInit = {
       ...restOptions,
       headers,
@@ -110,17 +103,9 @@ export class ServerApi {
       const method = (options.method ?? 'GET').toUpperCase();
       const isPublicAuthRequest =
         method === 'POST' && (endpoint === LOGIN_URL || endpoint === REGISTER_URL);
-      if (!SAFE_METHODS.includes(method) && !isPublicAuthRequest) {
-        const csrf = await ServerApi.getCSRFToken();
-        if (csrf.success === false) return csrf;
-        if (typeof csrf.data?.csrf_token !== 'string' || !csrf.data.csrf_token) {
-          return new ApiError(
-            ERROR_CODES.UNKNOWN_ERROR,
-            ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR],
-            csrf.status,
-          );
-        }
-        headers.set(CSRF_HEADER, csrf.data.csrf_token);
+      if (!skipCsrf && !SAFE_METHODS.includes(method) && !isPublicAuthRequest) {
+        const token = await this.getCsrfToken();
+        if (token) headers.set(CSRF_HEADER, token);
       }
 
       const response = await fetch(url, config);

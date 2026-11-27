@@ -2,10 +2,12 @@ import './ContactsList.scss';
 import { Button } from '@/components/core/Button.ts';
 import { DEMO_PROFILES } from '@/api/contacts/contacts.mock';
 import type { DisplayContact } from '@/api/contacts/contacts.types.ts';
+import type { PaginationState } from '@/helpers/PagedWindow.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { USING_MOCK } from '@/api/api.constants.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { getUserProfileHref } from '@/constants/Routes';
+import { renderPageControl } from '@/helpers/PagedScroll.ts';
 
 /**
  * Подпись количества контактов.
@@ -37,7 +39,7 @@ export class ContactsList {
     const isMenuOpen = contact.id === openMenuId;
 
     return `
-      <div class="contact-item-row${isActive ? ' contact-item-row_active' : ''}" data-contact-row="${escapeHtml(contact.id)}">
+      <div class="contact-item-row${isActive ? ' contact-item-row_active' : ''}" data-scroll-row="${escapeHtml(contact.id)}" data-contact-row="${escapeHtml(contact.id)}">
         ${Button({
           text: `
             <span class="contact-item__avatar-box">
@@ -99,6 +101,7 @@ export class ContactsList {
     query = '',
     openMenuId: string | null = null,
     pendingDeleteId: string | null = null,
+    pagination?: PaginationState,
   ): string {
     if (isLoading && contacts.length === 0) {
       return '';
@@ -126,9 +129,15 @@ export class ContactsList {
       return '<p class="contacts-list__message">Контакты не найдены</p>';
     }
 
-    return contacts
+    const rows = contacts
       .map((contact) => this.renderContact(contact, activeContactId, openMenuId, pendingDeleteId))
       .join('');
+    if (!pagination) return rows;
+    return `
+      ${renderPageControl('previous', pagination, 'Предыдущие контакты')}
+      ${rows}
+      ${renderPageControl('next', pagination, 'Следующие контакты')}
+    `;
   }
 
   /**
@@ -143,6 +152,7 @@ export class ContactsList {
     query = '',
     openMenuId: string | null = null,
     pendingDeleteId: string | null = null,
+    pagination?: PaginationState,
   ): string {
     return `
       <section class="contacts-list" aria-label="Список контактов">
@@ -153,9 +163,9 @@ export class ContactsList {
           </div>
         </header>
         <div class="contacts-list__search">${PanelSearch({ label: 'Поиск контактов', placeholder: 'Поиск контактов', value: query, name: 'contact-search' })}</div>
-        ${!isLoading && !hasError && totalCount > 0 ? `<p class="contacts-list__count">${getContactCount(totalCount)}</p>` : ''}
-        <div class="contacts-list__items" data-contact-list>
-          ${this.renderItems(contacts, activeContactId, isLoading, hasError, totalCount, query, openMenuId, pendingDeleteId)}
+        ${!isLoading && !hasError && totalCount > 0 && !pagination?.previous && !pagination?.next ? `<p class="contacts-list__count">${getContactCount(totalCount)}</p>` : ''}
+        <div class="contacts-list__items" data-contact-list data-scroll-key="${escapeHtml(query.trim())}">
+          ${this.renderItems(contacts, activeContactId, isLoading, hasError, totalCount, query, openMenuId, pendingDeleteId, pagination)}
         </div>
         ${
           USING_MOCK.CONTACTS

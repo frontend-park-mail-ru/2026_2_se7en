@@ -2,8 +2,10 @@ import './ChatList.scss';
 import { Button } from '@/components/core/Button.ts';
 import type { ChatFilter } from './chat.types.ts';
 import type { DisplayChat } from '@/api/chats/chats.types.ts';
+import type { PaginationState } from '@/helpers/PagedWindow.ts';
 import { PanelSearch } from '@/components/core/PanelSearch.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
+import { renderPageControl } from '@/helpers/PagedScroll.ts';
 import { type SidebarSearchResults, renderSidebarSearch } from './SidebarSearch.ts';
 export type { ChatFilter } from './chat.types.ts';
 
@@ -36,7 +38,7 @@ export class ChatList {
 `,
         mode: 'unstyled',
         className: `chat-item${isActive ? ' chat-item_active' : ''}`,
-        attrs: { 'data-chat-id': chat.id ?? '' },
+        attrs: { 'data-chat-id': chat.id ?? '', 'data-scroll-row': chat.id ?? '' },
       })}
     `;
   }
@@ -119,7 +121,7 @@ export class ChatList {
     isCreateMenuOpen = false,
     options: {
       filter?: ChatFilter;
-      hasMore?: boolean;
+      pagination?: PaginationState;
       query?: string;
       results?: SidebarSearchResults;
     } = {},
@@ -129,23 +131,20 @@ export class ChatList {
     const listContent = options.results
       ? renderSidebarSearch(options.results)
       : this.renderChatItems(chats, activeChat, isLoading, filter);
-    const loadMoreButton =
-      !options.results && options.hasMore
-        ? Button({
-            text: 'Загрузить ещё',
-            mode: 'unstyled',
-            attrs: { 'data-chats-more': '' },
-          })
-        : '';
+    const pagination = query.trim() ? undefined : options.pagination;
 
     return `
       <section class="chat-panel" aria-label="Список чатов">
         ${this.renderHeader(isCreateMenuOpen)}
         <div class="chat-panel__tools">
-          ${PanelSearch({ label: 'Поиск по контактам, чатам и сообщениям', placeholder: 'Поиск', name: 'sidebar-search', value: query, maxLength: 200 })}
+          ${PanelSearch({ label: 'Поиск по пользователям, контактам, чатам и сообщениям', placeholder: 'Поиск', name: 'sidebar-search', value: query, maxLength: 200 })}
           ${query.trim() ? '' : this.renderFilters(filter)}
         </div>
-        <div class="chat-panel__list" aria-busy="${isLoading}">${listContent}${loadMoreButton}</div>
+        <div class="chat-panel__list" data-chat-list data-scroll-key="${escapeHtml(query.trim() ? 'search:' + query.trim() : filter)}" aria-busy="${isLoading || Boolean(pagination?.pending)}">
+          ${pagination ? renderPageControl('previous', pagination, 'Предыдущие чаты') : ''}
+          ${listContent}
+          ${pagination ? renderPageControl('next', pagination, 'Следующие чаты') : ''}
+        </div>
         ${this.renderCreateMenu(isCreateMenuOpen)}
       </section>
     `;

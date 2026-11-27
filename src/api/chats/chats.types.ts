@@ -87,6 +87,14 @@ export interface ChatMessage {
 
 export interface ListMessagesResponse {
   items: ChatMessage[];
+  first_unread_id?: string;
+  has_more?: boolean;
+}
+
+export interface MessageCursor {
+  before?: string;
+  after?: string;
+  from_unread?: boolean;
 }
 
 export interface CreateGroupRequest {

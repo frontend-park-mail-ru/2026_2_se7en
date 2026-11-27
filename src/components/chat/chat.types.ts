@@ -1,22 +1,27 @@
 import type { Message } from '@/api/chats/chats.types.ts';
+import type { PaginationState } from '@/helpers/PagedWindow.ts';
 
 /** Настройки отображения области диалога. */
 export interface ChatAreaOptions {
   searchQuery?: string;
   searchMessageId?: string;
+  moreSearchResults?: boolean;
   messages?: Message[];
   messagesLoading?: boolean;
   messagesError?: string;
   sendError?: string;
+  sending?: boolean;
   draft?: string;
   dateLabel?: string;
-  hasMoreMessages?: boolean;
+  messagePagination?: PaginationState;
+  firstUnreadId?: string;
   typingLabel?: string;
   peerUserId?: string;
   canEditGroup?: boolean;
   canDeleteGroup?: boolean;
   menuOpen?: boolean;
   deleteConfirmOpen?: boolean;
+  deleteError?: string;
 }
 
 /** Доступные фильтры списка чатов. */
@@ -65,5 +70,6 @@ export interface GroupMembersView {
   removeMemberId?: string | null;
   canManage?: boolean;
   canManageRoles?: boolean;
+  canDeleteGroup?: boolean;
   leaveConfirmOpen?: boolean;
 }

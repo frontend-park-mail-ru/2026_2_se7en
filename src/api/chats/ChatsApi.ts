@@ -12,6 +12,7 @@ import type {
   GetChatsParams,
   ListMembersResponse,
   ListMessagesResponse,
+  MessageCursor,
   UpdateGroupRequest,
 } from '@/api/chats/chats.types.ts';
 import {
@@ -42,14 +43,13 @@ export class ChatsApi extends ServerApi {
 
   static getMessages(
     id: string,
-    before?: string,
+    before?: string | MessageCursor,
     search?: string,
   ): Promise<ApiResult<ListMessagesResponse>> {
-    const query = new URLSearchParams({ limit: '50' });
-    if (before) query.set('before', before);
-    if (search) query.set('q', search);
+    const cursor = typeof before === 'string' ? { before } : before;
+    const query = joinSearchParams({ limit: 50, ...cursor, q: search });
 
-    return this._request<ListMessagesResponse>(`${chatMessagesUrl(id)}?${query.toString()}`);
+    return this._request<ListMessagesResponse>(`${chatMessagesUrl(id)}?${query}`);
   }
 
   static searchMessages(

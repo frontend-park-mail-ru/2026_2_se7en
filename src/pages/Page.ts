@@ -1,4 +1,5 @@
 import { APP_ID } from '@/constants/App.ts';
+import { DefaultLayout } from '@/layouts/DefaultLayout.ts';
 import { Signal } from '@/reactive/Signal';
 import { debugError } from '@/helpers/DebugError.ts';
 
@@ -33,7 +34,10 @@ export class Page {
 
     mountedPage = this;
 
-    this.container.innerHTML = await this.render();
+    const rendered = this.render();
+    const html = typeof rendered === 'string' ? rendered : await rendered;
+    if (mountedPage !== this) return false;
+    this.replaceContent(html);
 
     this.bindEvents();
     await this.afterMount();
@@ -49,6 +53,10 @@ export class Page {
    */
   protected setSubscribers(signals: Signal<unknown>[], watcher: () => unknown): void {
     signals.forEach((signal) => signal.subscribe(watcher));
+  }
+
+  protected replaceContent(html: string): void {
+    if (this.container) DefaultLayout.update(this.container, html);
   }
 
   render(): string | Promise<string> {
