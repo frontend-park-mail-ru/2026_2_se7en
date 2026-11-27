@@ -13,11 +13,13 @@ import {
 } from '@/components/core/Icons.ts';
 
 const asset = (name: string): string => `/design-assets/${name}`;
+const READ_SCROLL_IDLE_MS = 200;
 
 /** Отображает выбранный диалог, сообщения и форму отправки. */
 export class ChatArea {
   private positionedUnreadId?: string;
   private historyFrame = 0;
+  private historyReadTimer?: number;
 
   bindHistory(
     container: HTMLElement,
@@ -37,40 +39,54 @@ export class ChatArea {
       this.positionedUnreadId = unreadId;
     }
 
+    const markVisible = () => {
+      this.historyReadTimer = undefined;
+      if (document.hidden || !history.isConnected || !history.clientHeight) return;
+
+      const bounds = history.getBoundingClientRect();
+      let visibleId: string | undefined;
+      for (const row of history.querySelectorAll<HTMLElement>('[data-unread-message]')) {
+        const rect = row.getBoundingClientRect();
+        if (rect.top >= bounds.bottom) break;
+        if (rect.bottom > bounds.top) visibleId = row.dataset.messageId;
+      }
+      if (visibleId) markRead(visibleId);
+    };
+
     const onScroll = () => {
-      this.disconnectHistory();
+      window.clearTimeout(this.historyReadTimer);
+      this.historyReadTimer = window.setTimeout(markVisible, READ_SCROLL_IDLE_MS);
+
+      if (this.historyFrame) return;
       this.historyFrame = requestAnimationFrame(() => {
+        this.historyFrame = 0;
         if (!history.isConnected || !history.clientHeight) return;
         latest.hidden =
           history.dataset.hasNewer !== 'true' &&
           history.scrollHeight - history.scrollTop - history.clientHeight < 32;
-        if (document.hidden) return;
-
-        const bounds = history.getBoundingClientRect();
-        let visibleId: string | undefined;
-        for (const row of history.querySelectorAll<HTMLElement>('[data-unread-message]')) {
-          const rect = row.getBoundingClientRect();
-          if (rect.top >= bounds.bottom) break;
-          if (rect.bottom > bounds.top) visibleId = row.dataset.messageId;
-        }
-        if (visibleId) markRead(visibleId);
       });
     };
 
     history.onscroll = onScroll;
     latest.onclick = async () => {
       await loadLatest();
-      const current = container.querySelector<HTMLElement>('[data-message-history]');
-      if (current && current.dataset.scrollKey === history.dataset.scrollKey) {
-        current.scrollTop = current.scrollHeight;
-      }
+      this.scrollToLatest(container, history.dataset.scrollKey);
     };
     onScroll();
+  }
+
+  scrollToLatest(container: HTMLElement, chatId: string | undefined): void {
+    const history = container.querySelector<HTMLElement>('[data-message-history]');
+    if (history && history.dataset.scrollKey === chatId) {
+      history.scrollTop = history.scrollHeight;
+    }
   }
 
   disconnectHistory(): void {
     if (this.historyFrame) cancelAnimationFrame(this.historyFrame);
     this.historyFrame = 0;
+    window.clearTimeout(this.historyReadTimer);
+    this.historyReadTimer = undefined;
   }
 
   private renderMessage(message: Message, pattern?: RegExp, current = false): string {

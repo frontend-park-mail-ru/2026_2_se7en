@@ -311,10 +311,13 @@ export class ContactsPage extends Page {
     event.preventDefault();
     const text = this.messageDraft.trim();
     if (!text || this.chatModel.sending.value) return;
-    void this.chatModel.sendMessage(text).then((sent) => {
-      if (sent) {
-        this.messageDraft = '';
-        this.update();
+    void this.chatModel.sendMessage(text).then(async (message) => {
+      if (!message || this.chatModel.activeChat.value?.id !== message.chat_id) return;
+      this.messageDraft = '';
+      this.update();
+      await this.chatModel.loadLatestMessages();
+      if (this.container) {
+        this.chatArea.scrollToLatest(this.container, message.chat_id);
       }
     });
   };

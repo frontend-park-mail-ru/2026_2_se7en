@@ -287,7 +287,8 @@ export class ChatsPageModel {
   }
 
   async loadLatestMessages(): Promise<void> {
-    if (!this.selectedChatId || !this.messagePagination.state.value.previous) return;
+    const pagination = this.messagePagination.state.value;
+    if (!this.selectedChatId || (!pagination.previous && !pagination.pending)) return;
     this.messagesLoading.value = true;
     this.resetMessages();
     await this.loadMessages();
@@ -315,6 +316,7 @@ export class ChatsPageModel {
 
   private finishMessageLoad(): void {
     this.flushMessages();
+    this.clearUnreadDivider();
     if (!this.refreshAfterMessageLoad || this.messagePagination.state.value.pending) return;
     this.refreshAfterMessageLoad = false;
     void this.refreshMessages();
@@ -377,12 +379,12 @@ export class ChatsPageModel {
     this.finishMessageLoad();
   }
 
-  async sendMessage(content: string): Promise<boolean> {
+  async sendMessage(content: string): Promise<ChatMessage | null> {
     const id = this.selectedChatId;
     const text = content.trim();
 
     if (!id || !text || this.sending.value) {
-      return false;
+      return null;
     }
 
     this.stopTyping();
@@ -394,13 +396,13 @@ export class ChatsPageModel {
 
     if (result instanceof ApiError) {
       this.sendError.value = result.message;
-      return false;
+      return null;
     }
 
     if (result.data) {
       this.acceptMessage(result.data);
     }
-    return true;
+    return result.data ?? null;
   }
 
   updateTyping(value: string): void {
@@ -623,6 +625,17 @@ export class ChatsPageModel {
       this.messagePagination.updateItems((message) =>
         ids.has(message.id) ? { ...message, is_read: true } : message,
       );
+    }
+    if (!outgoing) this.clearUnreadDivider();
+  }
+
+  private clearUnreadDivider(): void {
+    const pagination = this.messagePagination.state.value;
+    if (!this.firstUnreadId.value || pagination.previous || pagination.pending) return;
+
+    const userId = user.getId();
+    if (!this.messages.value.some((message) => !message.is_read && message.user_id !== userId)) {
+      this.firstUnreadId.value = undefined;
     }
   }
 

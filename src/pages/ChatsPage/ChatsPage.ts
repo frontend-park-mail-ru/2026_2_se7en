@@ -1141,10 +1141,13 @@ export class ChatsPage extends Page {
         return;
       }
 
-      void this.model.sendMessage(text).then((sent) => {
-        if (sent) {
-          this.messageDraft = '';
-          this.update();
+      void this.model.sendMessage(text).then(async (message) => {
+        if (!message || this.model.activeChat.value?.id !== message.chat_id) return;
+        this.messageDraft = '';
+        this.update();
+        await this.model.loadLatestMessages();
+        if (this.container) {
+          this.chatArea.scrollToLatest(this.container, message.chat_id);
         }
       });
       return;
