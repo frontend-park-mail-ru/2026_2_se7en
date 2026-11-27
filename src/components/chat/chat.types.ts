@@ -14,6 +14,7 @@ export interface ChatAreaOptions {
   draft?: string;
   dateLabel?: string;
   messagePagination?: PaginationState;
+  firstUnreadId?: string;
   typingLabel?: string;
   peerUserId?: string;
   canEditGroup?: boolean;

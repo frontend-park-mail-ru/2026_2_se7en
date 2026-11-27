@@ -16,6 +16,7 @@ import type {
   ChatMember,
   ChatMessage,
   DisplayChat,
+  MessageCursor,
 } from '@/api/chats/chats.types.ts';
 import { REMOTE_TYPING_TIMEOUT_MS, TYPING_IDLE_MS } from './chats.constants.ts';
 import { sortChatsByLastMessage, toDisplayChat } from '@/helpers/chat.ts';
@@ -29,6 +30,7 @@ export class ChatsPageModel {
   readonly activeChat = new Signal<DisplayChat | null>(null);
   readonly role = new Signal<'creator' | 'admin' | 'member' | null>(null);
   readonly messages = new Signal<ChatMessage[]>([]);
+  readonly firstUnreadId = new Signal<string | undefined>(undefined);
   readonly members = new Signal<ChatMember[]>([]);
   readonly typingUsers = new Signal<string[]>([]);
   readonly isLoading = new Signal(true);
@@ -39,8 +41,8 @@ export class ChatsPageModel {
   readonly membersError = new Signal('');
   readonly sendError = new Signal('');
   readonly sending = new Signal(false);
-  readonly messagePagination = new PagedWindow<ChatMessage, string>((before) =>
-    this.fetchMessages(before),
+  readonly messagePagination = new PagedWindow<ChatMessage, MessageCursor>((cursor) =>
+    this.fetchMessages(cursor),
   );
 
   private selectedChatId: string | null = null;
@@ -65,7 +67,6 @@ export class ChatsPageModel {
     (event) => this.handleSocketEvent(event),
     (error) => debugError(`WebSocket: ${String(error)}`),
     (reconnected) => {
-      this.markMessagesRead(this.selectedChatId, this.messages.value);
       if (reconnected) {
         void this.reconcileAfterReconnect();
       }
@@ -192,11 +193,10 @@ export class ChatsPageModel {
     }
     this.selectedChatId = id;
     const version = ++this.selectionVersion;
-    this.setUnreadCount(id, 0);
 
     this.activeChat.value = this.chats.value.find((chat) => chat.id === id) ?? null;
     this.role.value = null;
-    this.resetMessages();
+    this.resetMessages(!messageId);
     this.members.value = [];
     this.messagesError.value = '';
     this.membersError.value = '';
@@ -247,24 +247,50 @@ export class ChatsPageModel {
     );
   }
 
-  private async fetchMessages(before: string | null) {
+  private async fetchMessages(cursor: MessageCursor | null) {
     const id = this.selectedChatId!;
     const version = this.selectionVersion;
-    const result = await ChatsApi.getMessages(id, before ?? undefined);
+    let result = await ChatsApi.getMessages(id, cursor ?? undefined);
+    if (
+      result instanceof ApiError &&
+      cursor?.from_unread &&
+      result.code === ERROR_CODES.NETWORK_ERROR
+    ) {
+      result = await ChatsApi.getMessages(id);
+    }
     if (result instanceof ApiError) return result;
 
     const items = result.data?.items ?? [];
-    if (version === this.selectionVersion) this.markMessagesRead(id, items);
+    const firstUnreadId = result.data?.first_unread_id;
+    if (firstUnreadId && version === this.selectionVersion)
+      this.firstUnreadId.value = firstUnreadId;
+    if (firstUnreadId || cursor?.after) {
+      return {
+        items: [...items].reverse(),
+        next: items.length ? { before: items[0].id } : null,
+        previous:
+          result.data?.has_more && items.length ? { after: items[items.length - 1].id } : null,
+      };
+    }
     return {
       items,
-      next: items.length === MESSAGES_PAGE_SIZE ? items[items.length - 1].id : null,
+      next: items.length === MESSAGES_PAGE_SIZE ? { before: items[items.length - 1].id } : null,
+      previous: cursor?.before && items.length ? { after: items[0].id } : null,
     };
   }
 
-  private resetMessages(): void {
+  private resetMessages(fromUnread = false): void {
     this.pendingMessages = [];
     this.refreshAfterMessageLoad = false;
-    this.messagePagination.reset();
+    this.firstUnreadId.value = undefined;
+    this.messagePagination.reset(fromUnread ? { from_unread: true } : null);
+  }
+
+  async loadLatestMessages(): Promise<void> {
+    if (!this.selectedChatId || !this.messagePagination.state.value.previous) return;
+    this.messagesLoading.value = true;
+    this.resetMessages();
+    await this.loadMessages();
   }
 
   async loadMessages(id = this.selectedChatId, version = this.selectionVersion): Promise<void> {
@@ -299,7 +325,8 @@ export class ChatsPageModel {
     this.messagePagination.prependRecent(
       this.pendingMessages,
       MESSAGES_PAGE_SIZE,
-      (message) => message.id,
+      (message) => ({ before: message.id }),
+      (message) => ({ after: message.id }),
     );
     this.pendingMessages = [];
   }
@@ -571,32 +598,31 @@ export class ChatsPageModel {
     this.members.value = [];
   }
 
-  private setUnreadCount(chatId: string, count: number): void {
-    if (this.chats.value.find((chat) => chat.id === chatId)?.unreadCount === count) {
-      return;
+  markVisibleMessageRead(messageId: string): void {
+    const chatId = this.selectedChatId;
+    const userId = user.getId();
+    const boundary = this.messages.value.find((message) => message.id === messageId);
+    if (!chatId || !userId || !boundary || boundary.is_read || boundary.user_id === userId) return;
+
+    if (this.socket.send({ type: 'message.mark_read', chat_id: chatId, message_id: messageId })) {
+      this.applyReadBoundary(messageId, false);
     }
-    this.chatPagination.updateItems((chat) =>
-      chat.id === chatId ? { ...chat, unreadCount: count } : chat,
-    );
   }
 
-  private markMessagesRead(chatId: string | null, messages: ChatMessage[]): void {
-    if (!chatId) {
-      return;
-    }
-    const currentUserId = user.getId();
-    if (!currentUserId) {
-      return;
-    }
-
-    for (const message of messages) {
-      if (message.user_id !== currentUserId && !message.is_read) {
-        this.socket.send({
-          type: 'message.mark_read',
-          chat_id: chatId,
-          message_id: message.id,
-        });
-      }
+  private applyReadBoundary(messageId: string, outgoing: boolean): void {
+    const messages = this.messages.value;
+    const end = messages.findIndex((message) => message.id === messageId);
+    if (end === -1) return;
+    const ids = new Set(
+      messages
+        .slice(0, end + 1)
+        .filter((message) => !message.is_read && (message.user_id === user.getId()) === outgoing)
+        .map((message) => message.id),
+    );
+    if (ids.size) {
+      this.messagePagination.updateItems((message) =>
+        ids.has(message.id) ? { ...message, is_read: true } : message,
+      );
     }
   }
 
@@ -622,15 +648,15 @@ export class ChatsPageModel {
 
     if (this.selectedChatId === id) {
       this.removeRemoteTypingUser(message.user_id);
+      const pagination = this.messagePagination.state.value;
       if (
-        !this.messagePagination.state.value.previous &&
+        (!pagination.previous || pagination.pending === 'previous') &&
         !this.pendingMessages.some((item) => item.id === message.id)
       ) {
         this.pendingMessages.unshift(message);
         if (this.pendingMessages.length > MESSAGES_PAGE_SIZE) this.pendingMessages.pop();
         if (!this.messagesLoading.value) this.flushMessages();
       }
-      this.markMessagesRead(id, [message]);
     }
 
     this.chatPagination.updateItems((chat) => {
@@ -653,11 +679,7 @@ export class ChatsPageModel {
         id: chat.id,
         unreadCount:
           chat.unreadCount +
-          (this.selectedChatId !== id &&
-          message.user_id !== user.getId() &&
-          chat.last_message?.id !== message.id
-            ? 1
-            : 0),
+          (message.user_id !== user.getId() && chat.last_message?.id !== message.id ? 1 : 0),
       };
     });
   }
@@ -725,21 +747,10 @@ export class ChatsPageModel {
         typeof payload.message_id === 'string' &&
         typeof payload.user_id === 'string'
       ) {
-        if (payload.chat_id === this.selectedChatId && payload.user_id !== user.getId()) {
-          const message = this.messages.value.find((item) => item.id === payload.message_id);
-          if (message?.user_id === user.getId() && !message.is_read) {
-            this.messagePagination.updateItems((item) =>
-              item.id === payload.message_id ? { ...item, is_read: true } : item,
-            );
-          }
+        if (payload.chat_id === this.selectedChatId) {
+          this.applyReadBoundary(payload.message_id, payload.user_id !== user.getId());
         }
-
-        if (payload.user_id === user.getId()) {
-          const chat = this.chats.value.find((item) => item.id === payload.chat_id);
-          if (chat && chat.unreadCount > 0) {
-            this.setUnreadCount(payload.chat_id, chat.unreadCount - 1);
-          }
-        }
+        if (payload.user_id === user.getId()) this.scheduleActivityRefresh();
       }
       return;
     }

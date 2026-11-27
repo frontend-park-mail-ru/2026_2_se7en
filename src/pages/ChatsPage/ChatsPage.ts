@@ -123,6 +123,7 @@ export class ChatsPage extends Page {
         this.model.activeChat,
         this.model.role,
         this.model.messages,
+        this.model.firstUnreadId,
         this.model.members,
         this.model.typingUsers,
         this.model.isLoading,
@@ -177,6 +178,7 @@ export class ChatsPage extends Page {
     }));
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
+      firstUnreadId: this.model.firstUnreadId.value,
       searchQuery: this.messageSearch?.query,
       searchMessageId: this.messageSearch?.currentId,
       messagesLoading: searchingMessages
@@ -380,6 +382,13 @@ export class ChatsPage extends Page {
     }
     this.chatScroll.connect(this.container);
     this.messageScroll.connect(this.container);
+    this.chatArea.bindHistory(
+      this.container,
+      (id) => {
+        if (!this.openingMessage) this.model.markVisibleMessageRead(id);
+      },
+      () => this.model.loadLatestMessages(),
+    );
 
     const history = this.container.querySelector<HTMLElement>('[data-message-history]');
     if (history && historyKey === history.dataset.scrollKey) {
@@ -1325,6 +1334,7 @@ export class ChatsPage extends Page {
     super.unmount();
     this.chatScroll.disconnect();
     this.messageScroll.disconnect();
+    this.chatArea.disconnectHistory();
     this.model.destroy();
   }
 }

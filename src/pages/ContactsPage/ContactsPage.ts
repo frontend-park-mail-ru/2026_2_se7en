@@ -66,6 +66,7 @@ export class ContactsPage extends Page {
         this.chatModel.chats,
         this.chatModel.members,
         this.chatModel.messages,
+        this.chatModel.firstUnreadId,
         this.chatModel.messagesLoading,
         this.chatModel.messagesError,
         this.chatModel.sendError,
@@ -95,6 +96,7 @@ export class ContactsPage extends Page {
     const rightPanel = chat
       ? this.chatArea.render(chat, this.chatModel.chats.value, false, false, {
           messages,
+          firstUnreadId: this.chatModel.firstUnreadId.value,
           messagesLoading: this.chatModel.messagesLoading.value,
           messagesError: this.chatModel.messagesError.value,
           sendError: this.chatModel.sendError.value,
@@ -152,6 +154,13 @@ export class ContactsPage extends Page {
     }
     this.contactsScroll.connect(this.container);
     this.messageScroll.connect(this.container);
+    this.chatArea.bindHistory(
+      this.container,
+      (id) => {
+        this.chatModel.markVisibleMessageRead(id);
+      },
+      () => this.chatModel.loadLatestMessages(),
+    );
   }
 
   private updateContactItems(): void {
@@ -411,6 +420,7 @@ export class ContactsPage extends Page {
     super.unmount();
     this.contactsScroll.disconnect();
     this.messageScroll.disconnect();
+    this.chatArea.disconnectHistory();
     this.chatModel.destroy();
     this.layout.unmount();
     this.model.destroy();

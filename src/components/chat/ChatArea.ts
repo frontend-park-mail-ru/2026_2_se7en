@@ -16,6 +16,63 @@ const asset = (name: string): string => `/design-assets/${name}`;
 
 /** Отображает выбранный диалог, сообщения и форму отправки. */
 export class ChatArea {
+  private positionedUnreadId?: string;
+  private historyFrame = 0;
+
+  bindHistory(
+    container: HTMLElement,
+    markRead: (id: string) => void,
+    loadLatest: () => Promise<void>,
+  ): void {
+    this.disconnectHistory();
+    const history = container.querySelector<HTMLElement>('[data-message-history]');
+    const latest = container.querySelector<HTMLButtonElement>('[data-jump-to-latest]');
+    const unreadId = history?.dataset.firstUnreadId;
+    if (!unreadId) this.positionedUnreadId = undefined;
+    if (!history || !latest) return;
+    const separator = history.querySelector<HTMLElement>('[data-unread-separator]');
+    if (unreadId && separator && this.positionedUnreadId !== unreadId) {
+      history.scrollTop +=
+        separator.getBoundingClientRect().top - history.getBoundingClientRect().top - 16;
+      this.positionedUnreadId = unreadId;
+    }
+
+    const onScroll = () => {
+      this.disconnectHistory();
+      this.historyFrame = requestAnimationFrame(() => {
+        if (!history.isConnected || !history.clientHeight) return;
+        latest.hidden =
+          history.dataset.hasNewer !== 'true' &&
+          history.scrollHeight - history.scrollTop - history.clientHeight < 32;
+        if (document.hidden) return;
+
+        const bounds = history.getBoundingClientRect();
+        let visibleId: string | undefined;
+        for (const row of history.querySelectorAll<HTMLElement>('[data-unread-message]')) {
+          const rect = row.getBoundingClientRect();
+          if (rect.top >= bounds.bottom) break;
+          if (rect.bottom > bounds.top) visibleId = row.dataset.messageId;
+        }
+        if (visibleId) markRead(visibleId);
+      });
+    };
+
+    history.onscroll = onScroll;
+    latest.onclick = async () => {
+      await loadLatest();
+      const current = container.querySelector<HTMLElement>('[data-message-history]');
+      if (current && current.dataset.scrollKey === history.dataset.scrollKey) {
+        current.scrollTop = current.scrollHeight;
+      }
+    };
+    onScroll();
+  }
+
+  disconnectHistory(): void {
+    if (this.historyFrame) cancelAnimationFrame(this.historyFrame);
+    this.historyFrame = 0;
+  }
+
   private renderMessage(message: Message, pattern?: RegExp, current = false): string {
     const messageHtml = pattern
       ? message.text
@@ -28,7 +85,7 @@ export class ChatArea {
       : escapeHtml(message.text);
 
     return `
-      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} tabindex="-1" data-scroll-row="${escapeHtml(String(message.id))}" data-message-id="${escapeHtml(String(message.id))}">
+      <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} tabindex="-1" data-scroll-row="${escapeHtml(String(message.id))}" data-message-id="${escapeHtml(String(message.id))}" ${!message.isOutgoing && !message.isRead ? 'data-unread-message' : ''}>
         <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
           <span class="chat-area__message-text">${messageHtml}</span>
           <span class="chat-area__message-meta">
@@ -170,7 +227,8 @@ export class ChatArea {
           ${options.searchQuery !== undefined ? this.renderSearch(options.searchQuery, currentIndex, messages.length) : this.renderHeader(chat, options)}
         </header>
 
-        <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading || pagination?.pending)}" data-message-history data-scroll-key="${escapeHtml(chat.id ?? '')}">
+        <div class="chat-area__history-wrap">
+          <div class="chat-area__history" aria-busy="${Boolean(options.messagesLoading || pagination?.pending)}" data-message-history data-scroll-key="${escapeHtml(chat.id ?? '')}" data-first-unread-id="${escapeHtml(options.firstUnreadId ?? '')}" data-has-newer="${Boolean(pagination?.previous)}">
           ${
             options.messagesLoading
               ? ''
@@ -182,7 +240,14 @@ export class ChatArea {
             ${options.moreSearchResults ? Button({ text: 'Загрузить ещё совпадения', mode: 'unstyled', className: 'chat-area__load-more', attrs: { 'data-message-search-more': '' } }) : ''}
             ${options.dateLabel ? `<span class="chat-area__date">${escapeHtml(options.dateLabel)}</span>` : ''}
             <div class="chat-area__messages">
-              ${messages.map((message, index) => this.renderMessage(message, pattern, Boolean(query) && index === currentIndex)).join('')}
+              ${messages
+                .map(
+                  (message, index) => `
+                ${!query && message.id === options.firstUnreadId ? '<div class="chat-area__unread" data-unread-separator>Непрочитанные сообщения</div>' : ''}
+                ${this.renderMessage(message, pattern, Boolean(query) && index === currentIndex)}
+              `,
+                )
+                .join('')}
             </div>
             ${pagination ? renderPageControl('previous', pagination, 'Следующие сообщения', 'chat-area__load-more') : ''}
           `
@@ -192,7 +257,19 @@ export class ChatArea {
             </p>
           `
           }
-          ${options.typingLabel ? `<p class="chat-area__typing" role="status">${escapeHtml(options.typingLabel)}</p>` : ''}
+            ${options.typingLabel ? `<p class="chat-area__typing" role="status">${escapeHtml(options.typingLabel)}</p>` : ''}
+          </div>
+          ${
+            !query && hasMessages && !options.messagesLoading && !options.messagesError
+              ? Button({
+                  text: '↓',
+                  mode: 'unstyled',
+                  className: 'chat-area__jump-latest',
+                  ariaLabel: 'К последним сообщениям',
+                  attrs: { 'data-jump-to-latest': '', hidden: '' },
+                })
+              : ''
+          }
         </div>
 
         <form class="chat-area__composer" data-message-form>
