@@ -42,7 +42,6 @@ export interface ChatsResponse {
  */
 export interface GetChatsParams {
   limit?: number;
-  offset?: number;
   after_time?: string;
   after_id?: string;
   q?: string;
@@ -130,4 +129,5 @@ export interface Message {
   isOutgoing: boolean;
   isRead?: boolean;
   time: string;
+  authorName?: string;
 }

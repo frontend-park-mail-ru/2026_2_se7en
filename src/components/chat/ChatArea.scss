@@ -111,9 +111,13 @@
   }
 
   &__avatar-image {
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     border-radius: inherit;
   }
 
@@ -123,7 +127,9 @@
     bottom: 0;
     width: 11px;
     height: 11px;
-    background: url('/design-assets/82830.svg') center / contain no-repeat;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #31b77a;
   }
 
   &__identity-text {
@@ -346,6 +352,12 @@
       border-radius: 16px 6px 16px 16px;
       box-shadow: none;
     }
+
+    &_group {
+      @include flex-column;
+      align-items: flex-start;
+      gap: 4px;
+    }
   }
 
   &__message-text {
@@ -354,6 +366,14 @@
     font-size: 13px;
     line-height: 1.45;
     overflow-wrap: anywhere;
+  }
+
+  &__message-author {
+    @include truncate;
+    max-width: 100%;
+    color: #6c7b91;
+    font-size: 11px;
+    font-weight: 500;
   }
 
   &__message-meta {
@@ -368,6 +388,10 @@
 
   &__message_outgoing &__message-meta {
     color: #fff;
+  }
+
+  &__message_group &__message-meta {
+    align-self: flex-end;
   }
 
   &__composer {
@@ -499,6 +523,18 @@
       background: #ff4b55;
     }
   }
+}
+
+.chat-area__avatar {
+  overflow: visible;
+}
+.chat-area__avatar-image {
+  display: block;
+}
+.chat-area__online {
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #31b77a;
 }
 
 @media (max-width: 700px) {

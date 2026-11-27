@@ -102,7 +102,8 @@ export class ChatArea {
 
     return `
       <div class="chat-area__message-row${message.isOutgoing ? ' chat-area__message-row_outgoing' : ''}" ${current ? 'aria-current="true"' : ''} tabindex="-1" data-scroll-row="${escapeHtml(String(message.id))}" data-message-id="${escapeHtml(String(message.id))}" ${!message.isOutgoing && !message.isRead ? 'data-unread-message' : ''}>
-        <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}">
+        <div class="chat-area__message${message.isOutgoing ? ' chat-area__message_outgoing' : ''}${message.authorName ? ' chat-area__message_group' : ''}">
+          ${message.authorName ? `<span class="chat-area__message-author">${escapeHtml(message.authorName)}</span>` : ''}
           <span class="chat-area__message-text">${messageHtml}</span>
           <span class="chat-area__message-meta">
             ${escapeHtml(message.time)}
@@ -289,10 +290,10 @@ export class ChatArea {
         </div>
 
         <form class="chat-area__composer" data-message-form>
-          ${Button({ text: `<img src="${asset('f4e99.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__attach', ariaLabel: 'Прикрепить файл', attrs: { 'data-message-attach': '' } })}
+          ${Button({ text: `<img src="${asset('f4e99.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__attach', ariaLabel: 'Прикрепить файл', title: 'Вложения скоро появятся', disabled: true, attrs: { 'data-message-attach': '' } })}
           <div class="chat-area__input-wrap">
             <input name="message" type="text" maxlength="4096" value="${escapeHtml(draft)}" placeholder="Напишите сообщение…" autocomplete="off" aria-label="Сообщение" data-message-input>
-            ${Button({ text: `<img src="${asset('5a40e.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__emoji', ariaLabel: 'Добавить эмодзи', attrs: { 'data-message-emoji': '' } })}
+            ${Button({ text: `<img src="${asset('5a40e.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__emoji', ariaLabel: 'Добавить эмодзи', title: 'Выбор эмодзи скоро появится', disabled: true, attrs: { 'data-message-emoji': '' } })}
           </div>
           ${Button({ text: `<img src="${asset('1dc80.svg')}" alt="" width="20" height="20">`, type: 'submit', mode: 'unstyled', className: 'chat-area__send', ariaLabel: 'Отправить сообщение', disabled: !draft.trim() || Boolean(options.sending) })}
         </form>

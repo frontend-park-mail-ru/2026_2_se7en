@@ -52,6 +52,7 @@ export class ChatsPageModel {
   private chatListVersion = 0;
   private destroyed = false;
   private pendingChatsRefresh = false;
+  private readonly chatEventVersions = new Map<string, number>();
   private refreshAfterMessageLoad = false;
   private pendingMessages: ChatMessage[] = [];
   readonly chatPagination = new PagedWindow<DisplayChat & { id: string }, ChatCursor>((cursor) =>
@@ -59,6 +60,7 @@ export class ChatsPageModel {
   );
 
   private activityTimer: number | null = null;
+  private presenceTimer: number | null = null;
   private localTypingChatId: string | null = null;
   private localTypingTimer: number | null = null;
   private readonly remoteTypingTimers = new Map<string, number>();
@@ -97,10 +99,14 @@ export class ChatsPageModel {
   start(loadInitially = true): void {
     this.socket.connect();
     if (loadInitially) void this.loadChats(true);
+    this.presenceTimer = window.setInterval(() => {
+      if (!document.hidden) void this.loadChats(false);
+    }, 10000);
   }
 
   destroy(): void {
     this.destroyed = true;
+    window.clearInterval(this.presenceTimer ?? undefined);
     this.chatListVersion += 1;
     this.chatPagination.reset();
     this.dialogRequestVersion += 1;
@@ -393,7 +399,6 @@ export class ChatsPageModel {
 
     const result = await ChatsApi.sendMessage(id, text);
     this.sending.value = false;
-
     if (result instanceof ApiError) {
       this.sendError.value = result.message;
       return null;
@@ -639,21 +644,39 @@ export class ChatsPageModel {
     }
   }
 
-  private async verifySelectedChat(): Promise<void> {
-    const id = this.selectedChatId;
-    if (!id) return;
-    const result = await ChatsApi.getChat(id);
-    if (id !== this.selectedChatId) return;
-    if (result instanceof ApiError && (result.status === 403 || result.status === 404))
-      this.removeCurrentChat();
-  }
-
   private scheduleActivityRefresh(): void {
     if (this.activityTimer !== null) return;
     this.activityTimer = window.setTimeout(() => {
       this.activityTimer = null;
       void this.loadChats(false);
     }, 150);
+  }
+
+  private async refreshChatFromEvent(chatId: string): Promise<void> {
+    const version = (this.chatEventVersions.get(chatId) ?? 0) + 1;
+    this.chatEventVersions.set(chatId, version);
+    const result = await ChatsApi.getChat(chatId);
+    if (this.destroyed || this.chatEventVersions.get(chatId) !== version) return;
+    if (result instanceof ApiError) {
+      if (this.selectedChatId === chatId && (result.status === 403 || result.status === 404)) {
+        this.removeCurrentChat();
+      }
+      void this.loadChats(false);
+      return;
+    }
+
+    const current = this.chats.value.find((chat) => chat.id === chatId);
+    const updated = toDisplayChat({ ...current, ...result.data.chat });
+    if (current && updated.id) {
+      const item = { ...updated, id: updated.id };
+      this.chatPagination.updateItems((chat) => (chat.id === chatId ? item : chat));
+    } else {
+      void this.loadChats(false);
+    }
+    if (this.selectedChatId === chatId) {
+      this.activeChat.value = updated;
+      this.role.value = result.data.role;
+    }
   }
 
   private acceptMessage(message: ChatMessage): void {
@@ -770,6 +793,12 @@ export class ChatsPageModel {
 
     if (event.type === 'chat.deleted') {
       const payload = event.payload as { chat_id?: string } | undefined;
+      if (payload?.chat_id) {
+        this.chatEventVersions.set(
+          payload.chat_id,
+          (this.chatEventVersions.get(payload.chat_id) ?? 0) + 1,
+        );
+      }
       if (payload?.chat_id === this.selectedChatId) this.removeCurrentChat();
       else if (payload?.chat_id)
         this.chatPagination.updateItems((chat) => (chat.id === payload.chat_id ? null : chat));
@@ -777,19 +806,15 @@ export class ChatsPageModel {
       return;
     }
 
-    if (
-      event.type === 'chat.created' ||
-      event.type === 'chat.updated' ||
-      event.type === 'chat.deleted'
-    ) {
-      void this.loadChats(false);
+    if (event.type === 'chat.created' || event.type === 'chat.updated') {
+      const payload = event.payload as { chat_id?: string } | undefined;
+      if (payload?.chat_id) void this.refreshChatFromEvent(payload.chat_id);
       return;
     }
 
     if (event.type === 'chat.activity') {
       const payload = event.payload as { chat_id?: string } | undefined;
-      if (payload?.chat_id === this.selectedChatId) void this.verifySelectedChat();
-      this.scheduleActivityRefresh();
+      if (payload?.chat_id !== this.selectedChatId) this.scheduleActivityRefresh();
       return;
     }
 
@@ -812,15 +837,33 @@ export class ChatsPageModel {
     }
 
     if (event.type === 'member.added' || event.type === 'member.deleted') {
-      const payload = event.payload as { chat_id?: string; user_id?: string } | undefined;
-      if (
-        event.type === 'member.deleted' &&
-        payload?.chat_id === this.selectedChatId &&
-        payload.user_id === user.getId()
-      )
-        this.removeCurrentChat();
-      void this.loadChats(false);
-      void this.loadMembers();
+      const payload = event.payload as
+        { chat_id?: string; user_id?: string; member?: ChatMember } | undefined;
+      const chatId = payload?.chat_id;
+      const memberId = payload?.member?.user_id ?? payload?.user_id;
+      if (!chatId) return;
+
+      if (event.type === 'member.deleted' && memberId === user.getId()) {
+        this.chatEventVersions.set(chatId, (this.chatEventVersions.get(chatId) ?? 0) + 1);
+        if (chatId === this.selectedChatId) this.removeCurrentChat();
+        else this.chatPagination.updateItems((chat) => (chat.id === chatId ? null : chat));
+        return;
+      }
+
+      if (chatId === this.selectedChatId) {
+        if (event.type === 'member.added' && payload?.member) {
+          this.members.value = [
+            ...this.members.value.filter((member) => member.user_id !== payload.member?.user_id),
+            payload.member,
+          ];
+        } else if (event.type === 'member.deleted' && memberId) {
+          this.members.value = this.members.value.filter((member) => member.user_id !== memberId);
+        } else {
+          void this.loadMembers(chatId);
+        }
+      }
+
+      void this.refreshChatFromEvent(chatId);
     }
   }
 }

@@ -38,8 +38,14 @@ export class ProfilePage extends Page {
   constructor() {
     super();
 
-    this.setSubscribers([this.model.activeTab, this.model.profile, this.model.errorMessage], () =>
-      this.update(),
+    this.setSubscribers(
+      [
+        this.model.activeTab,
+        this.model.profile,
+        this.model.errorMessage,
+        this.model.isAvatarUploading,
+      ],
+      () => this.update(),
     );
     this.setSubscribers([this.model.fieldErrors], () => this.updateFieldErrors());
     this.setSubscribers([this.model.formError], () => this.updateFormError());

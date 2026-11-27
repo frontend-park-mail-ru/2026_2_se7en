@@ -58,17 +58,20 @@ export class ContactsPageModel {
     this.offSelect();
   }
 
-  async loadContacts(): Promise<void> {
+  async loadContacts(silent = false): Promise<void> {
+    if (silent && this.pagination.state.value.pending) return;
     const version = ++this.requestVersion;
-    this.loadedQuery = this.query.trim();
-    this.isLoading.value = true;
-    this.hasError.value = false;
-    this.pagination.reset();
+    if (!silent) {
+      this.loadedQuery = this.query.trim();
+      this.isLoading.value = true;
+      this.hasError.value = false;
+      this.pagination.reset();
+    }
 
     const response = await this.pagination.load('refresh');
     if (version !== this.requestVersion) return;
     if (response instanceof ApiError && response.status !== STATUSES.UNAUTHORIZED) {
-      this.hasError.value = true;
+      if (!silent) this.hasError.value = true;
       if (response.code !== ERROR_CODES.NETWORK_ERROR) debugError(response.message);
     }
 

@@ -40,6 +40,7 @@ export class ContactsPage extends Page {
     true,
   );
   private searchTimer: number | null = null;
+  private presenceTimer: number | null = null;
   private messageDraft = '';
   private dialogMenuOpen = false;
   private deleteConfirmOpen = false;
@@ -350,6 +351,7 @@ export class ContactsPage extends Page {
       firstName: profile.first_name,
       lastName: profile.last_name,
       nickname: profile.nickname,
+      bio: profile.bio,
       avatarUrl: profile.icon_url,
       initials: getChatInitials(name),
       isContact: true,
@@ -412,9 +414,13 @@ export class ContactsPage extends Page {
   async afterMount(): Promise<void> {
     this.chatModel.start(false);
     eventBus.emit('contacts:load');
+    this.presenceTimer = window.setInterval(() => {
+      if (!document.hidden) void this.model.loadContacts(true);
+    }, 10000);
   }
 
   unmount(): void {
+    window.clearInterval(this.presenceTimer ?? undefined);
     this.container?.removeEventListener('click', this.handleContainerClick);
     this.container?.removeEventListener('keydown', this.handleContainerKeydown);
     this.container?.removeEventListener('input', this.handleContainerInput);

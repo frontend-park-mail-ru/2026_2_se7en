@@ -4,7 +4,7 @@ import { ROUTES } from '@/constants/Routes.ts';
 import { escapeHtml } from '@/helpers/EscapeHtml.ts';
 import { router } from '@/helpers/Router.ts';
 import { user } from '@/store/User';
-import { ChatsIcon, ContactsIcon, LogoutIcon } from '@/components/core/Icons.js';
+import { ChatsIcon, ContactsIcon, LogoutIcon, UsersIcon } from '@/components/core/Icons.js';
 
 /** Компонент боковой панели навигации. */
 export class Sidebar {
@@ -16,6 +16,7 @@ export class Sidebar {
 
     const isChatsActive = activeRoute === ROUTES.HOME;
     const isContactsActive = activeRoute === ROUTES.CONTACTS;
+    const isUsersActive = activeRoute === ROUTES.USERS;
 
     return `
       <aside class="sidebar">
@@ -35,6 +36,11 @@ export class Sidebar {
             ${ContactsIcon}
             <span class="sidebar__nav-label">Контакты</span>
           </a>
+
+          <a href="${ROUTES.USERS}" class="sidebar__nav-item${isUsersActive ? ' sidebar__nav-item_active' : ''}"${isUsersActive ? ' aria-current="page"' : ''}>
+            ${UsersIcon}
+            <span class="sidebar__nav-label">Пользователи</span>
+          </a>
         </nav>
 
         <div class="sidebar__bottom">
@@ -51,6 +57,7 @@ export class Sidebar {
           <a href="${ROUTES.PROFILE}" class="sidebar__avatar-box" aria-label="Профиль" title="Профиль">
             <div class="sidebar__avatar">
               <span class="sidebar__avatar-letter">${safeFirstLetter}</span>
+              ${user.getAvatarUrl() ? `<img class="sidebar__avatar-image" src="${escapeHtml(user.getAvatarUrl())}" alt="">` : ''}
             </div>
             <div class="sidebar__status"></div>
           </a>

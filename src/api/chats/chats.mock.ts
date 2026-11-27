@@ -90,11 +90,7 @@ export async function mockGetChats(params: GetChatsParams = {}): Promise<ApiResu
   await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
   try {
-    const offset = params.offset ?? 0;
-    const paginatedChats = MOCK_CHATS.slice(
-      offset,
-      params.limit === undefined ? undefined : offset + params.limit,
-    );
+    const paginatedChats = MOCK_CHATS.slice(0, params.limit);
 
     const data: ChatsResponse = {
       items: paginatedChats.map(({ id, ...rest }) => ({ ...rest, id: String(id) })),

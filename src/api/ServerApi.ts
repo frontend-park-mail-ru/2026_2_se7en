@@ -6,32 +6,67 @@ import { CSRF_HEADER, CSRF_URL, SAFE_METHODS } from '@/api/csrf.constants.ts';
 import { ERROR_CODES, ERROR_MESSAGES } from '@/api/error.constants.ts';
 import { LOGIN_URL, REGISTER_URL } from '@/api/auth/auth.constants.ts';
 
-interface CSRFTokenResponse {
-  csrf_token: string;
-}
-
 interface ApiRequestOptions extends Omit<RequestInit, 'body' | 'headers' | 'credentials'> {
   body?: unknown;
   headers?: HeadersInit;
   contentType?: string;
   skipAuthRedirect?: boolean;
+  skipCsrf?: boolean;
 }
 
 /**
  * Базовый класс для выполнения HTTP-запросов к серверу.
  */
 export class ServerApi {
-  private static csrfRequest: Promise<ApiResult<CSRFTokenResponse>> | null = null;
+  private static csrfToken: string | null = null;
+  private static csrfTokenExpiresAt = 0;
+  private static csrfTokenRequest: Promise<string | null> | null = null;
+  private static csrfGeneration = 0;
 
-  private static getCSRFToken(): Promise<ApiResult<CSRFTokenResponse>> {
-    if (!ServerApi.csrfRequest) {
-      ServerApi.csrfRequest = ServerApi._request<CSRFTokenResponse>(CSRF_URL, {
-        cache: 'no-store',
-      }).finally(() => {
-        ServerApi.csrfRequest = null;
-      });
+  static clearCsrfToken(): void {
+    this.csrfGeneration += 1;
+    this.csrfToken = null;
+    this.csrfTokenExpiresAt = 0;
+    this.csrfTokenRequest = null;
+  }
+
+  private static async getCsrfToken(): Promise<string | null> {
+    if (this.csrfToken && Date.now() < this.csrfTokenExpiresAt) return this.csrfToken;
+    if (this.csrfTokenRequest) return this.csrfTokenRequest;
+
+    const generation = this.csrfGeneration;
+    const request = (async () => {
+      try {
+        const response = await fetch(`${BASE_URL}${CSRF_URL}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+        if (!response.ok) return null;
+        const data: unknown = await response.json();
+        if (
+          !data ||
+          typeof data !== 'object' ||
+          !('csrf_token' in data) ||
+          typeof data.csrf_token !== 'string'
+        ) {
+          return null;
+        }
+        if (generation !== this.csrfGeneration) return null;
+        this.csrfToken = data.csrf_token;
+        // Токен backend действует 24 часа; обновляем его с запасом.
+        this.csrfTokenExpiresAt = Date.now() + 23 * 60 * 60 * 1000;
+        return this.csrfToken;
+      } catch {
+        return null;
+      }
+    })();
+    this.csrfTokenRequest = request;
+
+    try {
+      return await request;
+    } finally {
+      if (this.csrfTokenRequest === request) this.csrfTokenRequest = null;
     }
-    return ServerApi.csrfRequest;
   }
 
   /**
@@ -52,7 +87,7 @@ export class ServerApi {
       headers.set('Content-Type', options.contentType ?? 'application/json');
     }
 
-    const { body, ...restOptions } = options;
+    const { body, skipAuthRedirect, skipCsrf, ...restOptions } = options;
 
     const config: RequestInit = {
       ...restOptions,
@@ -68,17 +103,9 @@ export class ServerApi {
       const method = (options.method ?? 'GET').toUpperCase();
       const isPublicAuthRequest =
         method === 'POST' && (endpoint === LOGIN_URL || endpoint === REGISTER_URL);
-      if (!SAFE_METHODS.includes(method) && !isPublicAuthRequest) {
-        const csrf = await ServerApi.getCSRFToken();
-        if (csrf.success === false) return csrf;
-        if (typeof csrf.data?.csrf_token !== 'string' || !csrf.data.csrf_token) {
-          return new ApiError(
-            ERROR_CODES.UNKNOWN_ERROR,
-            ERROR_MESSAGES[ERROR_CODES.UNKNOWN_ERROR],
-            csrf.status,
-          );
-        }
-        headers.set(CSRF_HEADER, csrf.data.csrf_token);
+      if (!skipCsrf && !SAFE_METHODS.includes(method) && !isPublicAuthRequest) {
+        const token = await this.getCsrfToken();
+        if (token) headers.set(CSRF_HEADER, token);
       }
 
       const response = await fetch(url, config);
@@ -94,10 +121,13 @@ export class ServerApi {
         return new ApiSuccess<T>(responseData as T, response.status);
       }
 
+      if (response.status === 403) this.clearCsrfToken();
+
       const errorData: ErrorData =
         responseData && typeof responseData === 'object' ? (responseData as ErrorData) : {};
 
-      if (response.status === STATUSES.UNAUTHORIZED && !options.skipAuthRedirect)
+      if (response.status === STATUSES.UNAUTHORIZED) this.clearCsrfToken();
+      if (response.status === STATUSES.UNAUTHORIZED && !skipAuthRedirect)
         eventBus.emit('auth:unauthorized');
 
       return new ApiError(

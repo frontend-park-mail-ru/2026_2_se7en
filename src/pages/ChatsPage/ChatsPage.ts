@@ -106,6 +106,8 @@ export class ChatsPage extends Page {
   private createAvatarObjectUrl: string | null = null;
   private editAvatarObjectUrl: string | null = null;
   private contacts: ContactPreview[] = [];
+  private contactsLoaded = false;
+  private contactsLoadPromise: Promise<void> | null = null;
   private groupContacts: GroupMemberView[] = [];
   private contactsLoading = false;
   private contactsError = '';
@@ -169,13 +171,21 @@ export class ChatsPage extends Page {
     const messageItems = searchingMessages
       ? (this.messageSearch?.items ?? [])
       : this.model.messages.value;
-    const messages: Message[] = messageItems.map((message) => ({
-      id: message.id,
-      text: message.content ?? '',
-      isOutgoing: message.user_id === user.getId(),
-      isRead: message.is_read,
-      time: formatMessageTime(new Date(message.created_at)),
-    }));
+    const messages: Message[] = messageItems.map((message) => {
+      const isOutgoing = message.user_id === currentUserId;
+      const authorName =
+        !isOutgoing && chat?.type === 'group'
+          ? groupMembers.find((member) => member.id === message.user_id)?.name
+          : undefined;
+      return {
+        id: message.id,
+        text: message.content ?? '',
+        isOutgoing,
+        isRead: message.is_read,
+        time: formatMessageTime(new Date(message.created_at)),
+        authorName,
+      };
+    });
     const chatContent = this.chatArea.render(chat, chats, loading, networkError, {
       messages,
       firstUnreadId: this.model.firstUnreadId.value,
@@ -281,18 +291,29 @@ export class ChatsPage extends Page {
     return this.layout.render(`${content}${PublicProfileModal(this.publicProfile)}`, modifier);
   }
 
-  private openPublicProfile(userId: string, contact?: Contact): void {
+  private async openPublicProfile(userId: string, contact?: Contact): Promise<void> {
     const member = this.model.members.value.find((candidate) => candidate.user_id === userId);
     const profile = contact ?? member?.profile;
-    if (!profile) {
-      return;
+    if (!profile) return;
+
+    if (!contact && !this.contactsLoaded) {
+      await this.loadContacts();
+      if (!this.contactsLoaded) {
+        eventBus.emit('snackbar:show', {
+          text: this.contactsError || 'Не удалось проверить список контактов. Попробуйте ещё раз.',
+          type: 'error',
+        });
+        return;
+      }
     }
+
     const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
     this.publicProfile = {
       userId,
       firstName: profile.first_name,
       lastName: profile.last_name,
       nickname: profile.nickname,
+      bio: member?.profile?.bio,
       avatarUrl: profile.icon_url,
       initials: getChatInitials(fullName || profile.nickname),
       isContact: Boolean(contact) || this.contacts.some((item) => item.id === userId),
@@ -574,7 +595,7 @@ export class ChatsPage extends Page {
     const profileUserId = target.closest<HTMLElement>('[data-open-user-profile]')?.dataset
       .openUserProfile;
     if (profileUserId) {
-      this.openPublicProfile(profileUserId);
+      void this.openPublicProfile(profileUserId);
       return;
     }
 
@@ -612,7 +633,7 @@ export class ChatsPage extends Page {
       switch (result.searchSection) {
         case 'contacts': {
           const contact = this.sidebarSearch?.contacts.get(resultId);
-          this.openPublicProfile(resultId, contact);
+          void this.openPublicProfile(resultId, contact);
           break;
         }
         case 'chats':
@@ -776,14 +797,14 @@ export class ChatsPage extends Page {
         selectionError.textContent = '';
       }
 
-      const selected = !selection.has(id);
-      if (selected) {
-        selection.add(id);
-      } else {
+      if (selection.has(id)) {
         selection.delete(id);
+      } else {
+        selection.add(id);
       }
 
-      updateMemberRowState(row, selected);
+      // Обновляем только строку и счётчики, чтобы не сбрасывать скролл списка.
+      updateMemberRowState(row, selection.has(id));
       const countText = groupSelectionCountText(selection, adding);
       const counters = this.container?.querySelectorAll<HTMLElement>('[data-group-selected-count]');
       for (const counter of counters ?? []) {
@@ -1137,7 +1158,7 @@ export class ChatsPage extends Page {
       event.preventDefault();
 
       const text = this.messageDraft.trim();
-      if (!text || this.model.sending.value) {
+      if (!text) {
         return;
       }
 
@@ -1254,7 +1275,23 @@ export class ChatsPage extends Page {
     }
   };
 
-  private async loadContacts(): Promise<void> {
+  private loadContacts(): Promise<void> {
+    if (this.contactsLoadPromise) return this.contactsLoadPromise;
+
+    const request = this.fetchContacts();
+    this.contactsLoadPromise = request;
+    void request.then(
+      () => {
+        if (this.contactsLoadPromise === request) this.contactsLoadPromise = null;
+      },
+      () => {
+        if (this.contactsLoadPromise === request) this.contactsLoadPromise = null;
+      },
+    );
+    return request;
+  }
+
+  private async fetchContacts(): Promise<void> {
     const version = ++this.contactRequestVersion;
     this.contactsLoading = true;
     this.contactsError = '';
@@ -1292,6 +1329,7 @@ export class ChatsPage extends Page {
 
     if (!this.contactsError) {
       this.contacts = contacts;
+      this.contactsLoaded = true;
       const memberIds = new Set(this.model.members.value.map((member) => member.user_id));
       this.groupContacts = contacts
         .filter((contact) => this.view !== 'group-add-members' || !memberIds.has(contact.id))
