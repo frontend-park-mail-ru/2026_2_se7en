@@ -117,6 +117,8 @@
   }
 
   &__avatar {
+    position: relative;
+    overflow: hidden;
     @include flex;
     flex: 0 0 50px;
     align-items: center;
@@ -149,6 +151,15 @@
     width: 11px;
     height: 11px;
     background: url('/design-assets/d4a6f.svg') center / contain no-repeat;
+  }
+
+  &__avatar-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
 }
 

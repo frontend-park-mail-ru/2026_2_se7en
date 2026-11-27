@@ -106,6 +106,7 @@ export class ChatArea {
               className: 'chat-area__icon-button',
               ariaLabel: 'Поиск по чату',
               title: 'Поиск по чату',
+              disabled: true,
               attrs: { 'data-chat-search': '' },
             })}
             ${Button({ text: `<img src="${asset('d4d19.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: `chat-area__icon-button${options.menuOpen ? ' chat-area__icon-button_active' : ''}`, ariaLabel: 'Меню диалога', attrs: { 'aria-haspopup': 'menu', 'aria-expanded': String(Boolean(options.menuOpen)), 'data-dialog-menu-toggle': '' } })}
@@ -193,12 +194,12 @@ export class ChatArea {
         </div>
 
         <form class="chat-area__composer" data-message-form>
-          ${Button({ text: `<img src="${asset('f4e99.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__attach', ariaLabel: 'Прикрепить файл', attrs: { 'data-message-attach': '' } })}
+          ${Button({ text: `<img src="${asset('f4e99.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__attach', ariaLabel: 'Прикрепить файл', title: 'Вложения скоро появятся', disabled: true, attrs: { 'data-message-attach': '' } })}
           <div class="chat-area__input-wrap">
             <input name="message" type="text" maxlength="4096" value="${escapeHtml(draft)}" placeholder="Напишите сообщение…" autocomplete="off" aria-label="Сообщение" data-message-input>
-            ${Button({ text: `<img src="${asset('5a40e.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__emoji', ariaLabel: 'Добавить эмодзи', attrs: { 'data-message-emoji': '' } })}
+            ${Button({ text: `<img src="${asset('5a40e.svg')}" alt="" width="19" height="19">`, mode: 'unstyled', className: 'chat-area__emoji', ariaLabel: 'Добавить эмодзи', title: 'Выбор эмодзи скоро появится', disabled: true, attrs: { 'data-message-emoji': '' } })}
           </div>
-          ${Button({ text: `<img src="${asset('1dc80.svg')}" alt="" width="20" height="20">`, type: 'submit', mode: 'unstyled', className: 'chat-area__send', ariaLabel: 'Отправить сообщение', disabled: !draft.trim() || Boolean(options.sending) })}
+          ${Button({ text: `<img src="${asset('1dc80.svg')}" alt="" width="20" height="20">`, type: 'submit', mode: 'unstyled', className: 'chat-area__send', ariaLabel: 'Отправить сообщение', disabled: !draft.trim() })}
         </form>
         ${options.sendError ? `<p class="chat-area__send-error" role="alert">${escapeHtml(options.sendError)}</p>` : ''}
         ${options.deleteConfirmOpen ? this.renderDeleteConfirm(chat.name ?? '', isGroup) : ''}

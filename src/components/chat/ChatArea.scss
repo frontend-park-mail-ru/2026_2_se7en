@@ -111,9 +111,13 @@
   }
 
   &__avatar-image {
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     border-radius: inherit;
   }
 
@@ -123,7 +127,9 @@
     bottom: 0;
     width: 11px;
     height: 11px;
-    background: url('/design-assets/82830.svg') center / contain no-repeat;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #31b77a;
   }
 
   &__identity-text {
@@ -484,6 +490,18 @@
       background: #ff4b55;
     }
   }
+}
+
+.chat-area__avatar {
+  overflow: visible;
+}
+.chat-area__avatar-image {
+  display: block;
+}
+.chat-area__online {
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #31b77a;
 }
 
 @media (max-width: 700px) {

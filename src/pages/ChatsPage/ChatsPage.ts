@@ -94,6 +94,8 @@ export class ChatsPage extends Page {
   private createAvatarObjectUrl: string | null = null;
   private editAvatarObjectUrl: string | null = null;
   private contacts: ContactPreview[] = [];
+  private contactsLoaded = false;
+  private contactsLoadPromise: Promise<void> | null = null;
   private groupContacts: GroupMemberView[] = [];
   private contactsLoading = false;
   private contactsError = '';
@@ -121,7 +123,6 @@ export class ChatsPage extends Page {
         this.model.membersLoading,
         this.model.membersError,
         this.model.sendError,
-        this.model.sending,
         this.model.hasMoreMessages,
         this.model.hasMoreChats,
       ],
@@ -277,18 +278,29 @@ export class ChatsPage extends Page {
     return this.layout.render(`${content}${PublicProfileModal(this.publicProfile)}`, modifier);
   }
 
-  private openPublicProfile(userId: string, contact?: Contact): void {
+  private async openPublicProfile(userId: string): Promise<void> {
     const member = this.model.members.value.find((candidate) => candidate.user_id === userId);
-    const profile = contact ?? member?.profile;
-    if (!profile) {
-      return;
+    if (!member?.profile) return;
+
+    if (!this.contactsLoaded) {
+      await this.loadContacts();
+      if (!this.contactsLoaded) {
+        eventBus.emit('snackbar:show', {
+          text: this.contactsError || 'Не удалось проверить список контактов. Попробуйте ещё раз.',
+          type: 'error',
+        });
+        return;
+      }
     }
+
+    const profile = member.profile;
     const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
     this.publicProfile = {
       userId,
       firstName: profile.first_name,
       lastName: profile.last_name,
       nickname: profile.nickname,
+      bio: profile.bio,
       avatarUrl: profile.icon_url,
       initials: getChatInitials(fullName || profile.nickname),
       isContact: Boolean(contact) || this.contacts.some((item) => item.id === userId),
@@ -351,11 +363,40 @@ export class ChatsPage extends Page {
       : null;
     const selectionStart = focusedInput?.selectionStart;
     const selectionEnd = focusedInput?.selectionEnd;
+    const oldChatList = this.container.querySelector<HTMLElement>('.chat-panel__list');
+    const oldChatListScrollTop = oldChatList?.scrollTop ?? 0;
+    const oldHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
+    const oldLastId = oldHistory?.querySelector<HTMLElement>('[data-message-id]:last-child')
+      ?.dataset.messageId;
+    const oldFirstId =
+      oldHistory?.querySelector<HTMLElement>('[data-message-id]')?.dataset.messageId;
+    const oldScrollTop = oldHistory?.scrollTop ?? 0;
+    const oldScrollHeight = oldHistory?.scrollHeight ?? 0;
+    const nearBottom = oldHistory
+      ? oldScrollHeight - oldScrollTop - oldHistory.clientHeight < 80
+      : true;
     const searchButton = document.activeElement?.closest<HTMLButtonElement>('[data-search-step]');
     const panelScroll = this.container.querySelector('.chat-panel__list')?.scrollTop;
     const focusedMessage = document.activeElement?.closest<HTMLElement>('[data-message-id]');
     const previousHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
     this.container.innerHTML = this.render();
+    const newChatList = this.container.querySelector<HTMLElement>('.chat-panel__list');
+    if (newChatList) newChatList.scrollTop = oldChatListScrollTop;
+    const newHistory = this.container.querySelector<HTMLElement>('[data-message-history]');
+    if (newHistory) {
+      const newLastId = newHistory.querySelector<HTMLElement>('[data-message-id]:last-child')
+        ?.dataset.messageId;
+      const newFirstId =
+        newHistory.querySelector<HTMLElement>('[data-message-id]')?.dataset.messageId;
+      if (!oldHistory || (oldLastId !== newLastId && nearBottom))
+        newHistory.scrollTop = newHistory.scrollHeight;
+      else
+        newHistory.scrollTop =
+          oldScrollTop +
+          (oldFirstId && oldFirstId !== newFirstId
+            ? Math.max(0, newHistory.scrollHeight - oldScrollHeight)
+            : 0);
+    }
     this.bindEvents();
 
     const panel = this.container.querySelector('.chat-panel__list');
@@ -550,7 +591,7 @@ export class ChatsPage extends Page {
     const profileUserId = target.closest<HTMLElement>('[data-open-user-profile]')?.dataset
       .openUserProfile;
     if (profileUserId) {
-      this.openPublicProfile(profileUserId);
+      void this.openPublicProfile(profileUserId);
       return;
     }
 
@@ -1105,16 +1146,13 @@ export class ChatsPage extends Page {
       event.preventDefault();
 
       const text = this.messageDraft.trim();
-      if (!text || this.model.sending.value) {
+      if (!text) {
         return;
       }
 
-      void this.model.sendMessage(text).then((sent) => {
-        if (sent) {
-          this.messageDraft = '';
-          this.update();
-        }
-      });
+      this.messageDraft = '';
+      this.update();
+      void this.model.sendMessage(text);
       return;
     }
 
@@ -1219,7 +1257,23 @@ export class ChatsPage extends Page {
     }
   };
 
-  private async loadContacts(): Promise<void> {
+  private loadContacts(): Promise<void> {
+    if (this.contactsLoadPromise) return this.contactsLoadPromise;
+
+    const request = this.fetchContacts();
+    this.contactsLoadPromise = request;
+    void request.then(
+      () => {
+        if (this.contactsLoadPromise === request) this.contactsLoadPromise = null;
+      },
+      () => {
+        if (this.contactsLoadPromise === request) this.contactsLoadPromise = null;
+      },
+    );
+    return request;
+  }
+
+  private async fetchContacts(): Promise<void> {
     const version = ++this.contactRequestVersion;
     this.contactsLoading = true;
     this.contactsError = '';
@@ -1257,6 +1311,7 @@ export class ChatsPage extends Page {
 
     if (!this.contactsError) {
       this.contacts = contacts;
+      this.contactsLoaded = true;
       const memberIds = new Set(this.model.members.value.map((member) => member.user_id));
       this.groupContacts = contacts
         .filter((contact) => this.view !== 'group-add-members' || !memberIds.has(contact.id))

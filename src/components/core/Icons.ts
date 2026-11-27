@@ -87,6 +87,13 @@ export const ContactsIcon = `
   </svg>
 `;
 
+export const UsersIcon = `
+  <svg class="icon icon_lg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="9" cy="8" r="3" stroke-width="1.8" />
+    <path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.8M17 14a5 5 0 0 1 3.5 4.8" stroke-width="1.8" stroke-linecap="round" />
+  </svg>
+`;
+
 export const LogoutIcon = `
   <svg aria-hidden="true" class="icon icon_md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4m4-4 4-4-4-4m4 4H9" />

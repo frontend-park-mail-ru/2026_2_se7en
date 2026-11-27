@@ -31,7 +31,6 @@ export class ChatsPageModel {
   readonly membersLoading = new Signal(false);
   readonly membersError = new Signal('');
   readonly sendError = new Signal('');
-  readonly sending = new Signal(false);
   readonly hasMoreMessages = new Signal(false);
 
   private selectedChatId: string | null = null;
@@ -39,12 +38,14 @@ export class ChatsPageModel {
   private dialogRequestVersion = 0;
   private isFetching = false;
   private pendingChatsRefresh = false;
+  private readonly chatEventVersions = new Map<string, number>();
   private catchUpAfterMessageLoad = false;
   private nextCursor: { after_time: string; after_id: string } | null = null;
   private loadedPageCount = 1;
   readonly hasMoreChats = new Signal(false);
 
   private activityTimer: number | null = null;
+  private presenceTimer: number | null = null;
   private localTypingChatId: string | null = null;
   private localTypingTimer: number | null = null;
   private readonly remoteTypingTimers = new Map<string, number>();
@@ -76,9 +77,13 @@ export class ChatsPageModel {
   start(loadInitially = true): void {
     this.socket.connect();
     if (loadInitially) void this.loadChats(true);
+    this.presenceTimer = window.setInterval(() => {
+      if (!document.hidden) void this.loadChats(false);
+    }, 10000);
   }
 
   destroy(): void {
+    window.clearInterval(this.presenceTimer ?? undefined);
     this.selectionVersion += 1;
     this.dialogRequestVersion += 1;
     window.clearTimeout(this.activityTimer ?? undefined);
@@ -374,25 +379,20 @@ export class ChatsPageModel {
     const id = this.selectedChatId;
     const text = content.trim();
 
-    if (!id || !text || this.sending.value) {
+    if (!id || !text) {
       return false;
     }
 
     this.stopTyping();
-    this.sending.value = true;
     this.sendError.value = '';
 
     const result = await ChatsApi.sendMessage(id, text);
-    this.sending.value = false;
-
     if (result instanceof ApiError) {
       this.sendError.value = result.message;
       return false;
     }
 
-    if (result.data) {
-      this.acceptMessage(result.data);
-    }
+    if (result.data) this.acceptMessage(result.data);
     return true;
   }
 
@@ -609,14 +609,18 @@ export class ChatsPageModel {
       return;
     }
 
-    for (const message of messages) {
-      if (message.user_id !== currentUserId && !message.is_read) {
-        this.socket.send({
-          type: 'message.mark_read',
-          chat_id: chatId,
-          message_id: message.id,
-        });
-      }
+    const boundary = messages
+      .filter((message) => message.user_id !== currentUserId)
+      .sort((left, right) => {
+        const byTime = Date.parse(right.created_at) - Date.parse(left.created_at);
+        return byTime || right.id.localeCompare(left.id);
+      })[0];
+    if (boundary) {
+      this.socket.send({
+        type: 'message.mark_read',
+        chat_id: chatId,
+        message_id: boundary.id,
+      });
     }
   }
 
@@ -641,21 +645,34 @@ export class ChatsPageModel {
     this.hasMoreChats.value = Boolean(this.nextCursor);
   }
 
-  private async verifySelectedChat(): Promise<void> {
-    const id = this.selectedChatId;
-    if (!id) return;
-    const result = await ChatsApi.getChat(id);
-    if (id !== this.selectedChatId) return;
-    if (result instanceof ApiError && (result.status === 403 || result.status === 404))
-      this.removeCurrentChat();
-  }
-
   private scheduleActivityRefresh(): void {
     if (this.activityTimer !== null) return;
     this.activityTimer = window.setTimeout(() => {
       this.activityTimer = null;
       void this.loadChats(false);
     }, 150);
+  }
+
+  private async refreshChatFromEvent(chatId: string): Promise<void> {
+    const version = (this.chatEventVersions.get(chatId) ?? 0) + 1;
+    this.chatEventVersions.set(chatId, version);
+    const result = await ChatsApi.getChat(chatId);
+    if (this.chatEventVersions.get(chatId) !== version) return;
+    if (result instanceof ApiError) {
+      void this.loadChats(false);
+      return;
+    }
+
+    const current = this.chats.value.find((chat) => chat.id === chatId);
+    const updated = toDisplayChat({ ...current, ...result.data.chat });
+    this.chats.value = sortChatsByLastMessage([
+      ...this.chats.value.filter((chat) => chat.id !== chatId),
+      updated,
+    ]);
+    if (this.selectedChatId === chatId) {
+      this.activeChat.value = updated;
+      this.role.value = result.data.role;
+    }
   }
 
   private acceptMessage(message: ChatMessage): void {
@@ -665,7 +682,10 @@ export class ChatsPageModel {
       this.removeRemoteTypingUser(message.user_id);
       const exists = this.messages.value.some((item) => item.id === message.id);
       if (!exists) {
-        this.messages.value = [...this.messages.value, message];
+        this.messages.value = [...this.messages.value, message].sort((left, right) => {
+          const byTime = Date.parse(left.created_at) - Date.parse(right.created_at);
+          return byTime || left.id.localeCompare(right.id);
+        });
       }
       this.markMessagesRead(id, [message]);
     }
@@ -769,11 +789,18 @@ export class ChatsPageModel {
         typeof payload.user_id === 'string'
       ) {
         if (payload.chat_id === this.selectedChatId && payload.user_id !== user.getId()) {
-          const message = this.messages.value.find((item) => item.id === payload.message_id);
-          if (message?.user_id === user.getId() && !message.is_read) {
-            this.messages.value = this.messages.value.map((item) =>
-              item.id === payload.message_id ? { ...item, is_read: true } : item,
-            );
+          const boundary = this.messages.value.find((item) => item.id === payload.message_id);
+          if (boundary) {
+            const boundaryTime = Date.parse(boundary.created_at);
+            this.messages.value = this.messages.value.map((item) => {
+              const itemTime = Date.parse(item.created_at);
+              const isAtOrBeforeBoundary =
+                itemTime < boundaryTime ||
+                (itemTime === boundaryTime && item.id.localeCompare(boundary.id) <= 0);
+              return item.user_id === user.getId() && isAtOrBeforeBoundary
+                ? { ...item, is_read: true }
+                : item;
+            });
           }
         }
 
@@ -789,6 +816,12 @@ export class ChatsPageModel {
 
     if (event.type === 'chat.deleted') {
       const payload = event.payload as { chat_id?: string } | undefined;
+      if (payload?.chat_id) {
+        this.chatEventVersions.set(
+          payload.chat_id,
+          (this.chatEventVersions.get(payload.chat_id) ?? 0) + 1,
+        );
+      }
       if (payload?.chat_id === this.selectedChatId) this.removeCurrentChat();
       else if (payload?.chat_id)
         this.chats.value = this.chats.value.filter((chat) => chat.id !== payload.chat_id);
@@ -796,19 +829,15 @@ export class ChatsPageModel {
       return;
     }
 
-    if (
-      event.type === 'chat.created' ||
-      event.type === 'chat.updated' ||
-      event.type === 'chat.deleted'
-    ) {
-      void this.loadChats(false);
+    if (event.type === 'chat.created' || event.type === 'chat.updated') {
+      const payload = event.payload as { chat_id?: string } | undefined;
+      if (payload?.chat_id) void this.refreshChatFromEvent(payload.chat_id);
       return;
     }
 
     if (event.type === 'chat.activity') {
       const payload = event.payload as { chat_id?: string } | undefined;
-      if (payload?.chat_id === this.selectedChatId) void this.verifySelectedChat();
-      this.scheduleActivityRefresh();
+      if (payload?.chat_id !== this.selectedChatId) this.scheduleActivityRefresh();
       return;
     }
 
@@ -831,15 +860,33 @@ export class ChatsPageModel {
     }
 
     if (event.type === 'member.added' || event.type === 'member.deleted') {
-      const payload = event.payload as { chat_id?: string; user_id?: string } | undefined;
-      if (
-        event.type === 'member.deleted' &&
-        payload?.chat_id === this.selectedChatId &&
-        payload.user_id === user.getId()
-      )
-        this.removeCurrentChat();
-      void this.loadChats(false);
-      void this.loadMembers();
+      const payload = event.payload as
+        { chat_id?: string; user_id?: string; member?: ChatMember } | undefined;
+      const chatId = payload?.chat_id;
+      const memberId = payload?.member?.user_id ?? payload?.user_id;
+      if (!chatId) return;
+
+      if (event.type === 'member.deleted' && memberId === user.getId()) {
+        this.chatEventVersions.set(chatId, (this.chatEventVersions.get(chatId) ?? 0) + 1);
+        if (chatId === this.selectedChatId) this.removeCurrentChat();
+        else this.chats.value = this.chats.value.filter((chat) => chat.id !== chatId);
+        return;
+      }
+
+      if (chatId === this.selectedChatId) {
+        if (event.type === 'member.added' && payload?.member) {
+          this.members.value = [
+            ...this.members.value.filter((member) => member.user_id !== payload.member?.user_id),
+            payload.member,
+          ];
+        } else if (event.type === 'member.deleted' && memberId) {
+          this.members.value = this.members.value.filter((member) => member.user_id !== memberId);
+        } else {
+          void this.loadMembers(chatId);
+        }
+      }
+
+      void this.refreshChatFromEvent(chatId);
     }
   }
 }

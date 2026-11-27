@@ -40,11 +40,11 @@ export class ContactsPageModel {
     this.offSelect();
   }
 
-  async loadContacts(): Promise<void> {
+  async loadContacts(silent = false): Promise<void> {
     const version = ++this.requestVersion;
     const query = this.query.trim();
     this.isFetching = true;
-    this.isLoading.value = true;
+    if (!silent) this.isLoading.value = true;
     this.hasError.value = false;
 
     const contacts: DisplayContact[] = [];
@@ -66,7 +66,7 @@ export class ContactsPageModel {
     }
 
     if (!this.hasError.value) this.contacts.value = contacts;
-    this.activeContact.value = null;
+    if (!silent) this.activeContact.value = null;
     this.isLoading.value = false;
     this.isFetching = false;
   }

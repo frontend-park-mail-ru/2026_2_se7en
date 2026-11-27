@@ -210,7 +210,7 @@ export function renderGroupCreateDetails(
       </header>
       <form class="group-create-panel__form" data-group-create-form novalidate>
         <div class="group-create-panel__details">
-        ${avatarPicker(currentInitials, 'create', form.avatarUrl, form.avatarError, form.avatarFileName)}
+        ${avatarPicker('G', 'create', form.avatarUrl, form.avatarError, form.avatarFileName)}
         <label class="group-view__field" for="create-group-name">
           <span>Название группы</span>
           ${Input({ id: 'create-group-name', name: 'group-name', placeholder: 'Название группы', value: form.name, unstyled: true, attrs: { maxlength: '100', autocomplete: 'off', 'aria-invalid': String(Boolean(form.nameError)), 'aria-describedby': 'create-group-name-error', required: '' } })}
@@ -230,6 +230,7 @@ export function renderGroupCreateDetails(
             id: 'me',
             name: 'Вы',
             initials: currentInitials,
+            avatarUrl: user.getAvatarUrl() || undefined,
             status: 'Создатель и администратор',
           })}
           ${selectedMembers.map((member) => memberRow({ ...member, status: 'Участник' })).join('')}
