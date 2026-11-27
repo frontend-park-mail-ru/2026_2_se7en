@@ -5,7 +5,7 @@
   z-index: 100;
   max-width: 240px;
   padding: 6px 10px;
-  overflow-wrap: anywhere;
+  @include wrap-long-words;
   color: #fff;
   background: rgba(20, 32, 51, 0.92);
   border-radius: 8px;
@@ -20,13 +20,13 @@
   transition:
     opacity 120ms ease,
     visibility 120ms ease;
-}
 
-.tooltip_visible {
-  opacity: 1;
-  visibility: visible;
-}
+  &_visible {
+    opacity: 1;
+    visibility: visible;
+  }
 
-.tooltip_below {
-  transform: translate(-50%, 8px);
+  &_below {
+    transform: translate(-50%, 8px);
+  }
 }
